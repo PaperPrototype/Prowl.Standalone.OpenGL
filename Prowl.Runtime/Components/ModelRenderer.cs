@@ -19,7 +19,7 @@ public class ModelRenderer : MonoBehaviour
     public AnimationClip CurrentAnimation;
     public bool PlayAutomatically = true;
     public bool Loop = true;
-    public double AnimationSpeed = 0.1;
+    public double AnimationSpeed = 10.0;
 
     private double _animationTime = 0.0;
     private bool _isPlaying = false;
