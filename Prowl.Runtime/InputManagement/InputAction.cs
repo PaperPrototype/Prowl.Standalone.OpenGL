@@ -230,9 +230,6 @@ public class InputAction
         // Read the current value from bindings with interaction logic
         object newValue = ReadValueFromBindings(inputHandler, currentTime);
 
-        // Apply processors
-        newValue = ApplyProcessors(newValue);
-
         bool valueChanged = !newValue.Equals(_currentValue);
         _currentValue = newValue;
 
@@ -278,7 +275,17 @@ public class InputAction
         {
             object compositeValue = composite.ReadValue(inputHandler);
             if (IsValueActuated(compositeValue))
+            {
+                // Apply processors from the composite
+                foreach (var processor in composite.Processors)
+                {
+                    if (compositeValue is float floatValue)
+                        compositeValue = processor.Process(floatValue);
+                    else if (compositeValue is Float2 vectorValue)
+                        compositeValue = processor.Process(vectorValue);
+                }
                 return compositeValue;
+            }
         }
 
         // Then check regular bindings with interaction logic
@@ -289,6 +296,16 @@ public class InputAction
                 _interactionStates[binding] = new InteractionState();
 
             object rawValue = ReadBinding(binding, inputHandler);
+
+            // Apply processors from THIS binding only
+            foreach (var processor in binding.Processors)
+            {
+                if (rawValue is float floatValue)
+                    rawValue = processor.Process(floatValue);
+                else if (rawValue is Float2 vectorValue)
+                    rawValue = processor.Process(vectorValue);
+            }
+
             bool isActuated = IsValueActuated(rawValue);
 
             // Evaluate interaction and get the result
@@ -485,17 +502,8 @@ public class InputAction
 
     private object ApplyProcessors(object value)
     {
-        foreach (var binding in Bindings)
-        {
-            foreach (var processor in binding.Processors)
-            {
-                if (value is float floatValue)
-                    value = processor.Process(floatValue);
-                else if (value is Float2 vectorValue)
-                    value = processor.Process(vectorValue);
-            }
-        }
-
+        // Don't apply processors from all bindings - this is handled per-binding
+        // Processors should be applied in ReadValueFromBindings instead
         return value;
     }
 
