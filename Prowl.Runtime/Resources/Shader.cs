@@ -131,6 +131,8 @@ namespace Prowl.Runtime.Resources
             string fileName = shader switch
             {
                 DefaultShader.Standard => "Standard.shader",
+                DefaultShader.Unlit => "Unlit.shader",
+                DefaultShader.Line => "Line.shader",
                 DefaultShader.Invalid => "Invalid.shader",
                 DefaultShader.UI => "UI.shader",
                 DefaultShader.Gizmos => "Gizmos.shader",
