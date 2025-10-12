@@ -1,6 +1,7 @@
 ﻿// This file is part of the Prowl Game Engine
 // Licensed under the MIT License. See the LICENSE file in the project root for details.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -164,11 +165,100 @@ public sealed class AnimationClip : EngineObject, ISerializable
             => new Double3(PosX.Evaluate(time), PosY.Evaluate(time), PosZ.Evaluate(time));
 
         public Quaternion EvaluateRotationAt(double time)
-            => new Quaternion((float)RotX.Evaluate(time), (float)RotY.Evaluate(time), (float)RotZ.Evaluate(time), (float)RotW.Evaluate(time));
+        {
+            // Use SLERP for smooth quaternion interpolation
+            if (RotX.Keys.Count == 0)
+                return Quaternion.Identity;
+
+            if (RotX.Keys.Count == 1)
+            {
+                return NormalizeQuaternion(new Quaternion(
+                    (float)RotX.Keys[0].Value,
+                    (float)RotY.Keys[0].Value,
+                    (float)RotZ.Keys[0].Value,
+                    (float)RotW.Keys[0].Value
+                ));
+            }
+
+            // Find the two keyframes to interpolate between
+            int idx0 = -1;
+            int idx1 = -1;
+
+            for (int i = 0; i < RotX.Keys.Count - 1; i++)
+            {
+                if (time >= RotX.Keys[i].Position && time <= RotX.Keys[i + 1].Position)
+                {
+                    idx0 = i;
+                    idx1 = i + 1;
+                    break;
+                }
+            }
+
+            // Handle edge cases
+            if (idx0 == -1)
+            {
+                if (time <= RotX.Keys[0].Position)
+                {
+                    idx0 = idx1 = 0;
+                }
+                else if (time >= RotX.Keys[^1].Position)
+                {
+                    idx0 = idx1 = RotX.Keys.Count - 1;
+                }
+                else
+                {
+                    // Shouldn't happen, but fallback to first frame
+                    idx0 = idx1 = 0;
+                }
+            }
+
+            var key0 = RotX.Keys[idx0];
+            var key1 = RotX.Keys[idx1];
+
+            Quaternion q0 = new (
+                (float)RotX.Keys[idx0].Value,
+                (float)RotY.Keys[idx0].Value,
+                (float)RotZ.Keys[idx0].Value,
+                (float)RotW.Keys[idx0].Value
+            );
+
+            Quaternion q1 = new (
+                (float)RotX.Keys[idx1].Value,
+                (float)RotY.Keys[idx1].Value,
+                (float)RotZ.Keys[idx1].Value,
+                (float)RotW.Keys[idx1].Value
+            );
+
+            float t = 0;
+            if (key1.Position != key0.Position)
+            {
+                t = (float)((time - key0.Position) / (key1.Position - key0.Position));
+                t = Math.Clamp(t, 0f, 1f);
+            }
+
+            return Maths.Slerp(q0, q1, t);
+        }
 
         public Double3 EvaluateScaleAt(double time)
             => new Double3(ScaleX.Evaluate(time), ScaleY.Evaluate(time), ScaleZ.Evaluate(time));
+
+        /// <summary>
+        /// Normalize a quaternion
+        /// </summary>
+        private static Quaternion NormalizeQuaternion(Quaternion q)
+        {
+            float length = (float)Math.Sqrt(q.X * q.X + q.Y * q.Y + q.Z * q.Z + q.W * q.W);
+
+            if (length < 0.0001f)
+                return Quaternion.Identity;
+
+            float invLength = 1.0f / length;
+            return new Quaternion(
+                q.X * invLength,
+                q.Y * invLength,
+                q.Z * invLength,
+                q.W * invLength
+            );
+        }
     }
-
-
 }
