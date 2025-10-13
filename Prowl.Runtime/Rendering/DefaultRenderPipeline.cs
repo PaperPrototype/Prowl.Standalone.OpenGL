@@ -346,26 +346,24 @@ namespace Prowl.Runtime.Rendering
             return (all, opaqueEffects, finalEffects);
         }
 
-        private static void SetupGlobalUniforms(CameraSnapshot css, Double3 sunDirection)
+        private static void SetupGlobalUniforms(CameraSnapshot css)
         {
             // Set View Rect
             //buffer.SetViewports((int)(camera.Viewrect.x * target.Width), (int)(camera.Viewrect.y * target.Height), (int)(camera.Viewrect.width * target.Width), (int)(camera.Viewrect.height * target.Height), 0, 1000);
 
-            PropertyState.SetGlobalMatrix("prowl_PrevViewProj", css.previousViewProj);
-
-            PropertyState.SetGlobalVector("_SunDir", sunDirection);
+            GlobalUniforms.SetPrevViewProj(css.previousViewProj);
 
             // Setup Default Uniforms for this frame
             // Camera
-            PropertyState.SetGlobalVector("_WorldSpaceCameraPos", CAMERA_RELATIVE ? Double3.Zero : css.cameraPosition);
-            PropertyState.SetGlobalVector("_ProjectionParams", new Double4(1.0f, css.nearClipPlane, css.farClipPlane, 1.0f / css.farClipPlane));
-            PropertyState.SetGlobalVector("_ScreenParams", new Double4(css.pixelWidth, css.pixelHeight, 1.0f + 1.0f / css.pixelWidth, 1.0f + 1.0f / css.pixelHeight));
+            GlobalUniforms.SetWorldSpaceCameraPos(CAMERA_RELATIVE ? Double3.Zero : css.cameraPosition);
+            GlobalUniforms.SetProjectionParams(new Double4(1.0f, css.nearClipPlane, css.farClipPlane, 1.0f / css.farClipPlane));
+            GlobalUniforms.SetScreenParams(new Double4(css.pixelWidth, css.pixelHeight, 1.0f + 1.0f / css.pixelWidth, 1.0f + 1.0f / css.pixelHeight));
 
             // Time
-            PropertyState.SetGlobalVector("_Time", new Double4(Time.time / 20, Time.time, Time.time * 2, Time.frameCount));
-            PropertyState.SetGlobalVector("_SinTime", new Double4(Math.Sin(Time.time / 8), Math.Sin(Time.time / 4), Math.Sin(Time.time / 2), Math.Sin(Time.time)));
-            PropertyState.SetGlobalVector("_CosTime", new Double4(Math.Cos(Time.time / 8), Math.Cos(Time.time / 4), Math.Cos(Time.time / 2), Math.Cos(Time.time)));
-            PropertyState.SetGlobalVector("prowl_DeltaTime", new Double4(Time.deltaTime, 1.0f / Time.deltaTime, Time.smoothDeltaTime, 1.0f / Time.smoothDeltaTime));
+            GlobalUniforms.SetTime(new Double4(Time.time / 20, Time.time, Time.time * 2, Time.frameCount));
+            GlobalUniforms.SetSinTime(new Double4(Math.Sin(Time.time / 8), Math.Sin(Time.time / 4), Math.Sin(Time.time / 2), Math.Sin(Time.time)));
+            GlobalUniforms.SetCosTime(new Double4(Math.Cos(Time.time / 8), Math.Cos(Time.time / 4), Math.Cos(Time.time / 2), Math.Cos(Time.time)));
+            GlobalUniforms.SetDeltaTime(new Double4(Time.deltaTime, 1.0f / Time.deltaTime, Time.smoothDeltaTime, 1.0f / Time.smoothDeltaTime));
 
             // Fog
             Scene.FogParams fog = css.scene.Fog;
@@ -374,9 +372,9 @@ namespace Prowl.Runtime.Rendering
             fogParams.Y = fog.Density / 0.693147181; // ln(2)
             fogParams.Z = -1.0 / (fog.End - fog.Start);
             fogParams.W = fog.End / (fog.End - fog.Start);
-            PropertyState.SetGlobalVector("prowl_FogColor", fog.Color);
-            PropertyState.SetGlobalVector("prowl_FogParams", fogParams);
-            PropertyState.SetGlobalVector("prowl_FogStates", new Float3(
+            GlobalUniforms.SetFogColor(fog.Color);
+            GlobalUniforms.SetFogParams(fogParams);
+            GlobalUniforms.SetFogStates(new Float3(
                 fog.Mode == Scene.FogParams.FogMode.Linear ? 1 : 0,
                 fog.Mode == Scene.FogParams.FogMode.Exponential ? 1 : 0,
                 fog.Mode == Scene.FogParams.FogMode.ExponentialSquared ? 1 : 0
@@ -384,22 +382,28 @@ namespace Prowl.Runtime.Rendering
 
             // Ambient Lighting
             Scene.AmbientLightParams ambient = css.scene.Ambient;
-            PropertyState.SetGlobalVector("prowl_AmbientMode", new Double2(
+            GlobalUniforms.SetAmbientMode(new Double2(
                 ambient.Mode == Scene.AmbientLightParams.AmbientMode.Uniform ? 1 : 0,
                 ambient.Mode == Scene.AmbientLightParams.AmbientMode.Hemisphere ? 1 : 0
             ));
 
-            PropertyState.SetGlobalVector("prowl_AmbientColor", ambient.Color);
-            PropertyState.SetGlobalVector("prowl_AmbientSkyColor", ambient.SkyColor);
-            PropertyState.SetGlobalVector("prowl_AmbientGroundColor", ambient.GroundColor);
+            GlobalUniforms.SetAmbientColor(ambient.Color);
+            GlobalUniforms.SetAmbientSkyColor(ambient.SkyColor);
+            GlobalUniforms.SetAmbientGroundColor(ambient.GroundColor);
+
+            // Upload the global uniform buffer
+            GlobalUniforms.Upload();
         }
 
         private static void AssignCameraMatrices(Double4x4 view, Double4x4 projection)
         {
-            PropertyState.SetGlobalMatrix("prowl_MatV", view);
-            PropertyState.SetGlobalMatrix("prowl_MatIV", view.Invert());
-            PropertyState.SetGlobalMatrix("prowl_MatP", projection);
-            PropertyState.SetGlobalMatrix("prowl_MatVP", projection * view);
+            GlobalUniforms.SetMatrixV(view);
+            GlobalUniforms.SetMatrixIV(view.Invert());
+            GlobalUniforms.SetMatrixP(projection);
+            GlobalUniforms.SetMatrixVP(projection * view);
+
+            // Upload the global uniform buffer
+            GlobalUniforms.Upload();
         }
 
         #endregion
@@ -440,6 +444,8 @@ namespace Prowl.Runtime.Rendering
             Double3 sunDirection = GetSunDirection(lights);
             RenderTexture target = camera.UpdateRenderData();
 
+            PropertyState.SetGlobalVector("_SunDir", sunDirection);
+
             // =======================================================
             // 1. Pre Cull
             foreach (ImageEffect effect in all)
@@ -448,7 +454,7 @@ namespace Prowl.Runtime.Rendering
             // =======================================================
             // 2. Take a snapshot of all Camera data
             CameraSnapshot css = new(camera);
-            SetupGlobalUniforms(css, sunDirection);
+            SetupGlobalUniforms(css);
 
             // =======================================================
             // 3. Cull Renderables based on Snapshot data
@@ -591,7 +597,7 @@ namespace Prowl.Runtime.Rendering
                 PropertyState.SetGlobalTexture("_ShadowAtlas", ShadowMap.InternalDepth);
             //PropertyState.SetGlobalBuffer("_Lights", LightBuffer, 0);
             //PropertyState.SetGlobalInt("_LightCount", LightCount);
-            PropertyState.SetGlobalVector("prowl_ShadowAtlasSize", new Double2(ShadowAtlas.GetSize(), ShadowAtlas.GetSize()));
+            GlobalUniforms.SetShadowAtlasSize(new Double2(ShadowAtlas.GetSize(), ShadowAtlas.GetSize()));
         }
 
         private static void CreateLightBuffer(Double3 cameraPosition, LayerMask cullingMask, IReadOnlyList<IRenderableLight> lights, IReadOnlyList<IRenderable> renderables)
@@ -1009,8 +1015,10 @@ namespace Prowl.Runtime.Rendering
                     if (CAMERA_RELATIVE)
                         model.Translation -= new Double4(viewer.Position, model.Translation.W);
 
+                    // Set per-object uniforms (these change every draw call)
                     PropertyState.SetGlobalMatrix("prowl_ObjectToWorld", model);
                     PropertyState.SetGlobalMatrix("prowl_WorldToObject", model.Invert());
+                    PropertyState.SetGlobalInt("_ObjectID", instanceId);
 
                     PropertyState.SetGlobalColor("_MainColor", Color.White);
 

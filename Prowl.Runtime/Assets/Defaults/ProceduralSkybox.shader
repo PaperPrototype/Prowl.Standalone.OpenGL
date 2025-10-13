@@ -216,9 +216,15 @@ Pass "Skybox"
                 return iSun * (pRlh * kRlh * totalRlh);
             }
             
-	    	void main() 
+	    	void main()
 	    	{
-			    gl_Position = PROWL_MATRIX_VP * vec4(vertexPosition, 1.0);
+			    // Remove translation from view matrix to keep skybox centered around camera
+			    mat4 viewNoTranslation = PROWL_MATRIX_V;
+			    viewNoTranslation[3][0] = 0.0;
+			    viewNoTranslation[3][1] = 0.0;
+			    viewNoTranslation[3][2] = 0.0;
+
+			    gl_Position = PROWL_MATRIX_P * viewNoTranslation * vec4(vertexPosition, 1.0);
 			    gl_Position.z = gl_Position.w;
 
                 // Sky

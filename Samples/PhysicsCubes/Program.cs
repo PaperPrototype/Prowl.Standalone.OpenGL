@@ -306,6 +306,9 @@ public sealed class PhysicsDemo : Game
         scene.Add(platform);
     }
 
+
+    Mesh cubeShootMesh = null;
+    int shootCounter = 0;
     private void ShootCube()
     {
         // Create a cube at camera position
@@ -313,7 +316,8 @@ public sealed class PhysicsDemo : Game
         cube.Transform.position = cameraGO.Transform.position + cameraGO.Transform.forward * 2.0;
 
         var cubeRenderer = cube.AddComponent<MeshRenderer>();
-        cubeRenderer.Mesh = Mesh.CreateCube(new Double3(0.5, 0.5, 0.5));
+        cubeShootMesh = cubeShootMesh == null ? Mesh.CreateCube(new Double3(0.5, 0.5, 0.5)) : cubeShootMesh;
+        cubeRenderer.Mesh = cubeShootMesh;
         cubeRenderer.Material = shootableCubeMaterial;
 
         var cubeRb = cube.AddComponent<Rigidbody3D>();
@@ -328,6 +332,9 @@ public sealed class PhysicsDemo : Game
         // Add velocity in the direction the camera is facing
         cubeRb.LinearVelocity = cameraGO.Transform.forward * 20.0;
 
+
+        shootCounter++;
+        Debug.Log($"Shot cube #{shootCounter} with mass {selectedCubeMass}");
     }
 
     public override void FixedUpdate()

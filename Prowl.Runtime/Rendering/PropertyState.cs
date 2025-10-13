@@ -119,6 +119,13 @@ namespace Prowl.Runtime.Rendering
             var cache = shader.uniformCache;
             int texSlot = 0;
 
+            // Bind the global uniform buffer first
+            var globalBuffer = GlobalUniforms.GetBuffer();
+            if (globalBuffer != null)
+            {
+                Graphics.Device.BindUniformBuffer(shader, "GlobalUniforms", globalBuffer, 0);
+            }
+
             // Apply global properties first (so instance properties can override them)
             ApplyGlobals(shader, cache, ref texSlot);
 
