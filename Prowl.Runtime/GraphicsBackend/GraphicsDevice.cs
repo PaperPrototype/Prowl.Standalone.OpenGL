@@ -29,7 +29,7 @@ namespace Prowl.Runtime.GraphicsBackend
 
         public abstract uint GetBlockIndex(GraphicsProgram program, string blockName);
 
-        public abstract void BindUniformBuffer(GraphicsProgram program, string blockName, GraphicsBuffer buffer);
+        public abstract void BindUniformBuffer(GraphicsProgram program, string blockName, GraphicsBuffer buffer, uint bindingPoint = 0);
 
         #endregion
 

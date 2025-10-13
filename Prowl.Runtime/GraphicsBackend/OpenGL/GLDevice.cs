@@ -199,16 +199,22 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
             BindProgram(program);
             uint newLoc = GL.GetUniformBlockIndex((program as GLProgram).Handle, blockName);
             cachedBlockLocations[key] = newLoc;
-            return newLoc == 0xFFFFFFFF ? 0 : newLoc;
+            return newLoc;
         }
 
-        public override void BindUniformBuffer(GraphicsProgram program, string blockName, GraphicsBuffer buffer)
+        public override void BindUniformBuffer(GraphicsProgram program, string blockName, GraphicsBuffer buffer, uint bindingPoint = 0)
         {
             uint blockIndex = GetBlockIndex(program, blockName);
-            if (blockIndex <= 0) return;
+            // 0xFFFFFFFF (GL_INVALID_INDEX) means the block was not found in the shader
+            if (blockIndex == 0xFFFFFFFF) return;
 
             BindProgram(program);
-            GL.BindBufferBase(BufferTargetARB.UniformBuffer, blockIndex, (buffer as GLBuffer)!.Handle);
+
+            // Connect the shader's uniform block index to the specified binding point
+            GL.UniformBlockBinding((program as GLProgram).Handle, blockIndex, bindingPoint);
+
+            // Now bind the buffer to that binding point
+            GL.BindBufferBase(BufferTargetARB.UniformBuffer, bindingPoint, (buffer as GLBuffer)!.Handle);
         }
 
         #endregion
