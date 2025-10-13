@@ -188,7 +188,7 @@ Pass "Standard"
 			    gMotionVector = vec4((curNDC - prevNDC) * 0.5, 0.0, 1.0);
 
 				// Albedo
-				vec4 albedo = texture(_MainTex, texCoord0) * vColor;
+				vec4 albedo = texture(_MainTex, texCoord0) * vColor * _MainColor;
 
 				// Normals
                 vec3 worldNormal;
