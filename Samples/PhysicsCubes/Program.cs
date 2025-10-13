@@ -401,7 +401,7 @@ public sealed class PhysicsDemo : Game
         }
 
         // Shoot cube with left mouse button
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButton(0))
         {
             ShootCube();
         }
