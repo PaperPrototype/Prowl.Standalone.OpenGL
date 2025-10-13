@@ -89,12 +89,12 @@ public sealed class VoxelGame : Game
 
         // WASD movement
         Double2 movement = Double2.Zero;
-        if (Input.GetKey(Key.W)) movement += Double2.UnitY;
-        if (Input.GetKey(Key.S)) movement -= Double2.UnitY;
-        if (Input.GetKey(Key.A)) movement -= Double2.UnitX;
-        if (Input.GetKey(Key.D)) movement += Double2.UnitX;
+        if (Input.GetKey(KeyCode.W)) movement += Double2.UnitY;
+        if (Input.GetKey(KeyCode.S)) movement -= Double2.UnitY;
+        if (Input.GetKey(KeyCode.A)) movement -= Double2.UnitX;
+        if (Input.GetKey(KeyCode.D)) movement += Double2.UnitX;
 
-        float speed = Input.GetKey(Key.ShiftLeft) ? 20f : 10f;
+        float speed = Input.GetKey(KeyCode.ShiftLeft) ? 20f : 10f;
 
         // forward/back
         cameraGO.Transform.position += cameraGO.Transform.forward * movement.Y * speed * Time.deltaTime;
@@ -103,8 +103,8 @@ public sealed class VoxelGame : Game
 
         // up/down with Q/E
         float upDown = 0;
-        if (Input.GetKey(Key.E)) upDown += 1;
-        if (Input.GetKey(Key.Q)) upDown -= 1;
+        if (Input.GetKey(KeyCode.E)) upDown += 1;
+        if (Input.GetKey(KeyCode.Q)) upDown -= 1;
         cameraGO.Transform.position += Double3.UnitY * upDown * speed * Time.deltaTime;
 
         // rotate with mouse
@@ -117,16 +117,16 @@ public sealed class VoxelGame : Game
         // Voxel editing
         if (Input.GetMouseButtonDown(0)) // Left click to destroy
         {
-            var ray = camera.ScreenPointToRay(Input.MousePosition, new Int2(Window.Size.X, Window.Size.Y));
+            var ray = camera.ScreenPointToRay((Double2)Input.MousePosition, new Double2(Window.Size.X, Window.Size.Y));
             world.RaycastVoxel(ray, 10f, true);
         }
         else if (Input.GetMouseButtonDown(2)) // Middle click to place
         {
-            var ray = camera.ScreenPointToRay(Input.MousePosition, new Int2(Window.Size.X, Window.Size.Y));
+            var ray = camera.ScreenPointToRay((Double2)Input.MousePosition, new Double2(Window.Size.X, Window.Size.Y));
             world.RaycastVoxel(ray, 10f, false);
         }
 
-        if (Input.GetKey(Key.F))
+        if (Input.GetKey(KeyCode.F))
         {
             spot.Transform.position = cameraGO.Transform.position;
             spot.Transform.rotation = cameraGO.Transform.rotation;
@@ -202,11 +202,11 @@ public class VoxelWorld : MonoBehaviour
             frontChunk.RegenerateMesh();
     }
 
-    public bool RaycastVoxel(RayD ray, float maxDistance, bool destroy)
+    public bool RaycastVoxel(Ray ray, float maxDistance, bool destroy)
     {
         // DDA Voxel Traversal
         Double3 rayPos = ray.Origin;
-        Double3 rayDir = Maths.Normalize(ray.Direction);
+        Double3 rayDir = Double3.Normalize(ray.Direction);
 
         // Current voxel position
         Int3 voxelPos = new Int3(
@@ -404,7 +404,7 @@ public class VoxelChunk : MonoBehaviour
     {
         List<Double3> vertices = new List<Double3>();
         List<int> triangles = new List<int>();
-        List<Float4> colors = new List<Float4>();
+        List<Color> colors = new List<Color>();
 
         for (int x = 0; x < ChunkWidth; x++)
         {
@@ -414,7 +414,7 @@ public class VoxelChunk : MonoBehaviour
                 {
                     if (voxels[x, y, z] == 0) continue; // Skip air
 
-                    Float4 voxelColor = GetVoxelColor(voxels[x, y, z]);
+                    Color voxelColor = GetVoxelColor(voxels[x, y, z]);
 
                     // Check each face and only add if adjacent voxel is air
                     // Top face (+Y)
@@ -467,19 +467,19 @@ public class VoxelChunk : MonoBehaviour
         meshRenderer!.Mesh = mesh;
     }
 
-    private Float4 GetVoxelColor(byte voxelType)
+    private Color GetVoxelColor(byte voxelType)
     {
         return voxelType switch
         {
-            1 => new Float4(0.5f, 0.5f, 0.5f, 1f),    // Stone - gray
-            2 => new Float4(0.6f, 0.4f, 0.2f, 1f),    // Dirt - brown
-            3 => new Float4(0.2f, 0.8f, 0.2f, 1f),    // Grass - green
-            _ => Colors.White
+            1 => new Color(0.5f, 0.5f, 0.5f, 1f),    // Stone - gray
+            2 => new Color(0.6f, 0.4f, 0.2f, 1f),    // Dirt - brown
+            3 => new Color(0.2f, 0.8f, 0.2f, 1f),    // Grass - green
+            _ => Color.White
         };
     }
 
-    private void AddFace(List<Double3> vertices, List<int> triangles, List<Float4> colors,
-                        int x, int y, int z, int face, Float4 color)
+    private void AddFace(List<Double3> vertices, List<int> triangles, List<Color> colors,
+                        int x, int y, int z, int face, Color color)
     {
         int vertexIndex = vertices.Count;
 

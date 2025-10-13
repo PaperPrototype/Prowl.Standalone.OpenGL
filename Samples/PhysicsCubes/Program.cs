@@ -125,10 +125,10 @@ public sealed class PhysicsDemo : Game
 
         // Camera movement
         Double2 movement = Double2.Zero;
-        if (Input.GetKey(Key.W)) movement += Double2.UnitY;
-        if (Input.GetKey(Key.S)) movement -= Double2.UnitY;
-        if (Input.GetKey(Key.A)) movement -= Double2.UnitX;
-        if (Input.GetKey(Key.D)) movement += Double2.UnitX;
+        if (Input.GetKey(KeyCode.W)) movement += Double2.UnitY;
+        if (Input.GetKey(KeyCode.S)) movement -= Double2.UnitY;
+        if (Input.GetKey(KeyCode.A)) movement -= Double2.UnitX;
+        if (Input.GetKey(KeyCode.D)) movement += Double2.UnitX;
 
         // forward/back
         cameraGO.Transform.position += cameraGO.Transform.forward * movement.Y * 10f * Time.deltaTime;
@@ -137,8 +137,8 @@ public sealed class PhysicsDemo : Game
 
         // up/down
         float upDown = 0;
-        if (Input.GetKey(Key.E)) upDown += 1;
-        if (Input.GetKey(Key.Q)) upDown -= 1;
+        if (Input.GetKey(KeyCode.E)) upDown += 1;
+        if (Input.GetKey(KeyCode.Q)) upDown -= 1;
         cameraGO.Transform.position += Double3.UnitY * upDown * 10f * Time.deltaTime;
 
         // rotate with mouse
@@ -149,7 +149,7 @@ public sealed class PhysicsDemo : Game
         }
 
         // Reset scene with R key
-        if (Input.GetKeyDown(Key.R))
+        if (Input.GetKeyDown(KeyCode.R))
         {
             // Clear and reinitialize
             scene.Clear();
