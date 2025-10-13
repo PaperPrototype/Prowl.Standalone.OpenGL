@@ -32,6 +32,8 @@ public sealed class PhysicsDemo : Game
         // Create directional light
         GameObject lightGO = new("Directional Light");
         var light = lightGO.AddComponent<DirectionalLight>();
+        light.shadowQuality = ShadowQuality.Soft;
+        light.shadowBias = 0.5f;
         lightGO.Transform.localEulerAngles = new Double3(-45, 45, 0);
         scene.Add(lightGO);
 
@@ -48,6 +50,7 @@ public sealed class PhysicsDemo : Game
         camera.Effects = new List<ImageEffect>()
         {
             new ScreenSpaceReflectionEffect(),
+            new FXAAEffect(),
             new KawaseBloomEffect(),
             new BokehDepthOfFieldEffect(),
             new TonemapperEffect(),
