@@ -7,8 +7,11 @@ using System.Collections.Generic;
 using Echo.Logging;
 
 using Prowl.Echo;
+using Prowl.PaperUI;
 using Prowl.Runtime.Audio;
+using Prowl.Runtime.GUI;
 using Prowl.Runtime.Resources;
+using Prowl.Vector;
 
 namespace Prowl.Runtime;
 
@@ -28,6 +31,9 @@ public abstract class Game
     private TimeData time = new TimeData();
     private double fixedTimeAccumulator = 0.0;
 
+    private PaperRenderer _paperRenderer;
+    private Paper _paper;
+
     public void Run(string title, int width, int height)
     {
 
@@ -36,8 +42,9 @@ public abstract class Game
         Window.Load += () => {
             Graphics.Initialize();
 
-            //_paperRenderer = new PaperRenderer();
-            //_paperRenderer.Initialize(width, height);
+            _paperRenderer = new PaperRenderer();
+            _paperRenderer.Initialize(width, height);
+            _paper = new Paper(_paperRenderer, width, height, new Prowl.Quill.FontAtlasSettings());
             //Paper.Initialize(_paperRenderer, width, height);
 
             Initialize();
@@ -78,28 +85,26 @@ public abstract class Game
 
             PostRender();
 
-            Graphics.EndFrame();
-
-
             Graphics.Device.UnbindFramebuffer();
             Graphics.Device.Viewport(0, 0, (uint)Window.InternalWindow.FramebufferSize.X, (uint)Window.InternalWindow.FramebufferSize.Y);
             //Paper.BeginFrame((float)delta);
 
-            GUI();
+            _paper.BeginFrame((float)delta);
 
-            //SceneManager.OnGUI();
-            //GameStateManager.UI();
+            GUI(_paper);
 
-            //Paper.EndFrame();
+            PostGUI(_paper);
 
-            PostGUI();
+            _paper.EndFrame();
+
+            Graphics.EndFrame();
 
             Debug.ClearGizmos();
         };
 
         Window.Resize += (size) => {
-            //Paper.SetResolution(size.X, size.Y);
-            //_paperRenderer.UpdateProjection(size.X, size.Y);
+            _paper.SetResolution(size.X, size.Y);
+            _paperRenderer.UpdateProjection(size.X, size.Y);
             Resize(size.X, size.Y);
         };
 
@@ -122,104 +127,93 @@ public abstract class Game
     public virtual void PostUpdate() { }
     public virtual void Render() { }
     public virtual void PostRender() { }
-    public virtual void GUI() { }
-    public virtual void PostGUI() { }
+    public virtual void GUI(Paper paper) { }
+    public virtual void PostGUI(Paper paper) { }
     public virtual void Resize(int width, int height) { }
     public virtual void Closing() { }
 
-    //private void UpdatePaperInput()
-    //{
-    //
-    //    // Handle mouse position and movement
-    //    Int2 mousePos = Input.MousePosition;
-    //    Paper.SetPointerState(PaperMouseBtn.Unknown, mousePos.X, mousePos.Y, false, true);
-    //
-    //    // Handle mouse buttons
-    //    if (Input.GetMouseButtonDown(0))
-    //        Paper.SetPointerState(PaperMouseBtn.Left, mousePos.X, mousePos.Y, true, false);
-    //    if (Input.GetMouseButtonUp(0))
-    //        Paper.SetPointerState(PaperMouseBtn.Left, mousePos.X, mousePos.Y, false, false);
-    //
-    //    if (Input.GetMouseButtonDown(1))
-    //        Paper.SetPointerState(PaperMouseBtn.Right, mousePos.X, mousePos.Y, true, false);
-    //    if (Input.GetMouseButtonUp(1))
-    //        Paper.SetPointerState(PaperMouseBtn.Right, mousePos.X, mousePos.Y, false, false);
-    //
-    //    if (Input.GetMouseButtonDown(2))
-    //        Paper.SetPointerState(PaperMouseBtn.Middle, mousePos.X, mousePos.Y, true, false);
-    //    if (Input.GetMouseButtonUp(2))
-    //        Paper.SetPointerState(PaperMouseBtn.Middle, mousePos.X, mousePos.Y, false, false);
-    //
-    //    // Handle mouse wheel
-    //    float wheelDelta = Input.MouseWheelDelta;
-    //    if (wheelDelta != 0)
-    //        Paper.SetPointerWheel(wheelDelta);
-    //
-    //    // Handle keyboard input
-    //    char? c = Input.GetPressedChar();
-    //    while (c != null)
-    //    {
-    //        Paper.AddInputCharacter((c.Value).ToString());
-    //        c = Input.GetPressedChar();
-    //    }
-    //
-    //    // Handle key states for keys
-    //    // Fortunately Papers key enums have almost all the same names
-    //    // So we only need to map a few keys manually, the rest we can use reflection
-    //    foreach (Silk.NET.Input.Key k in Enum.GetValues(typeof(Silk.NET.Input.Key)))
-    //        if (k != Silk.NET.Input.Key.Unknown)
-    //            if (Enum.TryParse(k.ToString(), out PaperKey paperKey))
-    //                HandleKey(k, paperKey);
-    //
-    //    // Handle the few keys that are not the same
-    //    HandleKey(Silk.NET.Input.Key.Equal, PaperKey.Equals);
-    //    HandleKey(Silk.NET.Input.Key.BackSlash, PaperKey.Backslash);
-    //    HandleKey(Silk.NET.Input.Key.GraveAccent, PaperKey.Grave);
-    //    HandleKey(Silk.NET.Input.Key.KeypadEqual, PaperKey.KeypadEquals);
-    //
-    //    HandleKey(Silk.NET.Input.Key.Number0, PaperKey.Num0);
-    //    HandleKey(Silk.NET.Input.Key.Number1, PaperKey.Num1);
-    //    HandleKey(Silk.NET.Input.Key.Number2, PaperKey.Num2);
-    //    HandleKey(Silk.NET.Input.Key.Number3, PaperKey.Num3);
-    //    HandleKey(Silk.NET.Input.Key.Number4, PaperKey.Num4);
-    //    HandleKey(Silk.NET.Input.Key.Number5, PaperKey.Num5);
-    //    HandleKey(Silk.NET.Input.Key.Number6, PaperKey.Num6);
-    //    HandleKey(Silk.NET.Input.Key.Number7, PaperKey.Num7);
-    //    HandleKey(Silk.NET.Input.Key.Number8, PaperKey.Num8);
-    //    HandleKey(Silk.NET.Input.Key.Number9, PaperKey.Num9);
-    //
-    //    HandleKey(Silk.NET.Input.Key.KeypadSubtract, PaperKey.KeypadMinus);
-    //    HandleKey(Silk.NET.Input.Key.KeypadAdd, PaperKey.KeypadPlus);
-    //
-    //    HandleKey(Silk.NET.Input.Key.LeftBracket, PaperKey.LeftBracket);
-    //    HandleKey(Silk.NET.Input.Key.RightBracket, PaperKey.RightBracket);
-    //    HandleKey(Silk.NET.Input.Key.ShiftLeft, PaperKey.LeftShift);
-    //    HandleKey(Silk.NET.Input.Key.ShiftRight, PaperKey.RightShift);
-    //    HandleKey(Silk.NET.Input.Key.AltLeft, PaperKey.LeftAlt);
-    //    HandleKey(Silk.NET.Input.Key.AltRight, PaperKey.RightAlt);
-    //    HandleKey(Silk.NET.Input.Key.ControlLeft, PaperKey.LeftControl);
-    //    HandleKey(Silk.NET.Input.Key.ControlRight, PaperKey.RightControl);
-    //    HandleKey(Silk.NET.Input.Key.SuperLeft, PaperKey.LeftSuper);
-    //    HandleKey(Silk.NET.Input.Key.SuperRight, PaperKey.RightSuper);
-    //
-    //    // These keys don't have direct equivalents in Silk.NET.Input.Key
-    //    // HandleKey(someKey, PaperKey.AudioNext);
-    //    // HandleKey(someKey, PaperKey.AudioPrevious);
-    //    // HandleKey(someKey, PaperKey.AudioStop);
-    //    // HandleKey(someKey, PaperKey.AudioPlay);
-    //    // HandleKey(someKey, PaperKey.AudioMute);
-    //    // HandleKey(someKey, PaperKey.Application);
-    //    // HandleKey(someKey, PaperKey.Select);
-    //    // HandleKey(someKey, PaperKey.Help);
-    //}
-    //
-    //static void HandleKey(Silk.NET.Input.Key silkKey, PaperKey paperKey)
-    //{
-    //    if (Input.GetKeyDown(silkKey))
-    //        Paper.SetKeyState(paperKey, true);
-    //    else if (Input.GetKeyUp(silkKey))
-    //        Paper.SetKeyState(paperKey, false);
-    //}
+    private void UpdatePaperInput()
+    {
+        // Handle mouse position and movement
+        Int2 mousePos = Input.MousePosition;
+        _paper.SetPointerState(PaperMouseBtn.Unknown, mousePos.X, mousePos.Y, false, true);
+    
+        // Handle mouse buttons
+        if (Input.GetMouseButtonDown(0))
+            _paper.SetPointerState(PaperMouseBtn.Left, mousePos.X, mousePos.Y, true, false);
+        if (Input.GetMouseButtonUp(0))
+            _paper.SetPointerState(PaperMouseBtn.Left, mousePos.X, mousePos.Y, false, false);
+    
+        if (Input.GetMouseButtonDown(1))
+            _paper.SetPointerState(PaperMouseBtn.Right, mousePos.X, mousePos.Y, true, false);
+        if (Input.GetMouseButtonUp(1))
+            _paper.SetPointerState(PaperMouseBtn.Right, mousePos.X, mousePos.Y, false, false);
+    
+        if (Input.GetMouseButtonDown(2))
+            _paper.SetPointerState(PaperMouseBtn.Middle, mousePos.X, mousePos.Y, true, false);
+        if (Input.GetMouseButtonUp(2))
+            _paper.SetPointerState(PaperMouseBtn.Middle, mousePos.X, mousePos.Y, false, false);
+    
+        // Handle mouse wheel
+        float wheelDelta = Input.MouseWheelDelta;
+        if (wheelDelta != 0)
+            _paper.SetPointerWheel(wheelDelta);
+    
+        // Handle keyboard input
+        char? c = Input.GetPressedChar();
+        while (c != null)
+        {
+            _paper.AddInputCharacter((c.Value).ToString());
+            c = Input.GetPressedChar();
+        }
+    
+        // Handle key states for keys
+        // Fortunately Papers key enums have almost all the same names
+        // So we only need to map a few keys manually, the rest we can use reflection
+        foreach (KeyCode k in Enum.GetValues(typeof(KeyCode)))
+            if (k != KeyCode.Unknown)
+                if (Enum.TryParse(k.ToString(), out PaperKey paperKey))
+                    HandleKey(k, paperKey);
+    
+        // Handle the few keys that are not the same
+        HandleKey(KeyCode.Equal, PaperKey.Equals);
+        HandleKey(KeyCode.BackSlash, PaperKey.Backslash);
+        HandleKey(KeyCode.GraveAccent, PaperKey.Grave);
+        HandleKey(KeyCode.KeypadEqual, PaperKey.KeypadEquals);
+
+        HandleKey(KeyCode.Number0, PaperKey.Num0);
+        HandleKey(KeyCode.Number1, PaperKey.Num1);
+        HandleKey(KeyCode.Number2, PaperKey.Num2);
+        HandleKey(KeyCode.Number3, PaperKey.Num3);
+        HandleKey(KeyCode.Number4, PaperKey.Num4);
+        HandleKey(KeyCode.Number5, PaperKey.Num5);
+        HandleKey(KeyCode.Number6, PaperKey.Num6);
+        HandleKey(KeyCode.Number7, PaperKey.Num7);
+        HandleKey(KeyCode.Number8, PaperKey.Num8);
+        HandleKey(KeyCode.Number9, PaperKey.Num9);
+
+        HandleKey(KeyCode.KeypadSubtract, PaperKey.KeypadMinus);
+        HandleKey(KeyCode.KeypadAdd, PaperKey.KeypadPlus);
+
+        HandleKey(KeyCode.LeftBracket, PaperKey.LeftBracket);
+        HandleKey(KeyCode.RightBracket, PaperKey.RightBracket);
+        HandleKey(KeyCode.ShiftLeft, PaperKey.LeftShift);
+        HandleKey(KeyCode.ShiftRight, PaperKey.RightShift);
+        HandleKey(KeyCode.AltLeft, PaperKey.LeftAlt);
+        HandleKey(KeyCode.AltRight, PaperKey.RightAlt);
+        HandleKey(KeyCode.ControlLeft, PaperKey.LeftControl);
+        HandleKey(KeyCode.ControlRight, PaperKey.RightControl);
+        HandleKey(KeyCode.SuperLeft, PaperKey.LeftSuper);
+        HandleKey(KeyCode.SuperRight, PaperKey.RightSuper);
+    }
+    
+    void HandleKey(KeyCode silkKey, PaperKey paperKey)
+    {
+        if (Input.GetKeyDown(silkKey))
+            _paper.SetKeyState(paperKey, true);
+        else if (Input.GetKeyUp(silkKey))
+            _paper.SetKeyState(paperKey, false);
+    }
 
     static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {

@@ -9,6 +9,7 @@ using System.Reflection;
 using Prowl.Echo;
 using Prowl.Vector;
 using Prowl.Runtime.Resources;
+using Prowl.PaperUI;
 
 namespace Prowl.Runtime;
 
@@ -299,12 +300,11 @@ public abstract class MonoBehaviour : EngineObject
     /// </summary>
     public virtual void DrawGizmos() { }
 
-    ///// <summary>
-    ///// Called for drawing and handling interaction with Runtime/Ingame UI
-    ///// Executed on any camera with the GUILayer component
-    ///// </summary>
-    ///// <param name="gui"></param>
-    //public virtual void OnGUI(Gui gui) { }
+    /// <summary>
+    /// Called for drawing and handling interaction with Runtime/Ingame UI
+    /// </summary>
+    /// <param name="paper"></param>
+    public virtual void OnGUI(Paper paper) { }
 
     /// <summary>
     /// Called when the MonoBehaviour will be destroyed.

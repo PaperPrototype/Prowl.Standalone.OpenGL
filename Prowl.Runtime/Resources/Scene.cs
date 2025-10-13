@@ -5,6 +5,7 @@ using System.Linq;
 using Prowl.Echo;
 using Prowl.Vector;
 using Prowl.Runtime.Rendering;
+using Prowl.PaperUI;
 
 namespace Prowl.Runtime.Resources
 {
@@ -331,6 +332,19 @@ namespace Prowl.Runtime.Resources
             {
                 x.FixedUpdate();
                 x.UpdateFixedUpdateCoroutines();
+            });
+        }
+
+        /// <summary>
+        /// Executes GUI update on all active GameObjects and their components.
+        /// Calls OnGUI.
+        /// </summary>
+        public void OnGUI(Paper paper)
+        {
+            List<GameObject> activeGOs = ActiveObjects.ToList();
+            ForeachComponent(activeGOs, (x) =>
+            {
+                x.OnGUI(paper);
             });
         }
 
