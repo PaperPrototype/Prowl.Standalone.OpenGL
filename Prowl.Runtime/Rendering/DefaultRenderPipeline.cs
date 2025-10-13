@@ -600,6 +600,12 @@ namespace Prowl.Runtime.Rendering
             GlobalUniforms.SetShadowAtlasSize(new Double2(ShadowAtlas.GetSize(), ShadowAtlas.GetSize()));
         }
 
+        // Reusable arrays to avoid allocations per frame
+        private static (IRenderableLight light, double distanceSq)[] s_tempSpotLights = new (IRenderableLight, double)[32];
+        private static (IRenderableLight light, double distanceSq)[] s_tempPointLights = new (IRenderableLight, double)[32];
+        private static int s_tempSpotCount = 0;
+        private static int s_tempPointCount = 0;
+
         private static void CreateLightBuffer(Double3 cameraPosition, LayerMask cullingMask, IReadOnlyList<IRenderableLight> lights, IReadOnlyList<IRenderable> renderables)
         {
             Graphics.Device.BindFramebuffer(ShadowAtlas.GetAtlas().frameBuffer);
@@ -617,125 +623,203 @@ namespace Prowl.Runtime.Rendering
             const int MAX_SPOT_LIGHTS = 4;
             const int MAX_POINT_LIGHTS = 4;
 
+            // Reset temp counts
+            s_tempSpotCount = 0;
+            s_tempPointCount = 0;
+            DirectionalLight? closestDirectional = null;
+            double closestDirDistSq = double.MaxValue;
+
+            // Single pass: separate by type and calculate squared distances (faster than Distance)
             foreach (IRenderableLight light in lights)
             {
                 if (cullingMask.HasLayer(light.GetLayer()) == false)
                     continue;
 
-                // Calculate resolution based on distance
-                int res = CalculateResolution(Double3.Distance(cameraPosition, light.GetLightPosition()));
+                Double3 toLight = light.GetLightPosition() - cameraPosition;
+                double distanceSq = toLight.X * toLight.X + toLight.Y * toLight.Y + toLight.Z * toLight.Z;
+
                 if (light is DirectionalLight dir)
-                    res = (int)dir.shadowResolution;
-
-                if (light.DoCastShadows())
                 {
-                    Double3 oldPos = Double3.Zero;
-                    //if (light is DirectionalLight dirLight)
-                    //{
-                    //    // Create light space transform matrices
-                    //    Vector3 lightDir = dirLight.Transform.forward;
-                    //    Vector3 lightUp = dirLight.Transform.up;
-                    //    Vector3 lightRight = Vector3.Cross(lightUp, lightDir).normalized;
-                    //    lightUp = Vector3.Cross(lightDir, lightRight).normalized; // Recompute to ensure orthogonality
-                    //
-                    //    // Create light space matrix (world to light space transform)
-                    //    Matrix4x4 worldToLight = new Matrix4x4(
-                    //        new Vector4(lightRight.x, lightUp.x, lightDir.x, 0),
-                    //        new Vector4(lightRight.y, lightUp.y, lightDir.y, 0),
-                    //        new Vector4(lightRight.z, lightUp.z, lightDir.z, 0),
-                    //        new Vector4(0, 0, 0, 1)
-                    //    );
-                    //
-                    //    // Transform camera position to light space
-                    //    Vector3 lightSpacePos = Vector3.Transform(cameraPosition, worldToLight);
-                    //
-                    //    // Calculate texel size in light space
-                    //    float texelSize = (dirLight.shadowDistance * 2) / res;
-                    //
-                    //    // Snap in light space (only X and Y components, Z doesn't matter for directional light)
-                    //    Vector3 snappedLightPos = new Vector3(
-                    //        Maths.Round(lightSpacePos.x / texelSize) * texelSize,
-                    //        Maths.Round(lightSpacePos.y / texelSize) * texelSize,
-                    //        lightSpacePos.z
-                    //    );
-                    //
-                    //    // Transform back to world space
-                    //    Matrix4x4 lightToWorld = worldToLight.Invert();
-                    //    Vector3 snappedWorldPos = Vector3.Transform(snappedLightPos, lightToWorld);
-                    //
-                    //    oldPos = dirLight.Transform.position;
-                    //    dirLight.Transform.position = snappedWorldPos;
-                    //}
-
-                    // Find a slot for the shadow map
-                    Int2? slot;
-                    bool isPointLight = light is PointLight;
-
-                    // Point lights need a 2x3 grid for cubemap faces
-                    if (isPointLight)
-                        slot = ShadowAtlas.ReserveCubemapTiles(res, light.GetLightID());
-                    else
-                        slot = ShadowAtlas.ReserveTiles(res, res, light.GetLightID());
-
-                    int AtlasX, AtlasY, AtlasWidth;
-
-                    if (slot != null)
+                    // Keep only the closest directional light
+                    if (distanceSq < closestDirDistSq)
                     {
-                        AtlasX = slot.Value.X;
-                        AtlasY = slot.Value.Y;
-                        AtlasWidth = res;
+                        closestDirectional = dir;
+                        closestDirDistSq = distanceSq;
+                    }
+                }
+                else if (light is SpotLight)
+                {
+                    // Grow array if needed
+                    if (s_tempSpotCount >= s_tempSpotLights.Length)
+                        Array.Resize(ref s_tempSpotLights, s_tempSpotLights.Length * 2);
 
-                        // Draw the shadow map
-                        ShadowMap = ShadowAtlas.GetAtlas();
+                    s_tempSpotLights[s_tempSpotCount++] = (light, distanceSq);
+                }
+                else if (light is PointLight)
+                {
+                    // Grow array if needed
+                    if (s_tempPointCount >= s_tempPointLights.Length)
+                        Array.Resize(ref s_tempPointLights, s_tempPointLights.Length * 2);
 
-                        // For point lights, render 6 faces
-                        if (isPointLight && light is PointLight pointLight)
+                    s_tempPointLights[s_tempPointCount++] = (light, distanceSq);
+                }
+            }
+
+            // Partial sort: only sort enough to get the N closest lights
+            // This is O(n log k) instead of O(n log n) where k = MAX_LIGHTS
+            PartialSort(s_tempSpotLights, s_tempSpotCount, MAX_SPOT_LIGHTS);
+            PartialSort(s_tempPointLights, s_tempPointCount, MAX_POINT_LIGHTS);
+
+            // Process directional light first
+            if (closestDirectional != null)
+            {
+                ProcessLight(closestDirectional, Math.Sqrt(closestDirDistSq), cameraPosition, renderables, ref numDirLights, ref spotLightIndex, ref pointLightIndex, MAX_SPOT_LIGHTS, MAX_POINT_LIGHTS);
+            }
+
+            // Process closest spot lights
+            int spotLightsToProcess = Math.Min(s_tempSpotCount, MAX_SPOT_LIGHTS);
+            for (int i = 0; i < spotLightsToProcess; i++)
+            {
+                var (light, distanceSq) = s_tempSpotLights[i];
+                ProcessLight(light, Math.Sqrt(distanceSq), cameraPosition, renderables, ref numDirLights, ref spotLightIndex, ref pointLightIndex, MAX_SPOT_LIGHTS, MAX_POINT_LIGHTS);
+            }
+
+            // Process closest point lights
+            int pointLightsToProcess = Math.Min(s_tempPointCount, MAX_POINT_LIGHTS);
+            for (int i = 0; i < pointLightsToProcess; i++)
+            {
+                var (light, distanceSq) = s_tempPointLights[i];
+                ProcessLight(light, Math.Sqrt(distanceSq), cameraPosition, renderables, ref numDirLights, ref spotLightIndex, ref pointLightIndex, MAX_SPOT_LIGHTS, MAX_POINT_LIGHTS);
+            }
+
+            // Set the light counts in global uniforms
+            GlobalUniforms.SetSpotLightCount(spotLightIndex);
+            GlobalUniforms.SetPointLightCount(pointLightIndex);
+            GlobalUniforms.Upload();
+        }
+
+        // Partial sort: only sorts the first 'k' elements, much faster when k << n
+        private static void PartialSort((IRenderableLight light, double distanceSq)[] array, int count, int k)
+        {
+            if (count <= 1 || k <= 0) return;
+
+            k = Math.Min(k, count);
+
+            // Use selection for small k, which is optimal for partial sorting
+            for (int i = 0; i < k; i++)
+            {
+                int minIndex = i;
+                double minDist = array[i].distanceSq;
+
+                // Find minimum in remaining elements
+                for (int j = i + 1; j < count; j++)
+                {
+                    if (array[j].distanceSq < minDist)
+                    {
+                        minDist = array[j].distanceSq;
+                        minIndex = j;
+                    }
+                }
+
+                // Swap if needed
+                if (minIndex != i)
+                {
+                    var temp = array[i];
+                    array[i] = array[minIndex];
+                    array[minIndex] = temp;
+                }
+            }
+        }
+
+        private static void ProcessLight(IRenderableLight light, double distance, Double3 cameraPosition, IReadOnlyList<IRenderable> renderables,
+            ref int numDirLights, ref int spotLightIndex, ref int pointLightIndex, int MAX_SPOT_LIGHTS, int MAX_POINT_LIGHTS)
+        {
+            // Calculate resolution based on distance (already calculated)
+            int res = CalculateResolution(distance);
+            if (light is DirectionalLight dir)
+                res = (int)dir.shadowResolution;
+
+            if (light.DoCastShadows())
+            {
+                Double3 oldPos = Double3.Zero;
+                //if (light is DirectionalLight dirLight)
+                //{
+                //    // Create light space transform matrices
+                //    Vector3 lightDir = dirLight.Transform.forward;
+                //    Vector3 lightUp = dirLight.Transform.up;
+                //    Vector3 lightRight = Vector3.Cross(lightUp, lightDir).normalized;
+                //    lightUp = Vector3.Cross(lightDir, lightRight).normalized; // Recompute to ensure orthogonality
+                //
+                //    // Create light space matrix (world to light space transform)
+                //    Matrix4x4 worldToLight = new Matrix4x4(
+                //        new Vector4(lightRight.x, lightUp.x, lightDir.x, 0),
+                //        new Vector4(lightRight.y, lightUp.y, lightDir.y, 0),
+                //        new Vector4(lightRight.z, lightUp.z, lightDir.z, 0),
+                //        new Vector4(0, 0, 0, 1)
+                //    );
+                //
+                //    // Transform camera position to light space
+                //    Vector3 lightSpacePos = Vector3.Transform(cameraPosition, worldToLight);
+                //
+                //    // Calculate texel size in light space
+                //    float texelSize = (dirLight.shadowDistance * 2) / res;
+                //
+                //    // Snap in light space (only X and Y components, Z doesn't matter for directional light)
+                //    Vector3 snappedLightPos = new Vector3(
+                //        Maths.Round(lightSpacePos.x / texelSize) * texelSize,
+                //        Maths.Round(lightSpacePos.y / texelSize) * texelSize,
+                //        lightSpacePos.z
+                //    );
+                //
+                //    // Transform back to world space
+                //    Matrix4x4 lightToWorld = worldToLight.Invert();
+                //    Vector3 snappedWorldPos = Vector3.Transform(snappedLightPos, lightToWorld);
+                //
+                //    oldPos = dirLight.Transform.position;
+                //    dirLight.Transform.position = snappedWorldPos;
+                //}
+
+                // Find a slot for the shadow map
+                Int2? slot;
+                bool isPointLight = light is PointLight;
+
+                // Point lights need a 2x3 grid for cubemap faces
+                if (isPointLight)
+                    slot = ShadowAtlas.ReserveCubemapTiles(res, light.GetLightID());
+                else
+                    slot = ShadowAtlas.ReserveTiles(res, res, light.GetLightID());
+
+                int AtlasX, AtlasY, AtlasWidth;
+
+                if (slot != null)
+                {
+                    AtlasX = slot.Value.X;
+                    AtlasY = slot.Value.Y;
+                    AtlasWidth = res;
+
+                    // Draw the shadow map
+                    ShadowMap = ShadowAtlas.GetAtlas();
+
+                    // For point lights, render 6 faces
+                    if (isPointLight && light is PointLight pointLight)
+                    {
+                        // Set point light uniforms for shadow rendering
+                        PropertyState.SetGlobalVector("_PointLightPosition", pointLight.Transform.position);
+                        PropertyState.SetGlobalFloat("_PointLightRange", pointLight.range);
+                        PropertyState.SetGlobalFloat("_PointLightShadowBias", pointLight.shadowBias);
+
+                        for (int face = 0; face < 6; face++)
                         {
-                            // Set point light uniforms for shadow rendering
-                            PropertyState.SetGlobalVector("_PointLightPosition", pointLight.Transform.position);
-                            PropertyState.SetGlobalFloat("_PointLightRange", pointLight.range);
-                            PropertyState.SetGlobalFloat("_PointLightShadowBias", pointLight.shadowBias);
+                            // Calculate viewport for this face in the 2x3 grid
+                            int col = face % 2;
+                            int row = face / 2;
+                            int viewportX = AtlasX + (col * res);
+                            int viewportY = AtlasY + (row * res);
 
-                            for (int face = 0; face < 6; face++)
-                            {
-                                // Calculate viewport for this face in the 2x3 grid
-                                int col = face % 2;
-                                int row = face / 2;
-                                int viewportX = AtlasX + (col * res);
-                                int viewportY = AtlasY + (row * res);
+                            Graphics.Device.Viewport(viewportX, viewportY, (uint)res, (uint)res);
 
-                                Graphics.Device.Viewport(viewportX, viewportY, (uint)res, (uint)res);
-
-                                pointLight.GetShadowMatrixForFace(face, out Double4x4 view, out Double4x4 proj, out Double3 forward, out Double3 up);
-                                Double3 right = Double3.Cross(forward, up);
-
-                                Frustrum frustum = Frustrum.FromMatrix(proj * view);
-                                if (CAMERA_RELATIVE)
-                                    view.Translation *= new Double4(0, 0, 0, 1); // set all to 0 except W
-
-                                HashSet<int> culledRenderableIndices = [];// CullRenderables(renderables, frustum);
-                                AssignCameraMatrices(view, proj);
-                                DrawRenderables(renderables, "LightMode", "ShadowCaster", new ViewerData(light.GetLightPosition(), forward, right, up), culledRenderableIndices, false);
-                            }
-
-                            // Reset uniforms for non-point lights
-                            PropertyState.SetGlobalFloat("_PointLightRange", -1.0f);
-                        }
-                        else
-                        {
-                            Double3 forward = ((MonoBehaviour)light).Transform.forward;
-                            if(light is DirectionalLight)
-                                forward = -forward; // directional light is inverted atm
-                            Double3 right = ((MonoBehaviour)light).Transform.right;
-                            Double3 up = ((MonoBehaviour)light).Transform.up;
-
-                            // Regular directional/spot light rendering
-                            // Set range to -1 to indicate this is not a point light
-                            PropertyState.SetGlobalFloat("_PointLightRange", -1.0f);
-
-                            Graphics.Device.Viewport(slot.Value.X, slot.Value.Y, (uint)res, (uint)res);
-
-                            light.GetShadowMatrix(out Double4x4 view, out Double4x4 proj);
+                            pointLight.GetShadowMatrixForFace(face, out Double4x4 view, out Double4x4 proj, out Double3 forward, out Double3 up);
+                            Double3 right = Double3.Cross(forward, up);
 
                             Frustrum frustum = Frustrum.FromMatrix(proj * view);
                             if (CAMERA_RELATIVE)
@@ -745,48 +829,75 @@ namespace Prowl.Runtime.Rendering
                             AssignCameraMatrices(view, proj);
                             DrawRenderables(renderables, "LightMode", "ShadowCaster", new ViewerData(light.GetLightPosition(), forward, right, up), culledRenderableIndices, false);
                         }
+
+                        // Reset uniforms for non-point lights
+                        PropertyState.SetGlobalFloat("_PointLightRange", -1.0f);
                     }
                     else
                     {
-                        AtlasX = -1;
-                        AtlasY = -1;
-                        AtlasWidth = 0;
-                    }
+                        Double3 forward = ((MonoBehaviour)light).Transform.forward;
+                        if (light is DirectionalLight)
+                            forward = -forward; // directional light is inverted atm
+                        Double3 right = ((MonoBehaviour)light).Transform.right;
+                        Double3 up = ((MonoBehaviour)light).Transform.up;
 
+                        // Regular directional/spot light rendering
+                        // Set range to -1 to indicate this is not a point light
+                        PropertyState.SetGlobalFloat("_PointLightRange", -1.0f);
 
-                    if (light is DirectionalLight dirLight2)
-                    {
-                        // Return the light to its original position
-                        //dirLight2.Transform.position = oldPos;
-                        dirLight2.UploadToGPU(CAMERA_RELATIVE, cameraPosition, AtlasX, AtlasY, AtlasWidth);
-                    }
-                    else if (light is SpotLight spotLight && spotLightIndex < MAX_SPOT_LIGHTS)
-                    {
-                        spotLight.UploadToGPU(CAMERA_RELATIVE, cameraPosition, AtlasX, AtlasY, AtlasWidth, spotLightIndex);
-                        spotLightIndex++;
-                    }
-                    else if (light is PointLight pointLight && pointLightIndex < MAX_POINT_LIGHTS)
-                    {
-                        pointLight.UploadToGPU(CAMERA_RELATIVE, cameraPosition, AtlasX, AtlasY, AtlasWidth, pointLightIndex);
-                        pointLightIndex++;
+                        Graphics.Device.Viewport(slot.Value.X, slot.Value.Y, (uint)res, (uint)res);
+
+                        light.GetShadowMatrix(out Double4x4 view, out Double4x4 proj);
+
+                        Frustrum frustum = Frustrum.FromMatrix(proj * view);
+                        if (CAMERA_RELATIVE)
+                            view.Translation *= new Double4(0, 0, 0, 1); // set all to 0 except W
+
+                        HashSet<int> culledRenderableIndices = [];// CullRenderables(renderables, frustum);
+                        AssignCameraMatrices(view, proj);
+                        DrawRenderables(renderables, "LightMode", "ShadowCaster", new ViewerData(light.GetLightPosition(), forward, right, up), culledRenderableIndices, false);
                     }
                 }
                 else
                 {
-                    if (light is DirectionalLight dirL)
-                    {
-                        dirL.UploadToGPU(CAMERA_RELATIVE, cameraPosition, -1, -1, 0);
-                    }
-                    else if (light is SpotLight spotLight && spotLightIndex < MAX_SPOT_LIGHTS)
-                    {
-                        spotLight.UploadToGPU(CAMERA_RELATIVE, cameraPosition, -1, -1, 0, spotLightIndex);
-                        spotLightIndex++;
-                    }
-                    else if (light is PointLight pointLight && pointLightIndex < MAX_POINT_LIGHTS)
-                    {
-                        pointLight.UploadToGPU(CAMERA_RELATIVE, cameraPosition, -1, -1, 0, pointLightIndex);
-                        pointLightIndex++;
-                    }
+                    AtlasX = -1;
+                    AtlasY = -1;
+                    AtlasWidth = 0;
+                }
+
+
+                if (light is DirectionalLight dirLight2)
+                {
+                    // Return the light to its original position
+                    //dirLight2.Transform.position = oldPos;
+                    dirLight2.UploadToGPU(CAMERA_RELATIVE, cameraPosition, AtlasX, AtlasY, AtlasWidth);
+                }
+                else if (light is SpotLight spotLight && spotLightIndex < MAX_SPOT_LIGHTS)
+                {
+                    spotLight.UploadToGPU(CAMERA_RELATIVE, cameraPosition, AtlasX, AtlasY, AtlasWidth, spotLightIndex);
+                    spotLightIndex++;
+                }
+                else if (light is PointLight pointLight && pointLightIndex < MAX_POINT_LIGHTS)
+                {
+                    pointLight.UploadToGPU(CAMERA_RELATIVE, cameraPosition, AtlasX, AtlasY, AtlasWidth, pointLightIndex);
+                    pointLightIndex++;
+                }
+            }
+            else
+            {
+                if (light is DirectionalLight dirL)
+                {
+                    dirL.UploadToGPU(CAMERA_RELATIVE, cameraPosition, -1, -1, 0);
+                }
+                else if (light is SpotLight spotLight && spotLightIndex < MAX_SPOT_LIGHTS)
+                {
+                    spotLight.UploadToGPU(CAMERA_RELATIVE, cameraPosition, -1, -1, 0, spotLightIndex);
+                    spotLightIndex++;
+                }
+                else if (light is PointLight pointLight && pointLightIndex < MAX_POINT_LIGHTS)
+                {
+                    pointLight.UploadToGPU(CAMERA_RELATIVE, cameraPosition, -1, -1, 0, pointLightIndex);
+                    pointLightIndex++;
                 }
             }
 
@@ -794,23 +905,6 @@ namespace Prowl.Runtime.Rendering
             GlobalUniforms.SetSpotLightCount(spotLightIndex);
             GlobalUniforms.SetPointLightCount(pointLightIndex);
             GlobalUniforms.Upload();
-
-
-            //unsafe
-            //{
-            //    if (LightBuffer == null || gpuLights.Count > LightCount)
-            //    {
-            //        LightBuffer?.Dispose();
-            //        LightBuffer = Graphics.Device.CreateBuffer<GPULight>(BufferType.UniformBuffer, gpuLights.ToArray(), true);
-            //    }
-            //    else
-            //    {
-            //        // Update existing buffer
-            //        Graphics.Device.UpdateBuffer<GPULight>(LightBuffer, 0, gpuLights.ToArray());
-            //    }
-            //
-            //    LightCount = lights.Count;
-            //}
         }
 
         private static int CalculateResolution(double distance)

@@ -327,6 +327,10 @@ public sealed class PhysicsDemo : Game
         var cubeCollider = cube.AddComponent<BoxCollider>();
         cubeCollider.Size = new Double3(0.5, 0.5, 0.5);
 
+        //var light = cube.AddComponent<PointLight>();
+        //light.intensity = 32;
+        //light.color = new Color(RNG.Shared.NextDouble(), RNG.Shared.NextDouble(), RNG.Shared.NextDouble(), 1f);
+
         scene.Add(cube);
 
         // Add velocity in the direction the camera is facing
