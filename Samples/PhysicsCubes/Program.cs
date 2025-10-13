@@ -23,7 +23,7 @@ public sealed class PhysicsDemo : Game
     private GameObject cameraGO;
     private Scene scene;
     private double selectedCubeMass = 1.0;
-    private Material shootableCubeMaterial;
+    private Material standardMaterial;
 
     public override void Initialize()
     {
@@ -56,13 +56,13 @@ public sealed class PhysicsDemo : Game
         scene.Add(cam);
 
         // Create single shared material
-        shootableCubeMaterial = new Material(Shader.LoadDefault(DefaultShader.Standard));
+        standardMaterial = new Material(Shader.LoadDefault(DefaultShader.Standard));
 
         // Create floor (static)
         GameObject floor = new GameObject("Floor");
         var floorRenderer = floor.AddComponent<MeshRenderer>();
         floorRenderer.Mesh = Mesh.CreateCube(new Double3(20, 1, 20));
-        floorRenderer.Material = shootableCubeMaterial;
+        floorRenderer.Material = standardMaterial;
         floorRenderer.MainColor = new Color(0.8f, 0.8f, 0.8f, 1.0f);
         floor.Transform.position = new Double3(0, -0.5f, 0);
 
@@ -100,7 +100,7 @@ public sealed class PhysicsDemo : Game
         anchorCollider.Radius = 0.2f;
         var anchorRenderer = anchor.AddComponent<MeshRenderer>();
         anchorRenderer.Mesh = Mesh.CreateSphere(0.2f, 8, 8);
-        anchorRenderer.Material = shootableCubeMaterial;
+        anchorRenderer.Material = standardMaterial;
         anchorRenderer.MainColor = color;
         scene.Add(anchor);
 
@@ -111,7 +111,7 @@ public sealed class PhysicsDemo : Game
             link.Transform.position = startPos + new Double3(0, -(i + 1) * 1.5, 0);
             var linkRenderer = link.AddComponent<MeshRenderer>();
             linkRenderer.Mesh = Mesh.CreateCube(new Double3(0.5, 1, 0.5));
-            linkRenderer.Material = shootableCubeMaterial;
+            linkRenderer.Material = standardMaterial;
             linkRenderer.MainColor = color;
 
             var linkRb = link.AddComponent<Rigidbody3D>();
@@ -141,7 +141,7 @@ public sealed class PhysicsDemo : Game
         frameCollider.Size = new Double3(0.2, 3, 0.2);
         var frameRenderer = frame.AddComponent<MeshRenderer>();
         frameRenderer.Mesh = Mesh.CreateCube(new Double3(0.2, 3, 0.2));
-        frameRenderer.Material = shootableCubeMaterial;
+        frameRenderer.Material = standardMaterial;
         frameRenderer.MainColor = color;
         scene.Add(frame);
 
@@ -150,7 +150,7 @@ public sealed class PhysicsDemo : Game
         door.Transform.position = position + new Double3(1.5, 0, 0);
         var doorRenderer = door.AddComponent<MeshRenderer>();
         doorRenderer.Mesh = Mesh.CreateCube(new Double3(3, 2.8, 0.1));
-        doorRenderer.Material = shootableCubeMaterial;
+        doorRenderer.Material = standardMaterial;
         doorRenderer.MainColor = color;
 
         var doorRb = door.AddComponent<Rigidbody3D>();
@@ -181,7 +181,7 @@ public sealed class PhysicsDemo : Game
         railCollider.Size = new Double3(0.1, 4, 0.1);
         var railRenderer = rail.AddComponent<MeshRenderer>();
         railRenderer.Mesh = Mesh.CreateCube(new Double3(0.1, 4, 0.1));
-        railRenderer.Material = shootableCubeMaterial;
+        railRenderer.Material = standardMaterial;
         railRenderer.MainColor = color;
         scene.Add(rail);
 
@@ -190,7 +190,7 @@ public sealed class PhysicsDemo : Game
         slider.Transform.position = position + new Double3(0, 1, 0);
         var sliderRenderer = slider.AddComponent<MeshRenderer>();
         sliderRenderer.Mesh = Mesh.CreateCube(new Double3(1, 0.5, 1));
-        sliderRenderer.Material = shootableCubeMaterial;
+        sliderRenderer.Material = standardMaterial;
         sliderRenderer.MainColor = color;
 
         var sliderRb = slider.AddComponent<Rigidbody3D>();
@@ -218,7 +218,7 @@ public sealed class PhysicsDemo : Game
         torso.Transform.position = position;
         var torsoRenderer = torso.AddComponent<MeshRenderer>();
         torsoRenderer.Mesh = Mesh.CreateCube(new Double3(1, 1.5, 0.5));
-        torsoRenderer.Material = shootableCubeMaterial;
+        torsoRenderer.Material = standardMaterial;
         torsoRenderer.MainColor = color;
 
         var torsoRb = torso.AddComponent<Rigidbody3D>();
@@ -234,7 +234,7 @@ public sealed class PhysicsDemo : Game
         leftArm.Transform.position = position + new Double3(-0.75, 0.5, 0);
         var armRenderer = leftArm.AddComponent<MeshRenderer>();
         armRenderer.Mesh = Mesh.CreateCube(new Double3(1, 0.3, 0.3));
-        armRenderer.Material = shootableCubeMaterial;
+        armRenderer.Material = standardMaterial;
         armRenderer.MainColor = color;
 
         var armRb = leftArm.AddComponent<Rigidbody3D>();
@@ -269,7 +269,7 @@ public sealed class PhysicsDemo : Game
         baseCollider.Size = new Double3(0.5, 0.5, 0.5);
         var baseRenderer = motorBase.AddComponent<MeshRenderer>();
         baseRenderer.Mesh = Mesh.CreateCube(new Double3(0.5, 0.5, 0.5));
-        baseRenderer.Material = shootableCubeMaterial;
+        baseRenderer.Material = standardMaterial;
         baseRenderer.MainColor = color;
         scene.Add(motorBase);
 
@@ -278,7 +278,7 @@ public sealed class PhysicsDemo : Game
         platform.Transform.position = position + new Double3(0, 0.5, 0);
         var platformRenderer = platform.AddComponent<MeshRenderer>();
         platformRenderer.Mesh = Mesh.CreateCube(new Double3(2, 0.2, 2));
-        platformRenderer.Material = shootableCubeMaterial;
+        platformRenderer.Material = standardMaterial;
         platformRenderer.MainColor = color;
 
         var platformRb = platform.AddComponent<Rigidbody3D>();
@@ -313,7 +313,7 @@ public sealed class PhysicsDemo : Game
         var cubeRenderer = cube.AddComponent<MeshRenderer>();
         cubeShootMesh = cubeShootMesh == null ? Mesh.CreateCube(new Double3(0.5, 0.5, 0.5)) : cubeShootMesh;
         cubeRenderer.Mesh = cubeShootMesh;
-        cubeRenderer.Material = shootableCubeMaterial;
+        cubeRenderer.Material = standardMaterial;
         cubeRenderer.MainColor = new Color(1.0f, 0.3f, 0.3f, 1.0f);
 
         var cubeRb = cube.AddComponent<Rigidbody3D>();
