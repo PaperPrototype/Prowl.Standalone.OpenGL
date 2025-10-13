@@ -614,8 +614,8 @@ namespace Prowl.Runtime.Rendering
             int numDirLights = 0;
             int spotLightIndex = 0;
             int pointLightIndex = 0;
-            const int MAX_SPOT_LIGHTS = 8;
-            const int MAX_POINT_LIGHTS = 8;
+            const int MAX_SPOT_LIGHTS = 4;
+            const int MAX_POINT_LIGHTS = 4;
 
             foreach (IRenderableLight light in lights)
             {
@@ -790,9 +790,10 @@ namespace Prowl.Runtime.Rendering
                 }
             }
 
-            // Set the light counts
-            PropertyState.SetGlobalInt("_SpotLightCount", spotLightIndex);
-            PropertyState.SetGlobalInt("_PointLightCount", pointLightIndex);
+            // Set the light counts in global uniforms
+            GlobalUniforms.SetSpotLightCount(spotLightIndex);
+            GlobalUniforms.SetPointLightCount(pointLightIndex);
+            GlobalUniforms.Upload();
 
 
             //unsafe

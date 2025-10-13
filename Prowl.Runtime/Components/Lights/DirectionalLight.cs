@@ -38,24 +38,18 @@ public class DirectionalLight : Light
 
     public void UploadToGPU(bool cameraRelative, Double3 cameraPosition, int atlasX, int atlasY, int atlasWidth)
     {
-        PropertyState.SetGlobalVector($"_Sun.direction", Transform.forward);
-        PropertyState.SetGlobalVector($"_Sun.color", new Double3(color.R, color.G, color.B));
-        PropertyState.SetGlobalFloat($"_Sun.intensity", intensity);
-
         GetShadowMatrix(out var view, out var proj);
 
         if (cameraRelative)
             view.Translation -= new Double4(cameraPosition.X, cameraPosition.Y, cameraPosition.Z, 0.0f);
 
-        PropertyState.SetGlobalMatrix($"_Sun.shadowMatrix", proj * view);
-        PropertyState.SetGlobalFloat($"_Sun.shadowBias", shadowBias);
-        PropertyState.SetGlobalFloat($"_Sun.shadowNormalBias", shadowNormalBias);
-        PropertyState.SetGlobalFloat($"_Sun.shadowStrength", shadowStrength);
-        PropertyState.SetGlobalFloat($"_Sun.shadowDistance", shadowDistance);
-        PropertyState.SetGlobalFloat($"_Sun.shadowQuality", (float)shadowQuality);
-
-        PropertyState.SetGlobalFloat($"_Sun.atlasX", atlasX);
-        PropertyState.SetGlobalFloat($"_Sun.atlasY", atlasY);
-        PropertyState.SetGlobalFloat($"_Sun.atlasWidth", atlasWidth);
+        // Use GlobalUniforms to set directional light data
+        GlobalUniforms.SetSunDirection(Transform.forward);
+        GlobalUniforms.SetSunColor(new Double3(color.R, color.G, color.B));
+        GlobalUniforms.SetSunIntensity(intensity);
+        GlobalUniforms.SetSunShadowBias(shadowBias);
+        GlobalUniforms.SetSunShadowMatrix(proj * view);
+        GlobalUniforms.SetSunShadowParams(new Double4(shadowNormalBias, shadowStrength, shadowDistance, (float)shadowQuality));
+        GlobalUniforms.SetSunAtlasParams(new Double4(atlasX, atlasY, atlasWidth, 0));
     }
 }

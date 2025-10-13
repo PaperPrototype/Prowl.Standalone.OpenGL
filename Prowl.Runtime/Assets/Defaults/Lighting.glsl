@@ -4,23 +4,22 @@
 #include "PBR"
 
 // ------------------------------------------------------------------------------
-// Light Structures
+// Light Structures and Unpacking Functions
 // ------------------------------------------------------------------------------
 
 struct SunLightStruct {
-    vec3 direction;       // Maps to dirX, dirY, dirZ
-    vec3 color;           // Maps to colR, colG, colB
-    float intensity;      // Maps to intensity
-    mat4 shadowMatrix;    // Maps to shadowMatrix
-    float shadowBias;     // Maps to shadowBias
-    float shadowNormalBias;     // Maps to shadowNormalBias
-    float shadowStrength; // Maps to shadowStrength
-    float shadowDistance; // Maps to shadowDistance
-    float shadowQuality;  // 0 = Hard, 1 = Soft
-
-    float atlasX; // AtlasWidth
-    float atlasY; // AtlasY,
-    float atlasWidth; //  AtlasWidth
+    vec3 direction;
+    vec3 color;
+    float intensity;
+    mat4 shadowMatrix;
+    float shadowBias;
+    float shadowNormalBias;
+    float shadowStrength;
+    float shadowDistance;
+    float shadowQuality;
+    float atlasX;
+    float atlasY;
+    float atlasWidth;
 };
 
 struct SpotLightStruct {
@@ -29,13 +28,13 @@ struct SpotLightStruct {
     vec3 color;
     float intensity;
     float range;
-    float innerAngle; // Cosine of inner cone half-angle
-    float outerAngle; // Cosine of outer cone half-angle
+    float innerAngle;
+    float outerAngle;
     mat4 shadowMatrix;
     float shadowBias;
     float shadowNormalBias;
     float shadowStrength;
-    float shadowQuality;  // 0 = Hard, 1 = Soft
+    float shadowQuality;
     float atlasX;
     float atlasY;
     float atlasWidth;
@@ -46,15 +45,76 @@ struct PointLightStruct {
     vec3 color;
     float intensity;
     float range;
-    mat4 shadowMatrix;
     float shadowBias;
     float shadowNormalBias;
     float shadowStrength;
-    float shadowQuality;  // 0 = Hard, 1 = Soft
+    float shadowQuality;
     float atlasX;
     float atlasY;
     float atlasWidth;
 };
+
+// Helper function to get the directional light (sun) from global uniforms
+SunLightStruct GetDirectionalLight() {
+    SunLightStruct sun;
+    sun.direction = prowl_SunDirection;
+    sun.color = prowl_SunColor;
+    sun.intensity = prowl_SunIntensity;
+    sun.shadowMatrix = prowl_SunShadowMatrix;
+    sun.shadowBias = prowl_SunShadowBias;
+    sun.shadowNormalBias = prowl_SunShadowParams.x;
+    sun.shadowStrength = prowl_SunShadowParams.y;
+    sun.shadowDistance = prowl_SunShadowParams.z;
+    sun.shadowQuality = prowl_SunShadowParams.w;
+    sun.atlasX = prowl_SunAtlasParams.x;
+    sun.atlasY = prowl_SunAtlasParams.y;
+    sun.atlasWidth = prowl_SunAtlasParams.z;
+    return sun;
+}
+
+// Helper function to unpack a point light from the packed arrays
+PointLightStruct GetPointLight(int index) {
+    PointLightStruct light;
+    light.position = vec3(prowl_4PointLightPosX[index], prowl_4PointLightPosY[index], prowl_4PointLightPosZ[index]);
+    light.color = vec3(prowl_4PointLightColorR[index], prowl_4PointLightColorG[index], prowl_4PointLightColorB[index]);
+    light.intensity = prowl_4PointLightIntensity[index];
+    light.range = prowl_4PointLightRange[index];
+    light.shadowBias = prowl_4PointLightShadowBias[index];
+    light.shadowNormalBias = prowl_4PointLightShadowNormalBias[index];
+    light.shadowStrength = prowl_4PointLightShadowStrength[index];
+    light.shadowQuality = prowl_4PointLightShadowQuality[index];
+    light.atlasX = prowl_4PointLightAtlasX[index];
+    light.atlasY = prowl_4PointLightAtlasY[index];
+    light.atlasWidth = prowl_4PointLightAtlasWidth[index];
+    return light;
+}
+
+// Helper function to unpack a spot light from the packed arrays
+SpotLightStruct GetSpotLight(int index) {
+    SpotLightStruct light;
+    light.position = vec3(prowl_4SpotLightPosX[index], prowl_4SpotLightPosY[index], prowl_4SpotLightPosZ[index]);
+    light.direction = vec3(prowl_4SpotLightDirX[index], prowl_4SpotLightDirY[index], prowl_4SpotLightDirZ[index]);
+    light.color = vec3(prowl_4SpotLightColorR[index], prowl_4SpotLightColorG[index], prowl_4SpotLightColorB[index]);
+    light.intensity = prowl_4SpotLightIntensity[index];
+    light.range = prowl_4SpotLightRange[index];
+    light.innerAngle = prowl_4SpotLightInnerAngle[index];
+    light.outerAngle = prowl_4SpotLightOuterAngle[index];
+
+    // Get the correct shadow matrix
+    if (index == 0) light.shadowMatrix = prowl_SpotLightShadowMatrix0;
+    else if (index == 1) light.shadowMatrix = prowl_SpotLightShadowMatrix1;
+    else if (index == 2) light.shadowMatrix = prowl_SpotLightShadowMatrix2;
+    else light.shadowMatrix = prowl_SpotLightShadowMatrix3;
+
+    light.shadowBias = prowl_4SpotLightShadowBias[index];
+    light.shadowNormalBias = prowl_4SpotLightShadowNormalBias[index];
+    light.shadowStrength = prowl_4SpotLightShadowStrength[index];
+    light.shadowQuality = prowl_4SpotLightShadowQuality[index];
+    light.atlasX = prowl_4SpotLightAtlasX[index];
+    light.atlasY = prowl_4SpotLightAtlasY[index];
+    light.atlasWidth = prowl_4SpotLightAtlasWidth[index];
+    return light;
+}
 
 // ------------------------------------------------------------------------------
 // Shadow Sampling Functions

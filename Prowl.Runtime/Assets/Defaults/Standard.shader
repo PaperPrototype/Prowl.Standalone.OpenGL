@@ -122,15 +122,6 @@ Pass "Standard"
 
 			uniform vec4 _MainColor;
 
-			#define MAX_SPOT_LIGHTS 8
-			#define MAX_POINT_LIGHTS 8
-
-			uniform SunLightStruct _Sun;
-			uniform SpotLightStruct _SpotLights[MAX_SPOT_LIGHTS];
-			uniform int _SpotLightCount;
-			uniform PointLightStruct _PointLights[MAX_POINT_LIGHTS];
-			uniform int _PointLightCount;
-
             // Generated Normals implementation (unique to Standard shader)
             const float normalThreshold = 0.05;
             const float normalClamp = 0.5;
@@ -233,17 +224,21 @@ Pass "Standard"
 				baseColor.rgb = GammaToLinearSpace(baseColor.rgb);
 
 				// Calculate lighting
-				vec3 lighting = CalculateDirectionalLight(_Sun, worldPos, worldNormal, _WorldSpaceCameraPos.xyz, baseColor, metallic, roughness, ao, _ShadowAtlas, prowl_ShadowAtlasSize);
+				// Get directional light from global uniforms
+				SunLightStruct sun = GetDirectionalLight();
+				vec3 lighting = CalculateDirectionalLight(sun, worldPos, worldNormal, _WorldSpaceCameraPos.xyz, baseColor, metallic, roughness, ao, _ShadowAtlas, prowl_ShadowAtlasSize);
 				lighting += baseColor.rgb * CalculateAmbient(worldNormal);
 
-				// Add spot lights
-				for (int i = 0; i < _SpotLightCount && i < MAX_SPOT_LIGHTS; i++) {
-					lighting += CalculateSpotLight(_SpotLights[i], worldPos, worldNormal, _WorldSpaceCameraPos.xyz, baseColor, metallic, roughness, ao, _ShadowAtlas, prowl_ShadowAtlasSize);
+				// Add spot lights (max 4)
+				for (int i = 0; i < prowl_SpotLightCount && i < 4; i++) {
+					SpotLightStruct spotLight = GetSpotLight(i);
+					lighting += CalculateSpotLight(spotLight, worldPos, worldNormal, _WorldSpaceCameraPos.xyz, baseColor, metallic, roughness, ao, _ShadowAtlas, prowl_ShadowAtlasSize);
 				}
 
-				// Add point lights
-				for (int i = 0; i < _PointLightCount && i < MAX_POINT_LIGHTS; i++) {
-					lighting += CalculatePointLight(_PointLights[i], worldPos, worldNormal, _WorldSpaceCameraPos.xyz, baseColor, metallic, roughness, ao, _ShadowAtlas, prowl_ShadowAtlasSize);
+				// Add point lights (max 4)
+				for (int i = 0; i < prowl_PointLightCount && i < 4; i++) {
+					PointLightStruct pointLight = GetPointLight(i);
+					lighting += CalculatePointLight(pointLight, worldPos, worldNormal, _WorldSpaceCameraPos.xyz, baseColor, metallic, roughness, ao, _ShadowAtlas, prowl_ShadowAtlasSize);
 				}
 
 				// Add emission

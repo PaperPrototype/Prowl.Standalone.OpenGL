@@ -82,31 +82,42 @@ public class PointLight : Light
     public void UploadToGPU(bool cameraRelative, Double3 cameraPosition, int atlasX, int atlasY, int atlasWidth, int lightIndex)
     {
         Double3 position = cameraRelative ? Transform.position - cameraPosition : Transform.position;
+        Double3 colorVec = new Double3(color.R, color.G, color.B);
 
-        PropertyState.SetGlobalVector($"_PointLights[{lightIndex}].position", position);
-        PropertyState.SetGlobalVector($"_PointLights[{lightIndex}].color", color);
-        PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].intensity", intensity);
-        PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].range", range);
-
+        // Use GlobalUniforms to set packed point light data
         if (castShadows && atlasX >= 0)
         {
-            // For point lights, we store the base atlas position
-            // The shader will calculate offsets for each of the 6 faces arranged in a 2x3 grid
-            PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].shadowBias", shadowBias);
-            PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].shadowNormalBias", shadowNormalBias);
-            PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].shadowStrength", shadowStrength);
-            PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].shadowQuality", (float)shadowQuality);
-
-            PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].atlasX", atlasX);
-            PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].atlasY", atlasY);
-            PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].atlasWidth", atlasWidth); // Width of a single face
+            GlobalUniforms.SetPointLightData(
+                lightIndex,
+                position,
+                colorVec,
+                intensity,
+                range,
+                shadowBias,
+                shadowNormalBias,
+                shadowStrength,
+                (float)shadowQuality,
+                atlasX,
+                atlasY,
+                atlasWidth
+            );
         }
         else
         {
-            PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].atlasX", -1);
-            PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].atlasY", -1);
-            PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].atlasWidth", 0);
-            PropertyState.SetGlobalFloat($"_PointLights[{lightIndex}].shadowStrength", 0);
+            GlobalUniforms.SetPointLightData(
+                lightIndex,
+                position,
+                colorVec,
+                intensity,
+                range,
+                shadowBias,
+                shadowNormalBias,
+                0, // shadowStrength = 0
+                (float)shadowQuality,
+                -1, // atlasX = -1
+                -1, // atlasY = -1
+                0   // atlasWidth = 0
+            );
         }
     }
 }

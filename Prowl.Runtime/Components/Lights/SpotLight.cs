@@ -43,38 +43,59 @@ public class SpotLight : Light
     public void UploadToGPU(bool cameraRelative, Double3 cameraPosition, int atlasX, int atlasY, int atlasWidth, int lightIndex)
     {
         Double3 position = cameraRelative ? Transform.position - cameraPosition : Transform.position;
+        Double3 colorVec = new Double3(color.R, color.G, color.B);
+        float innerAngleCos = (float)Maths.Cos(innerAngle * 0.5f * Maths.Deg2Rad);
+        float outerAngleCos = (float)Maths.Cos(outerAngle * 0.5f * Maths.Deg2Rad);
 
-        PropertyState.SetGlobalVector($"_SpotLights[{lightIndex}].position", position);
-        PropertyState.SetGlobalVector($"_SpotLights[{lightIndex}].direction", Transform.forward);
-        PropertyState.SetGlobalVector($"_SpotLights[{lightIndex}].color", color);
-        PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].intensity", intensity);
-        PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].range", range);
-        PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].innerAngle", (float)Maths.Cos(innerAngle * 0.5f * Maths.Deg2Rad));
-        PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].outerAngle", (float)Maths.Cos(outerAngle * 0.5f * Maths.Deg2Rad));
+        GetShadowMatrix(out var view, out var proj);
 
+        if (cameraRelative)
+            view.Translation -= new Double4(cameraPosition.X, cameraPosition.Y, cameraPosition.Z, 0.0f);
+
+        Double4x4 shadowMatrix = proj * view;
+
+        // Use GlobalUniforms to set packed spot light data
         if (castShadows)
         {
-            GetShadowMatrix(out var view, out var proj);
-
-            if (cameraRelative)
-                view.Translation -= new Double4(cameraPosition.X, cameraPosition.Y, cameraPosition.Z, 0.0f);
-
-            PropertyState.SetGlobalMatrix($"_SpotLights[{lightIndex}].shadowMatrix", proj * view);
-            PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].shadowBias", shadowBias);
-            PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].shadowNormalBias", shadowNormalBias);
-            PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].shadowStrength", shadowStrength);
-            PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].shadowQuality", (float)shadowQuality);
-
-            PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].atlasX", atlasX);
-            PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].atlasY", atlasY);
-            PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].atlasWidth", atlasWidth);
+            GlobalUniforms.SetSpotLightData(
+                lightIndex,
+                position,
+                Transform.forward,
+                colorVec,
+                intensity,
+                range,
+                innerAngleCos,
+                outerAngleCos,
+                shadowBias,
+                shadowNormalBias,
+                shadowStrength,
+                (float)shadowQuality,
+                atlasX,
+                atlasY,
+                atlasWidth,
+                shadowMatrix
+            );
         }
         else
         {
-            PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].atlasX", -1);
-            PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].atlasY", -1);
-            PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].atlasWidth", 0);
-            PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].shadowStrength", 0);
+            GlobalUniforms.SetSpotLightData(
+                lightIndex,
+                position,
+                Transform.forward,
+                colorVec,
+                intensity,
+                range,
+                innerAngleCos,
+                outerAngleCos,
+                shadowBias,
+                shadowNormalBias,
+                0, // shadowStrength = 0
+                (float)shadowQuality,
+                -1, // atlasX = -1
+                -1, // atlasY = -1
+                0,  // atlasWidth = 0
+                shadowMatrix
+            );
         }
     }
 }
