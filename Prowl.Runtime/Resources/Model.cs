@@ -15,6 +15,9 @@ namespace Prowl.Runtime.Resources
         public List<AnimationClip> Animations { get; set; } = new();
         public float UnitScale { get; set; } = 1.0f;
 
+        // This transforms from world space back to mesh/model space
+        public Float4x4 GlobalInverseTransform { get; set; } = Float4x4.Identity;
+
         public Model(string name)
         {
             Name = name;

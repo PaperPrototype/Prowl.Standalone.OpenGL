@@ -124,6 +124,18 @@ namespace Prowl.Runtime.AssetImporting
             // Build the model structure
             model.RootNode = BuildModelNode(scene.RootNode, scale);
 
+            var rootTransform = scene.RootNode.Transform;
+            Float4x4 rootMatrix = new Float4x4(
+                rootTransform.A1, rootTransform.A2, rootTransform.A3, rootTransform.A4,
+                rootTransform.B1, rootTransform.B2, rootTransform.B3, rootTransform.B4,
+                rootTransform.C1, rootTransform.C2, rootTransform.C3, rootTransform.C4,
+                rootTransform.D1, rootTransform.D2, rootTransform.D3, rootTransform.D4
+            );
+
+            rootMatrix.Translation *= (float)scale;
+
+            model.GlobalInverseTransform = rootMatrix.Invert();
+
             // Load materials and meshes into the model
             if (scene.HasMaterials)
                 LoadMaterials(scene, parentDir, model.Materials);
@@ -132,26 +144,8 @@ namespace Prowl.Runtime.AssetImporting
                 LoadMeshes(assetPath, settings, scene, scale, model.Materials, model.Meshes);
 
             // Animations
-            List<AnimationClip> anims = [];
             if (scene.HasAnimations)
                 LoadAnimations(scene, scale, model.Animations);
-
-            //if (CullEmpty)
-            //{
-            //    // Remove Empty GameObjects
-            //    List<(MeshRenderer, Node)> GOsToRemove = [];
-            //    foreach (var go in GOs)
-            //    {
-            //        if (go.Item1.GetEntitiesInChildren<MeshRenderer>().Count(x => x.Mesh.IsAvailable) == 0)
-            //            GOsToRemove.Add(go);
-            //    }
-            //    foreach (var go in GOsToRemove)
-            //    {
-            //        if (!go.Item1.IsDestroyed)
-            //            go.Item1.DestroyImmediate();
-            //        GOs.Remove(go);
-            //    }
-            //}
 
             return model;
         }
@@ -177,7 +171,6 @@ namespace Prowl.Runtime.AssetImporting
                 }
                 else
                 {
-
                     mat.SetFloat("_EmissionIntensity", 0f);
                     mat.SetColor("_EmissiveColor", Color.Black);
                 }
@@ -261,7 +254,6 @@ namespace Prowl.Runtime.AssetImporting
                     continue;
                 }
 
-
                 Mesh mesh = new();
                 mesh.Name = m.Name;
                 int vertexCount = m.VertexCount;
@@ -317,10 +309,6 @@ namespace Prowl.Runtime.AssetImporting
                 }
 
                 mesh.Indices = m.GetUnsignedIndices();
-
-                //if(!m.HasTangentBasis)
-                //    mesh.RecalculateTangents();
-
                 mesh.RecalculateBounds();
 
                 if (m.HasBones)
@@ -329,6 +317,7 @@ namespace Prowl.Runtime.AssetImporting
                     mesh.boneNames = new string[m.Bones.Count];
                     mesh.BoneIndices = new Float4[vertexCount];
                     mesh.BoneWeights = new Float4[vertexCount];
+
                     for (var i = 0; i < m.Bones.Count; i++)
                     {
                         var bone = m.Bones[i];
@@ -338,16 +327,13 @@ namespace Prowl.Runtime.AssetImporting
 
                         var offsetMatrix = bone.OffsetMatrix;
                         Float4x4 bindPose = new Float4x4(
-                            offsetMatrix.A1, offsetMatrix.B1, offsetMatrix.C1, offsetMatrix.D1,
-                            offsetMatrix.A2, offsetMatrix.B2, offsetMatrix.C2, offsetMatrix.D2,
-                            offsetMatrix.A3, offsetMatrix.B3, offsetMatrix.C3, offsetMatrix.D3,
-                            offsetMatrix.A4, offsetMatrix.B4, offsetMatrix.C4, offsetMatrix.D4
+                            offsetMatrix.A1, offsetMatrix.A2, offsetMatrix.A3, offsetMatrix.A4,
+                            offsetMatrix.B1, offsetMatrix.B2, offsetMatrix.B3, offsetMatrix.B4,
+                            offsetMatrix.C1, offsetMatrix.C2, offsetMatrix.C3, offsetMatrix.C4,
+                            offsetMatrix.D1, offsetMatrix.D2, offsetMatrix.D3, offsetMatrix.D4
                         );
 
-                        // Adjust translation by scale
                         bindPose.Translation *= (float)scale;
-                        //var translate = Float4x4.CreateScale((float)scale);
-                        //bindPose = Maths.Mul(translate, bindPose);
 
                         mesh.bindPoses[i] = bindPose;
 
@@ -448,83 +434,87 @@ namespace Prowl.Runtime.AssetImporting
                 animation.Duration = anim.DurationInTicks / (anim.TicksPerSecond != 0 ? anim.TicksPerSecond : 25.0);
                 animation.TicksPerSecond = anim.TicksPerSecond;
                 animation.DurationInTicks = anim.DurationInTicks;
-        
+
                 foreach (var channel in anim.NodeAnimationChannels)
                 {
                     Assimp.Node boneNode = scene.RootNode.FindNode(channel.NodeName);
-        
+
                     var animBone = new AnimationClip.AnimBone();
                     animBone.BoneName = boneNode.Name;
-        
-                    // construct full path from RootNode to this bone
-                    // RootNode -> Parent -> Parent -> ... -> Parent -> Bone
-                    Assimp.Node target = boneNode;
-                    string path = target.Name;
-                    //while (target.Parent != null)
-                    //{
-                    //    target = target.Parent;
-                    //    path = target.Name + "/" + path;
-                    //    if (target.Name == scene.RootNode.Name) // TODO: Can we just do reference comparison here instead of string comparison?
-                    //        break;
-                    //}
-        
+
                     if (channel.HasPositionKeys)
                     {
                         var xCurve = new AnimationCurve();
                         var yCurve = new AnimationCurve();
                         var zCurve = new AnimationCurve();
+
+                        xCurve.Keys.Clear();
+                        yCurve.Keys.Clear();
+                        zCurve.Keys.Clear();
+
                         foreach (var posKey in channel.PositionKeys)
                         {
                             double time = (posKey.Time / anim.DurationInTicks) * animation.Duration;
-                            xCurve.Keys.Add(new(time, posKey.Value.X * scale));
-                            yCurve.Keys.Add(new(time, posKey.Value.Y * scale));
-                            zCurve.Keys.Add(new(time, posKey.Value.Z * scale));
+                            xCurve.Keys.Add(new KeyFrame(time, posKey.Value.X * scale));
+                            yCurve.Keys.Add(new KeyFrame(time, posKey.Value.Y * scale));
+                            zCurve.Keys.Add(new KeyFrame(time, posKey.Value.Z * scale));
                         }
                         animBone.PosX = xCurve;
                         animBone.PosY = yCurve;
                         animBone.PosZ = zCurve;
                     }
-        
+
                     if (channel.HasRotationKeys)
                     {
                         var xCurve = new AnimationCurve();
                         var yCurve = new AnimationCurve();
                         var zCurve = new AnimationCurve();
                         var wCurve = new AnimationCurve();
+
+                        xCurve.Keys.Clear();
+                        yCurve.Keys.Clear();
+                        zCurve.Keys.Clear();
+                        wCurve.Keys.Clear();
+
                         foreach (var rotKey in channel.RotationKeys)
                         {
                             double time = (rotKey.Time / anim.DurationInTicks) * animation.Duration;
-                            xCurve.Keys.Add(new(time, rotKey.Value.X));
-                            yCurve.Keys.Add(new(time, rotKey.Value.Y));
-                            zCurve.Keys.Add(new(time, rotKey.Value.Z));
-                            wCurve.Keys.Add(new(time, rotKey.Value.W));
+                            xCurve.Keys.Add(new KeyFrame(time, rotKey.Value.X));
+                            yCurve.Keys.Add(new KeyFrame(time, rotKey.Value.Y));
+                            zCurve.Keys.Add(new KeyFrame(time, rotKey.Value.Z));
+                            wCurve.Keys.Add(new KeyFrame(time, rotKey.Value.W));
                         }
                         animBone.RotX = xCurve;
                         animBone.RotY = yCurve;
                         animBone.RotZ = zCurve;
                         animBone.RotW = wCurve;
                     }
-        
+
                     if (channel.HasScalingKeys)
                     {
                         var xCurve = new AnimationCurve();
                         var yCurve = new AnimationCurve();
                         var zCurve = new AnimationCurve();
+
+                        xCurve.Keys.Clear();
+                        yCurve.Keys.Clear();
+                        zCurve.Keys.Clear();
+
                         foreach (var scaleKey in channel.ScalingKeys)
                         {
                             double time = (scaleKey.Time / anim.DurationInTicks) * animation.Duration;
-                            xCurve.Keys.Add(new(time, scaleKey.Value.X));
-                            yCurve.Keys.Add(new(time, scaleKey.Value.Y));
-                            zCurve.Keys.Add(new(time, scaleKey.Value.Z));
+                            xCurve.Keys.Add(new KeyFrame(time, scaleKey.Value.X));
+                            yCurve.Keys.Add(new KeyFrame(time, scaleKey.Value.Y));
+                            zCurve.Keys.Add(new KeyFrame(time, scaleKey.Value.Z));
                         }
                         animBone.ScaleX = xCurve;
                         animBone.ScaleY = yCurve;
                         animBone.ScaleZ = zCurve;
                     }
-        
+
                     animation.AddBone(animBone);
                 }
-        
+
                 animation.EnsureQuaternionContinuity();
                 animations.Add(animation);
             }
