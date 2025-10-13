@@ -156,35 +156,48 @@ namespace Prowl.Runtime.Rendering
 
         private static void PlaceRect(int segmentIndex, int x, int y, int width, int height, int lightID)
         {
-            // Add to packed rects
             packedRects.Add(new PackedRect(x, y, width, height, lightID));
 
-            // Update skyline
             int newY = y + height;
+            int rectRight = x + width;
             int i = segmentIndex;
 
-            // Remove or trim segments that are covered by this rectangle
-            while (i < skyline.Count && skyline[i].X < x + width)
+            // Handle segment that starts before rectangle
+            if (skyline[i].X < x)
+            {
+                var segment = skyline[i];
+                int leftWidth = x - segment.X;
+                skyline[i] = new SkylineSegment(segment.X, segment.Y, leftWidth);
+                i++;
+
+                // Insert new segment for overlapped portion if needed
+                if (segment.X + segment.Width > rectRight)
+                {
+                    skyline.Insert(i, new SkylineSegment(rectRight, segment.Y,
+                        segment.X + segment.Width - rectRight));
+                }
+            }
+
+            // Remove or trim segments covered by rectangle
+            while (i < skyline.Count && skyline[i].X < rectRight)
             {
                 var segment = skyline[i];
 
-                if (segment.X + segment.Width <= x + width)
+                if (segment.X + segment.Width <= rectRight)
                 {
-                    // Segment is completely covered, remove it
                     skyline.RemoveAt(i);
                 }
                 else
                 {
-                    // Segment extends beyond rectangle, trim it
-                    skyline[i] = new SkylineSegment(x + width, segment.Y, segment.Width - (x + width - segment.X));
+                    skyline[i] = new SkylineSegment(rectRight, segment.Y,
+                        segment.X + segment.Width - rectRight);
                     break;
                 }
             }
 
-            // Add new skyline segment for the placed rectangle
-            skyline.Insert(segmentIndex, new SkylineSegment(x, newY, width));
+            // Insert new segment for placed rectangle
+            skyline.Insert(i, new SkylineSegment(x, newY, width));
 
-            // Merge adjacent segments with same height
             MergeSkyline();
         }
 
