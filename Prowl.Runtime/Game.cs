@@ -54,7 +54,7 @@ public abstract class Game
 
         Window.Update += (delta) =>
         {
-            //UpdatePaperInput();
+            UpdatePaperInput();
 
             time.Update();
             Time.TimeStack.Clear();
@@ -87,11 +87,10 @@ public abstract class Game
 
             Graphics.Device.UnbindFramebuffer();
             Graphics.Device.Viewport(0, 0, (uint)Window.InternalWindow.FramebufferSize.X, (uint)Window.InternalWindow.FramebufferSize.Y);
-            //Paper.BeginFrame((float)delta);
 
             _paper.BeginFrame((float)delta);
 
-            GUI(_paper);
+            OnGUI(_paper);
 
             PostGUI(_paper);
 
@@ -127,7 +126,7 @@ public abstract class Game
     public virtual void PostUpdate() { }
     public virtual void Render() { }
     public virtual void PostRender() { }
-    public virtual void GUI(Paper paper) { }
+    public virtual void OnGUI(Paper paper) { }
     public virtual void PostGUI(Paper paper) { }
     public virtual void Resize(int width, int height) { }
     public virtual void Closing() { }
