@@ -26,13 +26,15 @@ public sealed class Rigidbody3D : MonoBehaviour
    [SerializeField] private bool isStatic;
    [SerializeField] private bool isSpeculative;
    [SerializeField] private bool useGravity = true;
+   [SerializeField] private bool enableGyroscopicForces = false;
    [SerializeField] private double mass = 1;
-   //[SerializeField] private double drag = 0.0f;
-   //[SerializeField] private double angularDrag = 0.0f;
-   [SerializeField] private double friction = 0.2f;
+   [SerializeField] private double linearDamping = 0.0;
+   [SerializeField] private double angularDamping = 0.0;
+   [SerializeField] private double friction = 0.2;
    [SerializeField] private double restitution = 0;
-    //public Vector3Int translationConstraints = Vector3Int.one;
-    //public Vector3Int rotationConstraints = Vector3Int.one;
+   [SerializeField] private double deactivationTime = 1.0;
+   [SerializeField] private double linearSleepThreshold = 0.1;
+   [SerializeField] private double angularSleepThreshold = 0.1;
 
     /// <summary>
     /// Gets or sets a value indicating whether this Rigidbody3D is static.
@@ -120,6 +122,99 @@ public sealed class Rigidbody3D : MonoBehaviour
             if (_body != null) _body.Restitution = value;
         }
     }
+
+    /// <summary>
+    /// Gets or sets the linear damping of this Rigidbody3D.
+    /// Higher values slow down linear movement faster. Range: 0 to 1.
+    /// </summary>
+    public double LinearDamping
+    {
+        get => linearDamping;
+        set
+        {
+            if (value < 0.0 || value > 1.0)
+                throw new ArgumentOutOfRangeException(nameof(value), "Linear damping must be between 0 and 1.");
+
+            linearDamping = value;
+            if (_body != null) _body.Damping = (linearDamping, _body.Damping.angular);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the angular damping of this Rigidbody3D.
+    /// Higher values slow down rotation faster. Range: 0 to 1.
+    /// </summary>
+    public double AngularDamping
+    {
+        get => angularDamping;
+        set
+        {
+            if (value < 0.0 || value > 1.0)
+                throw new ArgumentOutOfRangeException(nameof(value), "Angular damping must be between 0 and 1.");
+
+            angularDamping = value;
+            if (_body != null) _body.Damping = (_body.Damping.linear, angularDamping);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether gyroscopic forces are enabled for this Rigidbody3D.
+    /// Useful for spinning objects with high inertia anisotropy (like propellers).
+    /// </summary>
+    public bool EnableGyroscopicForces
+    {
+        get => enableGyroscopicForces;
+        set
+        {
+            enableGyroscopicForces = value;
+            if (_body != null) _body.EnableGyroscopicForces = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the deactivation time in seconds.
+    /// The body sleeps if velocity stays below threshold for this duration.
+    /// </summary>
+    public double DeactivationTime
+    {
+        get => deactivationTime;
+        set
+        {
+            deactivationTime = value;
+            if (_body != null) _body.DeactivationTime = System.TimeSpan.FromSeconds(value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the linear velocity threshold for sleeping.
+    /// </summary>
+    public double LinearSleepThreshold
+    {
+        get => linearSleepThreshold;
+        set
+        {
+            linearSleepThreshold = value;
+            if (_body != null) _body.DeactivationThreshold = (value, _body.DeactivationThreshold.angular);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the angular velocity threshold for sleeping (radians/second).
+    /// </summary>
+    public double AngularSleepThreshold
+    {
+        get => angularSleepThreshold;
+        set
+        {
+            angularSleepThreshold = value;
+            if (_body != null) _body.DeactivationThreshold = (_body.DeactivationThreshold.linear, value);
+        }
+    }
+
+    /// <summary>
+    /// Gets whether this Rigidbody3D is currently active (not sleeping).
+    /// </summary>
+    public bool IsActive => _body?.IsActive ?? false;
 
     /// <summary>
     /// Gets or sets the Linear Velocity of this Rigidbody3D.
@@ -215,17 +310,17 @@ public sealed class Rigidbody3D : MonoBehaviour
     {
         rb.IsStatic = isStatic;
         rb.EnableSpeculativeContacts = isSpeculative;
-        //rb.Damping = (drag, angularDrag);
+        rb.Damping = (linearDamping, angularDamping);
         rb.Friction = friction;
         rb.AffectedByGravity = useGravity;
         rb.Restitution = restitution;
+        rb.EnableGyroscopicForces = enableGyroscopicForces;
+        rb.DeactivationTime = System.TimeSpan.FromSeconds(deactivationTime);
+        rb.DeactivationThreshold = (linearSleepThreshold, angularSleepThreshold);
         rb.Tag = new RigidBodyUserData()
         {
             Rigidbody = this,
             Layer = GameObject.layerIndex,
-            //HasTransformConstraints = rotationConstraints != Vector3Int.one || translationConstraints != Vector3Int.one,
-            //RotationConstraint = new JVector(rotationConstraints.x, rotationConstraints.y, rotationConstraints.z),
-            //TranslationConstraint = new JVector(translationConstraints.x, translationConstraints.y, translationConstraints.z)
         };
         rb.SetMassInertia(mass);
     }
@@ -264,5 +359,123 @@ public sealed class Rigidbody3D : MonoBehaviour
     public void AddTorque(Double3 torque)
     {
         Torque += torque;
+    }
+
+    /// <summary>
+    /// Sets the activation state of this rigidbody (awake or sleeping).
+    /// </summary>
+    public void SetActive(bool active)
+    {
+        if (_body != null)
+            _body.SetActivationState(active);
+    }
+
+    /// <summary>
+    /// Gets the velocity at a world space point on this rigidbody.
+    /// </summary>
+    public Double3 GetPointVelocity(Double3 worldPoint)
+    {
+        if (_body == null) return Double3.Zero;
+
+        var point = new JVector(worldPoint.X, worldPoint.Y, worldPoint.Z);
+        var r = point - _body.Position;
+        var velocity = _body.Velocity + JVector.Cross(_body.AngularVelocity, r);
+
+        return new Double3(velocity.X, velocity.Y, velocity.Z);
+    }
+
+    /// <summary>
+    /// Gets the center of mass in world space.
+    /// </summary>
+    public Double3 CenterOfMass
+    {
+        get
+        {
+            if (_body == null) return Transform.position;
+            var pos = _body.Position;
+            return new Double3(pos.X, pos.Y, pos.Z);
+        }
+    }
+
+    /// <summary>
+    /// Gets the inertia tensor (inverse) of this rigidbody.
+    /// </summary>
+    public Double3 InertiaTensor
+    {
+        get
+        {
+            if (_body == null) return Double3.One;
+            var inertia = _body.InverseInertia;
+            return new Double3(
+                inertia.M11 != 0 ? 1.0 / inertia.M11 : 0,
+                inertia.M22 != 0 ? 1.0 / inertia.M22 : 0,
+                inertia.M33 != 0 ? 1.0 / inertia.M33 : 0
+            );
+        }
+    }
+
+    /// <summary>
+    /// Applies an impulse at a position, immediately affecting velocity.
+    /// </summary>
+    public void ApplyImpulse(Double3 impulse, Double3 worldPosition)
+    {
+        if (_body == null) return;
+
+        var jImpulse = new JVector(impulse.X, impulse.Y, impulse.Z);
+        var jPosition = new JVector(worldPosition.X, worldPosition.Y, worldPosition.Z);
+
+        var r = jPosition - _body.Position;
+        _body.Velocity += jImpulse * _body.Data.InverseMass;
+        _body.AngularVelocity += JVector.Transform(JVector.Cross(r, jImpulse), _body.Data.InverseInertiaWorld);
+
+        SetActive(true);
+    }
+
+    /// <summary>
+    /// Applies an impulse to the rigidbody, immediately affecting velocity.
+    /// </summary>
+    public void ApplyImpulse(Double3 impulse)
+    {
+        if (_body == null) return;
+
+        var jImpulse = new JVector(impulse.X, impulse.Y, impulse.Z);
+        _body.Velocity += jImpulse * _body.Data.InverseMass;
+
+        SetActive(true);
+    }
+
+    /// <summary>
+    /// Applies an angular impulse to the rigidbody, immediately affecting angular velocity.
+    /// </summary>
+    public void ApplyAngularImpulse(Double3 angularImpulse)
+    {
+        if (_body == null) return;
+
+        var jImpulse = new JVector(angularImpulse.X, angularImpulse.Y, angularImpulse.Z);
+        _body.AngularVelocity += JVector.Transform(jImpulse, _body.Data.InverseInertiaWorld);
+
+        SetActive(true);
+    }
+
+    /// <summary>
+    /// Moves the rigidbody to a new position (teleport).
+    /// </summary>
+    public void MovePosition(Double3 position)
+    {
+        if (_body != null)
+        {
+            _body.Position = new JVector(position.X, position.Y, position.Z);
+        }
+    }
+
+    /// <summary>
+    /// Rotates the rigidbody to a new rotation (teleport).
+    /// </summary>
+    public void MoveRotation(Quaternion rotation)
+    {
+        if (_body != null)
+        {
+            _body.Orientation = new JQuaternion(rotation.X, rotation.Y, rotation.Z, rotation.W);
+        }
     }
 }
