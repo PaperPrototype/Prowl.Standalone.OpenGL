@@ -25,6 +25,10 @@ public class SpotLight : Light
     public override void Update()
     {
         GameObject.Scene.PushLight(this);
+    }
+
+    public override void DrawGizmos()
+    {
         Debug.DrawArrow(Transform.position, Transform.forward * range, color);
         Debug.DrawWireCircle(Transform.position + Transform.forward * range, -Transform.forward, range * Maths.Tan(outerAngle * 0.5f * Maths.Deg2Rad), color);
     }

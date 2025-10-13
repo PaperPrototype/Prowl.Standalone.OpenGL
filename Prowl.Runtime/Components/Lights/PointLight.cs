@@ -24,6 +24,10 @@ public class PointLight : Light
     public override void Update()
     {
         GameObject.Scene.PushLight(this);
+    }
+
+    public override void DrawGizmos()
+    {
         Debug.DrawWireSphere(Transform.position, range, color);
     }
 

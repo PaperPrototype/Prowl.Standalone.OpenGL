@@ -23,6 +23,10 @@ public class DirectionalLight : Light
     public override void Update()
     {
         GameObject.Scene.PushLight(this);
+    }
+
+    public override void DrawGizmos()
+    {
         Debug.DrawArrow(Transform.position, -Transform.forward, Color.Yellow);
         Debug.DrawWireCircle(Transform.position, Transform.forward, 0.5f, Color.Yellow);
     }
