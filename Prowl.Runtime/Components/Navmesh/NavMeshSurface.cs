@@ -62,7 +62,7 @@ public class NavMeshSurface : MonoBehaviour
     #region Debug
 
     private bool triedDebugData = false;
-    private AABBD debug_bounds;
+    private AABB debug_bounds;
     private Double3[][][] debug_polygons;
 
     private float timer = 0;
@@ -251,7 +251,7 @@ public class NavMeshSurface : MonoBehaviour
     private void CacheDebugData()
     {
         navMesh.ComputeBounds(out var min, out var max);
-        debug_bounds = new AABBD(ToV(min), ToV(max));
+        debug_bounds = new AABB(ToV(min), ToV(max));
 
         debug_polygons = new Double3[navMesh.GetTileCount()][][];
         for (int i = 0; i < navMesh.GetTileCount(); i++)

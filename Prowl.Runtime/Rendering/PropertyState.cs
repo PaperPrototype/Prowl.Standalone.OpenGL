@@ -60,13 +60,13 @@ namespace Prowl.Runtime.Rendering
         }
 
         // Getters
-        public Color GetColor(string name) => colors.TryGetValue(name, out Color value) ? value : Color.white;
+        public Color GetColor(string name) => colors.TryGetValue(name, out Color value) ? value : Color.White;
         public Double2 GetVector2(string name) => vectors2.TryGetValue(name, out Float2 value) ? value : Double2.Zero;
         public Double3 GetVector3(string name) => vectors3.TryGetValue(name, out Float3 value) ? value : Double3.Zero;
         public Double4 GetVector4(string name) => vectors4.TryGetValue(name, out Float4 value) ? value : Double4.Zero;
         public float GetFloat(string name) => floats.TryGetValue(name, out float value) ? value : 0;
         public int GetInt(string name) => ints.TryGetValue(name, out int value) ? value : 0;
-        public Double4x4 GetMatrix(string name) => matrices.TryGetValue(name, out Float4x4 value) ? value : Double4x4.Identity;
+        public Double4x4 GetMatrix(string name) => matrices.TryGetValue(name, out Float4x4 value) ? (Double4x4)value : Double4x4.Identity;
         public Texture2D? GetTexture(string name) => textures.TryGetValue(name, out Texture2D value) ? value : null;
         public GraphicsBuffer GetBuffer(string name) => buffers.TryGetValue(name, out GraphicsBuffer value) ? value : null;
         public uint GetBufferBinding(string name) => bufferBindings.TryGetValue(name, out uint value) ? value : 0;
@@ -170,7 +170,7 @@ namespace Prowl.Runtime.Rendering
 
             foreach (var item in mpb.colors)
             {
-                Float4 colorVec = new Float4(item.Value.r, item.Value.g, item.Value.b, item.Value.a);
+                Float4 colorVec = new Float4((float)item.Value.R, (float)item.Value.G, (float)item.Value.B, (float)item.Value.A);
                 if (!cache.vectors4.TryGetValue(item.Key, out var cachedValue) || !cachedValue.Equals(item.Value))
                 {
                     Graphics.Device.SetUniformV4(shader, item.Key, colorVec);
@@ -265,7 +265,7 @@ namespace Prowl.Runtime.Rendering
 
             foreach (var item in globalColors)
             {
-                Float4 colorVec = new Float4(item.Value.r, item.Value.g, item.Value.b, item.Value.a);
+                Float4 colorVec = new Float4((float)item.Value.R, (float)item.Value.G, (float)item.Value.B, (float)item.Value.A);
                 if (!cache.vectors4.TryGetValue(item.Key, out var cachedValue) || !cachedValue.Equals(colorVec))
                 {
                     Graphics.Device.SetUniformV4(shader, item.Key, colorVec);
@@ -342,7 +342,7 @@ namespace Prowl.Runtime.Rendering
         }
 
         // Global getters
-        public static Color GetGlobalColor(string name) => globalColors.TryGetValue(name, out Color value) ? value : Color.white;
+        public static Color GetGlobalColor(string name) => globalColors.TryGetValue(name, out Color value) ? value : Color.White;
         public static Double2 GetGlobalVector2(string name) => globalVectors2.TryGetValue(name, out Double2 value) ? value : Double2.Zero;
         public static Double3 GetGlobalVector3(string name) => globalVectors3.TryGetValue(name, out Double3 value) ? value : Double3.Zero;
         public static Double4 GetGlobalVector4(string name) => globalVectors4.TryGetValue(name, out Double4 value) ? value : Double4.Zero;

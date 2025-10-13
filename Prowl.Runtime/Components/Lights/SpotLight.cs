@@ -57,9 +57,9 @@ public class SpotLight : Light
             GetShadowMatrix(out var view, out var proj);
 
             if (cameraRelative)
-                view.Translation -= cameraPosition;
+                view.Translation -= new Double4(cameraPosition.X, cameraPosition.Y, cameraPosition.Z, 0.0f);
 
-            PropertyState.SetGlobalMatrix($"_SpotLights[{lightIndex}].shadowMatrix", Maths.Mul(proj, view));
+            PropertyState.SetGlobalMatrix($"_SpotLights[{lightIndex}].shadowMatrix", proj * view);
             PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].shadowBias", shadowBias);
             PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].shadowNormalBias", shadowNormalBias);
             PropertyState.SetGlobalFloat($"_SpotLights[{lightIndex}].shadowStrength", shadowStrength);

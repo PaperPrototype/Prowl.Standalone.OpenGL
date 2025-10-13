@@ -286,8 +286,8 @@ public class GizmoBuilder
         if (_matrix4X4s.Count > 0)
         {
             var m = _matrix4X4s.Peek();
-            a = Maths.TransformPoint(a, m);
-            b = Maths.TransformPoint(b, m);
+            a = Double4x4.TransformPoint(a, m);
+            b = Double4x4.TransformPoint(b, m);
         }
 
         int index = _wireData.s_vertices.Count;
@@ -306,9 +306,9 @@ public class GizmoBuilder
         if (_matrix4X4s.Count > 0)
         {
             var m = _matrix4X4s.Peek();
-            a = Maths.TransformPoint(a, m);
-            b = Maths.TransformPoint(b, m);
-            c = Maths.TransformPoint(c, m);
+            a = Double4x4.TransformPoint(a, m);
+            b = Double4x4.TransformPoint(b, m);
+            c = Double4x4.TransformPoint(c, m);
         }
 
         int index = _solidData.s_vertices.Count;
@@ -473,8 +473,8 @@ public class GizmoBuilder
 
     public void DrawCircle(Double3 center, Double3 normal, double radius, Color color, int segments)
     {
-        Double3 u = Maths.Normalize(Maths.Cross(normal, Double3.UnitY));
-        Double3 v = Maths.Normalize(Maths.Cross(u, normal));
+        Double3 u = Double3.Normalize(Double3.Cross(normal, Double3.UnitY));
+        Double3 v = Double3.Normalize(Double3.Cross(u, normal));
         double step = MathF.PI * 2 / segments;
         for (int i = 0; i < segments; i++)
         {
@@ -534,11 +534,11 @@ public class GizmoBuilder
         Double3 tip = start + direction;
 
         // Normalize the direction vector
-        Double3 dir = Maths.Normalize(direction);
+        Double3 dir = Double3.Normalize(direction);
 
         // Find perpendicular vectors
         Double3 u = GetPerpendicularVector(dir);
-        Double3 v = Maths.Cross(dir, u);
+        Double3 v = Double3.Cross(dir, u);
 
         for (int i = 0; i < segments; i++)
         {
@@ -564,12 +564,12 @@ public class GizmoBuilder
             result = new Double3(0, v.Z, -v.Y);
         else
             result = new Double3(-v.Z, 0, v.X);
-        return Maths.Normalize(result);
+        return Double3.Normalize(result);
     }
 
     public void DrawArrow(Double3 start, Double3 direction, Color color)
     {
-        Double3 axis = Maths.Normalize(direction);
+        Double3 axis = Double3.Normalize(direction);
         Double3 end = start + direction;
         AddLine(start, end, color);
 

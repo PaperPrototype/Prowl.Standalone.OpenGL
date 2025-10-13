@@ -208,16 +208,16 @@ public class GameObject : EngineObject, ISerializable
             if (_parent != null)
             {
                 Transform.localPosition = _parent.Transform.InverseTransformPoint(worldPosition);
-                Transform.localRotation = Maths.NormalizeSafe(Maths.Inverse(_parent.Transform.rotation) * worldRotation);
+                Transform.localRotation = Quaternion.NormalizeSafe(Quaternion.Inverse(_parent.Transform.rotation) * worldRotation);
             }
             else
             {
                 Transform.localPosition = worldPosition;
-                Transform.localRotation = Maths.NormalizeSafe(worldRotation);
+                Transform.localRotation = Quaternion.NormalizeSafe(worldRotation);
             }
 
             Transform.localScale = Double3.One;
-            Double4x4 inverseRS = Maths.Mul(Transform.GetWorldRotationAndScale().Invert(), worldScale);
+            Double4x4 inverseRS = Transform.GetWorldRotationAndScale().Invert() * worldScale;
             Transform.localScale = new Double3(inverseRS[0, 0], inverseRS[1, 1], inverseRS[2, 2]);
         }
 

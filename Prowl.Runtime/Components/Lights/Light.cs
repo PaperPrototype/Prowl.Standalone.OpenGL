@@ -18,7 +18,7 @@ public enum ShadowQuality
 public abstract class Light : MonoBehaviour, IRenderableLight
 {
 
-    public Color color = Color.white;
+    public Color color = Color.White;
     public float intensity = 8.0f;
     public float shadowStrength = 1.0f;
     public float shadowBias = 0.05f;

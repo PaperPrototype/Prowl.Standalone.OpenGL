@@ -43,11 +43,11 @@ public class MeshRenderable : IRenderable
         model = _transform;
     }
 
-    public void GetCullingData(out bool isRenderable, out AABBD bounds)
+    public void GetCullingData(out bool isRenderable, out AABB bounds)
     {
         isRenderable = true;
         //bounds = Bounds.CreateFromMinMax(new Vector3(999999), new Vector3(999999));
-        bounds = _mesh.bounds.Transform(_transform);
+        bounds = _mesh.bounds.TransformBy(_transform);
     }
 }
 
@@ -62,7 +62,7 @@ public static class Graphics
     public static int MaxFramebufferColorAttachments { get; internal set; }
 
     public static Double2 ScreenSize => new Double2(Window.InternalWindow.FramebufferSize.X, Window.InternalWindow.FramebufferSize.Y);
-    public static RectInt ScreenRect => new RectInt(0, 0, Window.InternalWindow.FramebufferSize.X, Window.InternalWindow.FramebufferSize.Y);
+    public static IntRect ScreenRect => new IntRect(0, 0, Window.InternalWindow.FramebufferSize.X, Window.InternalWindow.FramebufferSize.Y);
 
     private static Shader? s_blitShader;
     private static Material? s_blitMaterial;
@@ -109,7 +109,7 @@ public static class Graphics
             ClearFlags clear = 0;
             if (clearDepth) clear |= ClearFlags.Depth;
             if (clearColor) clear |= ClearFlags.Color;
-            Device.Clear(color.r, color.g, color.b, color.a, clear | ClearFlags.Stencil);
+            Device.Clear((float)color.R, (float)color.G, (float)color.B, (float)color.A, clear | ClearFlags.Stencil);
         }
         Blit(mat, pass);
     }

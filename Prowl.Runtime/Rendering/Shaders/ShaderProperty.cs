@@ -46,7 +46,7 @@ namespace Prowl.Runtime.Rendering.Shaders
 
         public ShaderProperty(Double2 value)
         {
-            Value = new(value);
+            Value = new(value, 0, 0);
             PropertyType = ShaderPropertyType.Vector2;
         }
 
@@ -58,7 +58,7 @@ namespace Prowl.Runtime.Rendering.Shaders
 
         public ShaderProperty(Double3 value)
         {
-            Value = new(value);
+            Value = new(value, 0);
             PropertyType = ShaderPropertyType.Vector3;
         }
 
@@ -82,7 +82,7 @@ namespace Prowl.Runtime.Rendering.Shaders
 
         public ShaderProperty(Color value)
         {
-            Value = new(value.r, value.g, value.b, value.a);
+            Value = new(value.R, value.G, value.B, value.A);
             PropertyType = ShaderPropertyType.Color;
         }
 

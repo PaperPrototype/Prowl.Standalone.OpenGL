@@ -127,12 +127,12 @@ public sealed class WheelCollider : MonoBehaviour
         Double3 worldAxis = Body.Transform.up;
 
         Double3 forward = Body.Transform.forward;
-        Double3 wheelFwd = Maths.AxisAngle((Float3)worldAxis, (float)SteerAngle) * (Float3)forward;
+        Double3 wheelFwd = Quaternion.AxisAngle((Float3)worldAxis, (float)SteerAngle) * (Float3)forward;
 
-        Double3 wheelLeft = Maths.Cross(worldAxis, wheelFwd);
-        wheelLeft = Maths.Normalize(wheelLeft);
+        Double3 wheelLeft = Double3.Cross(worldAxis, wheelFwd);
+        wheelLeft = Double3.Normalize(wheelLeft);
 
-        Double3 wheelUp = Maths.Cross(wheelFwd, wheelLeft);
+        Double3 wheelUp = Double3.Cross(wheelFwd, wheelLeft);
 
         double rayLen = 2.0 * Radius + SuspensionTravel;
 
@@ -189,7 +189,7 @@ public sealed class WheelCollider : MonoBehaviour
 
         if (!_grounded) return;
 
-        if (groundNormal.LengthSquared > 0.0) groundNormal = Maths.Normalize(groundNormal);
+        if (Double3.LengthSquared(groundNormal) > 0.0) groundNormal = Double3.Normalize(groundNormal);
 
         _displacement = (rayLen - deepestFrac);
         _displacement = Math.Clamp(_displacement, 0.0, SuspensionTravel);
@@ -197,7 +197,7 @@ public sealed class WheelCollider : MonoBehaviour
         double displacementForceMag = _displacement * Spring;
 
         // reduce force when suspension is par to ground
-        displacementForceMag *= Maths.Dot(groundNormal, worldAxis);
+        displacementForceMag *= Double3.Dot(groundNormal, worldAxis);
 
         // apply damping
         double dampingForceMag = _upSpeed * Damping;
@@ -214,21 +214,21 @@ public sealed class WheelCollider : MonoBehaviour
 
         // side-slip friction and drive force. Work out wheel- and floor-relative coordinate frame
         Double3 groundUp = groundNormal;
-        Double3 groundLeft = Maths.Cross(groundNormal, wheelFwd);
+        Double3 groundLeft = Double3.Cross(groundNormal, wheelFwd);
         
-        if (groundLeft.LengthSquared > 0.0) groundLeft = Maths.Normalize(groundLeft);
+        if (Double3.LengthSquared(groundLeft) > 0.0) groundLeft = Double3.Normalize(groundLeft);
         
-        Double3 groundFwd = Maths.Cross(groundLeft, groundUp);
+        Double3 groundFwd = Double3.Cross(groundLeft, groundUp);
         
-        Double3 wheelCenterVel = Body.LinearVelocity + Maths.Cross(Body.AngularVelocity, (Body.Transform.rotation * (Float3)this.Transform.localPosition));
+        Double3 wheelCenterVel = Body.LinearVelocity + Double3.Cross(Body.AngularVelocity, (Body.Transform.rotation * (Float3)this.Transform.localPosition));
 
         // rimVel=(wxr)*v
-        Double3 rimVel = _angularVelocity * Maths.Cross(wheelLeft, groundPos - worldPos);
+        Double3 rimVel = _angularVelocity * Double3.Cross(wheelLeft, groundPos - worldPos);
         Double3 wheelPointVel = wheelCenterVel + rimVel;
 
         if (worldBody == null) throw new Exception("world Body is null.");
 
-        Double3 worldVel = worldBody.LinearVelocity + Maths.Cross(worldBody.AngularVelocity, groundPos - worldBody.Transform.position);
+        Double3 worldVel = worldBody.LinearVelocity + Double3.Cross(worldBody.AngularVelocity, groundPos - worldBody.Transform.position);
 
         wheelPointVel -= worldVel;
 
@@ -240,7 +240,7 @@ public sealed class WheelCollider : MonoBehaviour
         double smallVel = 3.0;
         double friction = SideFriction;
         
-        double sideVel = Maths.Dot(wheelPointVel, groundLeft);
+        double sideVel = Double3.Dot(wheelPointVel, groundLeft);
 
         if (sideVel > slipVel || sideVel < -slipVel)
         {
@@ -299,16 +299,16 @@ public sealed class WheelCollider : MonoBehaviour
 
     public override void DrawGizmos()
     {
-        Double3 wheelFwd = Maths.AxisAngle((Float3)Body.Transform.up, (float)SteerAngle) * (Float3)Body.Transform.forward;
-        Double3 wheelLeft = Maths.Cross(Body.Transform.up, wheelFwd);
-        wheelLeft = Maths.Normalize(wheelLeft);
+        Double3 wheelFwd = Quaternion.AxisAngle((Float3)Body.Transform.up, (float)SteerAngle) * (Float3)Body.Transform.forward;
+        Double3 wheelLeft = Double3.Cross(Body.Transform.up, wheelFwd);
+        wheelLeft = Double3.Normalize(wheelLeft);
 
         // Debug Draw
-        Debug.DrawWireCircle(WorldPosition, wheelLeft, Radius, Color.green, 32);
+        Debug.DrawWireCircle(WorldPosition, wheelLeft, Radius, Color.Green, 32);
 
         // Draw Wheel Rotation With a Line
-        Double3 wheelEnd = WorldPosition + ((Maths.AxisAngle((Float3)wheelLeft, (float)WheelRotation) * (Float3)wheelFwd) * Radius);
-        Debug.DrawLine(WorldPosition, wheelEnd, Color.green);
+        Double3 wheelEnd = WorldPosition + ((Quaternion.AxisAngle((Float3)wheelLeft, (float)WheelRotation) * (Float3)wheelFwd) * Radius);
+        Debug.DrawLine(WorldPosition, wheelEnd, Color.Green);
 
         // Draw Raycasts
         for (int i = 0; i < _debugRayStart.Count; i++)
@@ -336,7 +336,7 @@ public sealed class WheelCollider : MonoBehaviour
         double wheelMass = Body.Mass * 0.03;
 
         Inertia = 0.5 * (Radius * Radius) * wheelMass;
-        Spring = mass * (GameObject.Scene?.Physics.Gravity.Length ?? 9.81) / (SuspensionTravel * springFrac);
+        Spring = mass * (Double3.Length(GameObject.Scene.Physics.Gravity)) / (SuspensionTravel * springFrac);
         Damping = 2.0 * Math.Sqrt(Spring * Body.Mass) * 0.25 * dampingFrac;
     }
 }

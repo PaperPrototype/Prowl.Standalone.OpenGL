@@ -69,8 +69,8 @@ public sealed class AnimationClip : EngineObject, ISerializable
                 Quaternion midQ = (prev + cur) * 0.5f;
                 Quaternion midQFlipped = (prev + (-cur)) * 0.5f;
 
-                double angle = Maths.Angle(prev, midQ);
-                double angleFlipped = Maths.Angle(prev, midQFlipped);
+                double angle = Quaternion.Angle(prev, midQ);
+                double angleFlipped = Quaternion.Angle(prev, midQFlipped);
                 Quaternion continuous = angleFlipped < angle ? (-cur) : cur;
 
                 // Update the keyframe values with the continuous quaternion

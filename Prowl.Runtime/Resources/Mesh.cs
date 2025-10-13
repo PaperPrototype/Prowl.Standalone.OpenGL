@@ -27,7 +27,7 @@ namespace Prowl.Runtime.Resources
         public readonly bool isWritable = true;
 
         /// <summary> The bounds of the mesh </summary>
-        public AABBD bounds { get; internal set; }
+        public AABB bounds { get; internal set; }
 
         /// <summary> The format of the indices for this mesh </summary>
         public IndexFormat IndexFormat {
@@ -350,7 +350,7 @@ namespace Prowl.Runtime.Resources
             if (empty)
                 throw new ArgumentException();
 
-            bounds = new AABBD(minVec, maxVec);
+            bounds = new AABB(minVec, maxVec);
         }
 
         public void RecalculateNormals()
@@ -366,7 +366,7 @@ namespace Prowl.Runtime.Resources
                 uint bi = indices[i + 1];
                 uint ci = indices[i + 2];
 
-                Float3 n = Maths.Normalize(Maths.Cross(
+                Float3 n = Float3.Normalize(Float3.Cross(
                     vertices[bi] - vertices[ai],
                     vertices[ci] - vertices[ai]
                 ));
@@ -378,7 +378,7 @@ namespace Prowl.Runtime.Resources
 
             for (int i = 0; i < vertices.Length; i++)
             {
-                normals[i] = Maths.Normalize(normals[i]);
+                normals[i] = Float3.Normalize(normals[i]);
                 if (double.IsNaN(normals[i].X) || double.IsNaN(normals[i].Y) || double.IsNaN(normals[i].Z))
                     normals[i] = Float3.UnitY;
             }
@@ -419,7 +419,7 @@ namespace Prowl.Runtime.Resources
             }
 
             for (int i = 0; i < vertices.Length; i++)
-                tangents[i] = Maths.Normalize(tangents[i]);
+                tangents[i] = Float3.Normalize(tangents[i]);
 
             Tangents = tangents;
         }
@@ -433,7 +433,7 @@ namespace Prowl.Runtime.Resources
         /// <param name="hitDistance">The distance from ray origin to the closest hit point, if any</param>
         /// <param name="hitNormal">The normal vector at the hit point, if any</param>
         /// <returns>True if the ray intersects with the mesh, false otherwise</returns>
-        public bool Raycast(RayD ray, out double hitDistance, out Float3 hitNormal)
+        public bool Raycast(Ray ray, out double hitDistance, out Float3 hitNormal)
         {
             // Initialize out parameters
             hitDistance = double.MaxValue;
@@ -466,7 +466,7 @@ namespace Prowl.Runtime.Resources
                 Float3 v3 = vertices[i3];
 
                 // Test ray-triangle intersection
-                if (ray.Intersects(new TriangleD(v1, v2, v3), out var distance, out _, out _) && distance < hitDistance)
+                if (ray.Intersects(new Triangle(v1, v2, v3), out var distance, out _, out _) && distance < hitDistance)
                 {
                     hit = true;
                     hitDistance = distance;
@@ -480,8 +480,8 @@ namespace Prowl.Runtime.Resources
                     else
                     {
                         // Calculate face normal using cross product
-                        hitNormal = Maths.Normalize(
-                            Maths.Cross(v2 - v1, v3 - v1)
+                        hitNormal = Float3.Normalize(
+                            Float3.Cross(v2 - v1, v3 - v1)
                         );
                     }
                 }
@@ -496,7 +496,7 @@ namespace Prowl.Runtime.Resources
         /// <param name="ray">The ray to test intersection with</param>
         /// <param name="hitDistance">The distance from ray origin to the hit point, if any</param>
         /// <returns>True if the ray intersects with the mesh, false otherwise</returns>
-        public bool Raycast(RayD ray, out double hitDistance)
+        public bool Raycast(Ray ray, out double hitDistance)
         {
             Float3 hitNormal;
             var result = Raycast(ray, out hitDistance, out hitNormal);
@@ -508,7 +508,7 @@ namespace Prowl.Runtime.Resources
         /// </summary>
         /// <param name="ray">The ray to test intersection with</param>
         /// <returns>True if the ray intersects with the mesh, false otherwise</returns>
-        public bool Raycast(RayD ray)
+        public bool Raycast(Ray ray)
         {
             double hitDistance;
             return Raycast(ray, out hitDistance);
@@ -867,19 +867,19 @@ namespace Prowl.Runtime.Resources
 
                 if (HasColors)
                 {
-                    Copy(BitConverter.GetBytes(colors[i].r), ref index);
-                    Copy(BitConverter.GetBytes(colors[i].g), ref index);
-                    Copy(BitConverter.GetBytes(colors[i].b), ref index);
-                    Copy(BitConverter.GetBytes(colors[i].a), ref index);
+                    Copy(BitConverter.GetBytes((float)colors[i].R), ref index);
+                    Copy(BitConverter.GetBytes((float)colors[i].G), ref index);
+                    Copy(BitConverter.GetBytes((float)colors[i].B), ref index);
+                    Copy(BitConverter.GetBytes((float)colors[i].A), ref index);
                 }
                 else if (HasColors32)
                 {
                     var c = (Color)colors32[i];
 
-                    Copy(BitConverter.GetBytes(c.r), ref index);
-                    Copy(BitConverter.GetBytes(c.g), ref index);
-                    Copy(BitConverter.GetBytes(c.b), ref index);
-                    Copy(BitConverter.GetBytes(c.a), ref index);
+                    Copy(BitConverter.GetBytes(c.R), ref index);
+                    Copy(BitConverter.GetBytes(c.G), ref index);
+                    Copy(BitConverter.GetBytes(c.B), ref index);
+                    Copy(BitConverter.GetBytes(c.A), ref index);
                 }
 
                 if (HasTangents)
@@ -953,10 +953,10 @@ namespace Prowl.Runtime.Resources
                 {
                     foreach (var color in colors)
                     {
-                        writer.Write(color.r);
-                        writer.Write(color.g);
-                        writer.Write(color.b);
-                        writer.Write(color.a);
+                        writer.Write(color.R);
+                        writer.Write(color.G);
+                        writer.Write(color.B);
+                        writer.Write(color.A);
                     }
                 }
 
@@ -965,10 +965,10 @@ namespace Prowl.Runtime.Resources
                 {
                     foreach (var color in colors32)
                     {
-                        writer.Write(color.r);
-                        writer.Write(color.g);
-                        writer.Write(color.b);
-                        writer.Write(color.a);
+                        writer.Write(color.R);
+                        writer.Write(color.G);
+                        writer.Write(color.B);
+                        writer.Write(color.A);
                     }
                 }
 
@@ -1078,7 +1078,7 @@ namespace Prowl.Runtime.Resources
         {
             meshTopology = (Topology)value["MeshType"].IntValue;
             indexFormat = (IndexFormat)value["MeshIndexFormat"].IntValue;
-            bounds = new AABBD(
+            bounds = new AABB(
                 new Double3(value["BoundsMinX"].DoubleValue, value["BoundsMinY"].DoubleValue, value["BoundsMinZ"].DoubleValue),
                 new Double3(value["BoundsMaxX"].DoubleValue, value["BoundsMaxY"].DoubleValue, value["BoundsMaxZ"].DoubleValue)
             );

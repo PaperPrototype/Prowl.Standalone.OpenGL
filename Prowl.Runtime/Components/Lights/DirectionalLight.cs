@@ -23,8 +23,8 @@ public class DirectionalLight : Light
     public override void Update()
     {
         GameObject.Scene.PushLight(this);
-        Debug.DrawArrow(Transform.position, -Transform.forward, Color.yellow);
-        Debug.DrawWireCircle(Transform.position, Transform.forward, 0.5f, Color.yellow);
+        Debug.DrawArrow(Transform.position, -Transform.forward, Color.Yellow);
+        Debug.DrawWireCircle(Transform.position, Transform.forward, 0.5f, Color.Yellow);
     }
 
 
@@ -39,15 +39,15 @@ public class DirectionalLight : Light
     public void UploadToGPU(bool cameraRelative, Double3 cameraPosition, int atlasX, int atlasY, int atlasWidth)
     {
         PropertyState.SetGlobalVector($"_Sun.direction", Transform.forward);
-        PropertyState.SetGlobalVector($"_Sun.color", new Double3(color.r, color.g, color.b));
+        PropertyState.SetGlobalVector($"_Sun.color", new Double3(color.R, color.G, color.B));
         PropertyState.SetGlobalFloat($"_Sun.intensity", intensity);
 
         GetShadowMatrix(out var view, out var proj);
 
         if (cameraRelative)
-            view.Translation -= cameraPosition;
+            view.Translation -= new Double4(cameraPosition.X, cameraPosition.Y, cameraPosition.Z, 0.0f);
 
-        PropertyState.SetGlobalMatrix($"_Sun.shadowMatrix", Maths.Mul(proj, view));
+        PropertyState.SetGlobalMatrix($"_Sun.shadowMatrix", proj * view);
         PropertyState.SetGlobalFloat($"_Sun.shadowBias", shadowBias);
         PropertyState.SetGlobalFloat($"_Sun.shadowNormalBias", shadowNormalBias);
         PropertyState.SetGlobalFloat($"_Sun.shadowStrength", shadowStrength);

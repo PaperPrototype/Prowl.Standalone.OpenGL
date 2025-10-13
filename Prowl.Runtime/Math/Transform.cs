@@ -20,7 +20,7 @@ public class Transform
             if (_isWorldPosDirty)
             {
                 if (parent != null)
-                    _cachedWorldPosition = Maths.TransformPoint(m_LocalPosition, parent.localToWorldMatrix);
+                    _cachedWorldPosition = Double4x4.TransformPoint(m_LocalPosition, parent.localToWorldMatrix);
                 else
                     _cachedWorldPosition = m_LocalPosition;
                 _isWorldPosDirty = false;
@@ -78,9 +78,9 @@ public class Transform
         {
             var newVale = Quaternion.Identity;
             if (parent != null)
-                newVale = MakeSafe(Maths.NormalizeSafe(Maths.Inverse(parent.rotation) * value));
+                newVale = MakeSafe(Quaternion.NormalizeSafe(Quaternion.Inverse(parent.rotation) * value));
             else
-                newVale = MakeSafe(Maths.NormalizeSafe(value));
+                newVale = MakeSafe(Quaternion.NormalizeSafe(value));
             if(localRotation != newVale)
             {
                 localRotation = newVale;
@@ -105,7 +105,7 @@ public class Transform
 
     public Double3 eulerAngles
     {
-        get => MakeSafe(rotation.eulerAngles);
+        get => MakeSafe(rotation.EulerAngles);
         set
         {
             rotation = MakeSafe(Quaternion.FromEuler((Float3)value));
@@ -115,10 +115,10 @@ public class Transform
 
     public Double3 localEulerAngles
     {
-        get => MakeSafe(m_LocalRotation.eulerAngles);
+        get => MakeSafe(m_LocalRotation.EulerAngles);
         set
         {
-            m_LocalRotation.eulerAngles = (Float3)MakeSafe(value);
+            m_LocalRotation.EulerAngles = (Float3)MakeSafe(value);
             InvalidateTransformCache();
         }
     }
@@ -174,7 +174,7 @@ public class Transform
             if (_isLocalToWorldMatrixDirty)
             {
                 Double4x4 t = Double4x4.CreateTRS(m_LocalPosition, m_LocalRotation, m_LocalScale);
-                _cachedLocalToWorldMatrix = parent != null ? Maths.Mul(parent.localToWorldMatrix, t) : t;
+                _cachedLocalToWorldMatrix = parent != null ? (parent.localToWorldMatrix * t) : t;
                 _isLocalToWorldMatrixDirty = false;
             }
             return _cachedLocalToWorldMatrix;
@@ -316,7 +316,7 @@ public class Transform
         if (relativeToSelf)
             localRotation = localRotation * eulerRot;
         else
-            rotation = rotation * (Maths.Inverse(rotation) * eulerRot * rotation);
+            rotation = rotation * (Quaternion.Inverse(rotation) * eulerRot * rotation);
     }
 
     public void Rotate(Double3 axis, double angle, bool relativeToSelf = true)
@@ -327,7 +327,7 @@ public class Transform
     public void RotateAround(Double3 point, Double3 axis, double angle)
     {
         Double3 worldPos = position;
-        Quaternion q = Maths.AxisAngle((Float3)axis, (float)angle);
+        Quaternion q = Quaternion.AxisAngle((Float3)axis, (float)angle);
         Double3 dif = worldPos - point;
         dif = q * (Float3)dif;
         worldPos = point + dif;
@@ -338,23 +338,23 @@ public class Transform
     internal void RotateAroundInternal(Double3 worldAxis, double rad)
     {
         Double3 localAxis = InverseTransformDirection(worldAxis);
-        if (localAxis.LengthSquared > double.Epsilon)
+        if (Double3.LengthSquared(localAxis) > double.Epsilon)
         {
-            localAxis = Maths.Normalize(localAxis);
-            Quaternion q = Maths.AxisAngle((Float3)localAxis, (float)rad);
-            m_LocalRotation = Maths.NormalizeSafe(m_LocalRotation * q);
+            localAxis = Double3.Normalize(localAxis);
+            Quaternion q = Quaternion.AxisAngle((Float3)localAxis, (float)rad);
+            m_LocalRotation = Quaternion.NormalizeSafe(m_LocalRotation * q);
         }
     }
 
 
     #region Transform
 
-    public Double3 TransformPoint(Double3 inPosition) => Maths.TransformPoint(new Double4(inPosition, 1.0), localToWorldMatrix).XYZ;
-    public Double3 InverseTransformPoint(Double3 inPosition) => Maths.TransformPoint(new Double4(inPosition, 1.0), worldToLocalMatrix).XYZ;
-    public Quaternion InverseTransformRotation(Quaternion worldRotation) => Maths.Inverse(rotation) * worldRotation;
+    public Double3 TransformPoint(Double3 inPosition) => Double4x4.TransformPoint(new Double4(inPosition, 1.0), localToWorldMatrix).XYZ;
+    public Double3 InverseTransformPoint(Double3 inPosition) => Double4x4.TransformPoint(new Double4(inPosition, 1.0), worldToLocalMatrix).XYZ;
+    public Quaternion InverseTransformRotation(Quaternion worldRotation) => Quaternion.Inverse(rotation) * worldRotation;
 
     public Double3 TransformDirection(Double3 inDirection) => rotation * (Float3)inDirection;
-    public Double3 InverseTransformDirection(Double3 inDirection) => Maths.Inverse(rotation) * (Float3)inDirection;
+    public Double3 InverseTransformDirection(Double3 inDirection) => Quaternion.Inverse(rotation) * (Float3)inDirection;
 
     public Double3 TransformVector(Double3 inVector)
     {
@@ -378,7 +378,7 @@ public class Transform
         else
             localVector = inVector;
 
-        newVector = Maths.Inverse(m_LocalRotation) * (Float3)localVector;
+        newVector = Quaternion.Inverse(m_LocalRotation) * (Float3)localVector;
         if (!m_LocalScale.Equals(Double3.One))
             newVector = newVector * InverseSafe(m_LocalScale);
 
@@ -406,7 +406,7 @@ public class Transform
         if (parent != null)
         {
             Double4x4 parentTransform = parent.GetWorldRotationAndScale();
-            ret = Maths.Mul(parentTransform, ret);
+            ret = (parentTransform * ret);
         }
         return ret;
     }

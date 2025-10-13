@@ -13,7 +13,7 @@ namespace Prowl.Runtime;
 public class ModelRenderer : MonoBehaviour
 {
     public Model Model;
-    public Color mainColor = Color.white;
+    public Color mainColor = Color.White;
 
     // Animation properties
     public AnimationClip CurrentAnimation;
@@ -115,7 +115,7 @@ public class ModelRenderer : MonoBehaviour
     {
         // Calculate this node's matrices
         var localMatrix = Double4x4.CreateTRS(node.LocalPosition, node.LocalRotation, node.LocalScale);
-        var worldMatrix = Maths.Mul(parentWorldMatrix, localMatrix);
+        var worldMatrix = parentWorldMatrix * localMatrix;
 
         _nodeTransforms[node.Name] = new ModelNodeTransform
         {
@@ -164,7 +164,7 @@ public class ModelRenderer : MonoBehaviour
     {
         if (_nodeTransforms.TryGetValue(node.Name, out var nodeTransform))
         {
-            nodeTransform.WorldMatrix = Maths.Mul(parentWorldMatrix, nodeTransform.LocalMatrix);
+            nodeTransform.WorldMatrix = parentWorldMatrix * nodeTransform.LocalMatrix;
 
             // Recursively update children
             foreach (var child in node.Children)
@@ -198,7 +198,7 @@ public class ModelRenderer : MonoBehaviour
                 // boneMatrix = meshLocalMatrix * boneWorldMatrix * bindPose
                 // This transforms from bind pose -> bone space -> world space -> mesh local space
                 var boneWorldMatrix = (Float4x4)boneTransform.WorldMatrix;
-                boneMatrices[i] = Maths.Mul(Maths.Mul(meshLocalMatrix, boneWorldMatrix), bindPose);
+                boneMatrices[i] = (meshLocalMatrix * boneWorldMatrix) * bindPose;
             }
             else
             {
@@ -217,13 +217,13 @@ public class ModelRenderer : MonoBehaviour
         if (_nodeTransforms.TryGetValue(node.Name, out var nodeTransform))
         {
             // Use the animated/cached transform
-            nodeWorldMatrix = Maths.Mul(parentMatrix, nodeTransform.LocalMatrix);
+            nodeWorldMatrix = parentMatrix * nodeTransform.LocalMatrix;
         }
         else
         {
             // Fallback to node's original transform
             var nodeLocalMatrix = Double4x4.CreateTRS(node.LocalPosition, node.LocalRotation, node.LocalScale);
-            nodeWorldMatrix = Maths.Mul(parentMatrix, nodeLocalMatrix);
+            nodeWorldMatrix = parentMatrix * nodeLocalMatrix;
         }
 
         // Render all meshes on this node
@@ -264,7 +264,7 @@ public class ModelRenderer : MonoBehaviour
         }
     }
 
-    public bool Raycast(RayD ray, out double distance)
+    public bool Raycast(Ray ray, out double distance)
     {
         distance = double.MaxValue;
 
@@ -274,7 +274,7 @@ public class ModelRenderer : MonoBehaviour
         return RaycastModelNode(Model.RootNode, Transform.localToWorldMatrix, ray, ref distance);
     }
 
-    private bool RaycastModelNode(ModelNode node, Double4x4 parentMatrix, RayD ray, ref double closestDistance)
+    private bool RaycastModelNode(ModelNode node, Double4x4 parentMatrix, Ray ray, ref double closestDistance)
     {
         bool hit = false;
 
@@ -282,12 +282,12 @@ public class ModelRenderer : MonoBehaviour
         Double4x4 nodeWorldMatrix;
         if (_nodeTransforms.TryGetValue(node.Name, out var nodeTransform))
         {
-            nodeWorldMatrix = Maths.Mul(parentMatrix, nodeTransform.LocalMatrix);
+            nodeWorldMatrix = parentMatrix * nodeTransform.LocalMatrix;
         }
         else
         {
             var nodeLocalMatrix = Double4x4.CreateTRS(node.LocalPosition, node.LocalRotation, node.LocalScale);
-            nodeWorldMatrix = Maths.Mul(parentMatrix, nodeLocalMatrix);
+            nodeWorldMatrix = parentMatrix * nodeLocalMatrix;
         }
 
         // Test all meshes on this node
@@ -303,16 +303,16 @@ public class ModelRenderer : MonoBehaviour
             // Transform ray to this mesh's local space
             var worldToLocalMatrix = nodeWorldMatrix.Invert();
 
-            Double3 localOrigin = Maths.TransformPoint(ray.Origin, worldToLocalMatrix);
-            Double3 localDirection = Maths.TransformNormal(ray.Direction, worldToLocalMatrix);
-            RayD localRay = new RayD(localOrigin, localDirection);
+            Double3 localOrigin = Double4x4.TransformPoint(ray.Origin, worldToLocalMatrix);
+            Double3 localDirection = Double4x4.TransformNormal(ray.Direction, worldToLocalMatrix);
+            Ray localRay = new Ray(localOrigin, localDirection);
 
             if (mesh.Raycast(localRay, out double localDistance))
             {
                 // Calculate world space distance
                 Double3 localHitPoint = localOrigin + localDirection * localDistance;
-                Double3 worldHitPoint = Maths.TransformPoint(localHitPoint, nodeWorldMatrix);
-                double worldDistance = Maths.Distance(ray.Origin, worldHitPoint);
+                Double3 worldHitPoint = Double4x4.TransformPoint(localHitPoint, nodeWorldMatrix);
+                double worldDistance = Double3.Distance(ray.Origin, worldHitPoint);
 
                 if (worldDistance < closestDistance)
                 {

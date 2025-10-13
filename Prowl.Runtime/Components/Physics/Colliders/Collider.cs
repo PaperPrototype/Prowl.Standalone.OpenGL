@@ -39,7 +39,7 @@ public abstract class Collider : MonoBehaviour
 
         while (current != null)
         {
-            cumulativeScale = Maths.Mul(cumulativeScale, current.localScale);
+            cumulativeScale = cumulativeScale * current.localScale;
             current = current.parent;
         }
 
@@ -47,7 +47,7 @@ public abstract class Collider : MonoBehaviour
 
         // Get the local rotation and position in world space
         Quaternion localRotation = Quaternion.FromEuler((Float3)rotation);
-        Double3 scaledCenter = Maths.Mul(this.center, cumulativeScale);
+        Double3 scaledCenter = this.center * cumulativeScale;
 
         // Transform local position and rotation to world space
         Double3 worldCenter = this.Transform.TransformPoint(scaledCenter);
@@ -55,7 +55,7 @@ public abstract class Collider : MonoBehaviour
 
         // Transform from world space to rigid body's local space
         Double3 rbLocalCenter = rb.Transform.InverseTransformPoint(worldCenter);
-        Quaternion rbLocalRotation = Maths.Inverse(rb.Transform.rotation) * worldRotation;
+        Quaternion rbLocalRotation = Quaternion.Inverse(rb.Transform.rotation) * worldRotation;
 
         // Create a scale transform matrix that includes both rotation and scale
         Double4x4 scaleMatrix = Double4x4.CreateTRS(Double3.Zero, rbLocalRotation, cumulativeScale);

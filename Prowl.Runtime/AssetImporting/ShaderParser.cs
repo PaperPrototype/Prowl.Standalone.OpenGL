@@ -400,7 +400,7 @@ public static class ShaderParser
                 ShaderPropertyType.Vector2 => Double2.Zero,
                 ShaderPropertyType.Vector3 => Double3.Zero,
                 ShaderPropertyType.Vector4 => Double4.Zero,
-                ShaderPropertyType.Color => Color.white,
+                ShaderPropertyType.Color => Color.White,
                 ShaderPropertyType.Matrix => Double4x4.Identity,
                 ShaderPropertyType.Texture2D => Texture2D.White,
                 _ => throw new Exception($"Invalid property type") // Should never execute unless EnumParse() breaks.

@@ -399,7 +399,7 @@ namespace Prowl.Runtime.Rendering
             PropertyState.SetGlobalMatrix("prowl_MatV", view);
             PropertyState.SetGlobalMatrix("prowl_MatIV", view.Invert());
             PropertyState.SetGlobalMatrix("prowl_MatP", projection);
-            PropertyState.SetGlobalMatrix("prowl_MatVP", Maths.Mul(projection, view));
+            PropertyState.SetGlobalMatrix("prowl_MatVP", projection * view);
         }
 
         #endregion
@@ -426,7 +426,7 @@ namespace Prowl.Runtime.Rendering
             public Double4x4 viewInverse = (CAMERA_RELATIVE ? camera.OriginViewMatrix : camera.ViewMatrix).Invert();
             public Double4x4 projection = camera.ProjectionMatrix;
             public Double4x4 previousViewProj = camera.PreviousViewProjectionMatrix;
-            public FrustrumD worldFrustum = FrustrumD.FromMatrix(Maths.Mul(camera.ProjectionMatrix, camera.ViewMatrix));
+            public Frustrum worldFrustum = Frustrum.FromMatrix(camera.ProjectionMatrix * camera.ViewMatrix);
             public DepthTextureMode depthTextureMode = camera.DepthTextureMode; // Flags, Can be None, Normals, MotionVectors
         }
 
@@ -558,7 +558,7 @@ namespace Prowl.Runtime.Rendering
             Graphics.Device.Viewport(0, 0, (uint)Window.InternalWindow.FramebufferSize.X, (uint)Window.InternalWindow.FramebufferSize.Y);
         }
 
-        private static HashSet<int> CullRenderables(IReadOnlyList<IRenderable> renderables, FrustrumD? worldFrustum, LayerMask cullingMask)
+        private static HashSet<int> CullRenderables(IReadOnlyList<IRenderable> renderables, Frustrum? worldFrustum, LayerMask cullingMask)
         {
             HashSet<int> culledRenderableIndices = [];
             for (int renderIndex = 0; renderIndex < renderables.Count; renderIndex++)
@@ -617,7 +617,7 @@ namespace Prowl.Runtime.Rendering
                     continue;
 
                 // Calculate resolution based on distance
-                int res = CalculateResolution(Maths.Distance(cameraPosition, light.GetLightPosition()));
+                int res = CalculateResolution(Double3.Distance(cameraPosition, light.GetLightPosition()));
                 if (light is DirectionalLight dir)
                     res = (int)dir.shadowResolution;
 
@@ -701,11 +701,11 @@ namespace Prowl.Runtime.Rendering
                                 Graphics.Device.Viewport(viewportX, viewportY, (uint)res, (uint)res);
 
                                 pointLight.GetShadowMatrixForFace(face, out Double4x4 view, out Double4x4 proj, out Double3 forward, out Double3 up);
-                                Double3 right = Maths.Cross(forward, up);
+                                Double3 right = Double3.Cross(forward, up);
 
-                                FrustrumD frustum = FrustrumD.FromMatrix(Maths.Mul(proj, view));
+                                Frustrum frustum = Frustrum.FromMatrix(proj * view);
                                 if (CAMERA_RELATIVE)
-                                    view.Translation = Double3.Zero;
+                                    view.Translation *= new Double4(0, 0, 0, 1); // set all to 0 except W
 
                                 HashSet<int> culledRenderableIndices = [];// CullRenderables(renderables, frustum);
                                 AssignCameraMatrices(view, proj);
@@ -731,9 +731,9 @@ namespace Prowl.Runtime.Rendering
 
                             light.GetShadowMatrix(out Double4x4 view, out Double4x4 proj);
 
-                            FrustrumD frustum = FrustrumD.FromMatrix(Maths.Mul(proj, view));
+                            Frustrum frustum = Frustrum.FromMatrix(proj * view);
                             if (CAMERA_RELATIVE)
-                                view.Translation = Double3.Zero;
+                                view.Translation *= new Double4(0, 0, 0, 1); // set all to 0 except W
 
                             HashSet<int> culledRenderableIndices = [];// CullRenderables(renderables, frustum);
                             AssignCameraMatrices(view, proj);
@@ -825,13 +825,13 @@ namespace Prowl.Runtime.Rendering
 
         private static void RenderSkybox(CameraSnapshot css)
         {
-            s_skybox.SetMatrix("prowl_MatVP", Maths.Mul(css.projection, css.originView));
+            s_skybox.SetMatrix("prowl_MatVP", css.projection * css.originView);
             Graphics.DrawMeshNow(s_skyDome, s_skybox);
         }
 
         private static void RenderGizmos(CameraSnapshot css)
         {
-            Double4x4 vp = Maths.Mul(css.projection, css.view);
+            Double4x4 vp = css.projection * css.view;
             (Mesh? wire, Mesh? solid) = Debug.GetGizmoDrawData(CAMERA_RELATIVE, css.cameraPosition);
 
             if (wire != null || solid != null)
@@ -1007,12 +1007,12 @@ namespace Prowl.Runtime.Rendering
                         TrackModelMatrix(instanceId, model);
 
                     if (CAMERA_RELATIVE)
-                        model.Translation -= viewer.Position;
+                        model.Translation -= new Double4(viewer.Position, model.Translation.W);
 
                     PropertyState.SetGlobalMatrix("prowl_ObjectToWorld", model);
                     PropertyState.SetGlobalMatrix("prowl_WorldToObject", model.Invert());
 
-                    PropertyState.SetGlobalColor("_MainColor", Color.white);
+                    PropertyState.SetGlobalColor("_MainColor", Color.White);
 
                     material._properties.ApplyOverride(properties);
 
@@ -1021,9 +1021,9 @@ namespace Prowl.Runtime.Rendering
             }
         }
 
-        private static bool CullRenderable(IRenderable renderable, FrustrumD cameraFrustum)
+        private static bool CullRenderable(IRenderable renderable, Frustrum cameraFrustum)
         {
-            renderable.GetCullingData(out bool isRenderable, out AABBD bounds);
+            renderable.GetCullingData(out bool isRenderable, out AABB bounds);
 
             return !isRenderable || !cameraFrustum.Intersects(bounds);
         }

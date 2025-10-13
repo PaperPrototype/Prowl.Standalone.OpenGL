@@ -17,7 +17,7 @@ namespace Prowl.Runtime.Resources
             if (s_defaultMaterial == null)
             {
                 s_defaultMaterial = CreateDefaultMaterial();
-                s_defaultMaterial.SetColor("_MainColor", Color.white);
+                s_defaultMaterial.SetColor("_MainColor", Color.White);
             }
 
             return s_defaultMaterial;

@@ -167,7 +167,7 @@ namespace Prowl.Runtime.AssetImporting
                 if (m.HasColorDiffuse)
                     mat.SetColor("_MainColor", new Color(m.ColorDiffuse.R, m.ColorDiffuse.G, m.ColorDiffuse.B, m.ColorDiffuse.A));
                 else
-                    mat.SetColor("_MainColor", Color.white);
+                    mat.SetColor("_MainColor", Color.White);
 
                 // Emissive Color
                 if (m.HasColorEmissive)
@@ -179,7 +179,7 @@ namespace Prowl.Runtime.AssetImporting
                 {
 
                     mat.SetFloat("_EmissionIntensity", 0f);
-                    mat.SetColor("_EmissiveColor", Color.black);
+                    mat.SetColor("_EmissiveColor", Color.Black);
                 }
 
                 // Texture

@@ -11,7 +11,7 @@ public class MeshRenderer : MonoBehaviour
 {
     public Mesh Mesh;
     public Material Material;
-    public Color mainColor = Color.white;
+    public Color mainColor = Color.White;
 
     public override void Update()
     {

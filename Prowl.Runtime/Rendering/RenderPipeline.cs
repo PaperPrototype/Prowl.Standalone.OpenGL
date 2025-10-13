@@ -22,7 +22,7 @@ namespace Prowl.Runtime.Rendering
 
         public void GetRenderingData(ViewerData viewer, out PropertyState properties, out Mesh drawData, out Double4x4 model);
 
-        public void GetCullingData(out bool isRenderable, out AABBD bounds);
+        public void GetCullingData(out bool isRenderable, out AABB bounds);
     }
 
     public enum LightType

@@ -55,7 +55,7 @@ public class PhysicsWorld
     /// </summary>
     public bool Raycast(Double3 origin, Double3 direction)
     {
-        direction = direction.Normalized;
+        direction = Double3.Normalize(direction);
         var jOrigin = new JVector(origin.X, origin.Y, origin.Z);
         var jDirection = new JVector(direction.X, direction.Y, direction.Z);
 
@@ -69,7 +69,7 @@ public class PhysicsWorld
     /// </summary>
     public bool Raycast(Double3 origin, Double3 direction, out RaycastHit hitInfo)
     {
-        direction = direction.Normalized;
+        direction = Double3.Normalize(direction);
         var jOrigin = new JVector(origin.X, origin.Y, origin.Z);
         var jDirection = new JVector(direction.X, direction.Y, direction.Z);
 
@@ -97,7 +97,7 @@ public class PhysicsWorld
     /// </summary>
     public bool Raycast(Double3 origin, Double3 direction, double maxDistance)
     {
-        direction = direction.Normalized;
+        direction = Double3.Normalize(direction);
         var jOrigin = new JVector(origin.X, origin.Y, origin.Z);
         var jDirection = new JVector(direction.X, direction.Y, direction.Z);
 
@@ -111,7 +111,7 @@ public class PhysicsWorld
     /// </summary>
     public bool Raycast(Double3 origin, Double3 direction, double maxDistance, out RaycastHit hitInfo)
     {
-        direction = direction.Normalized;
+        direction = Double3.Normalize(direction);
         var jOrigin = new JVector(origin.X, origin.Y, origin.Z);
         var jDirection = new JVector(direction.X, direction.Y, direction.Z);
 
@@ -139,7 +139,7 @@ public class PhysicsWorld
     /// </summary>
     public bool Raycast(Double3 origin, Double3 direction, double maxDistance, LayerMask layerMask)
     {
-        direction = direction.Normalized;
+        direction = Double3.Normalize(direction);
         var jOrigin = new JVector(origin.X, origin.Y, origin.Z);
         var jDirection = new JVector(direction.X, direction.Y, direction.Z);
 
@@ -153,7 +153,7 @@ public class PhysicsWorld
     /// </summary>
     public bool Raycast(Double3 origin, Double3 direction, out RaycastHit hitInfo, double maxDistance, LayerMask layerMask)
     {
-        direction = direction.Normalized;
+        direction = Double3.Normalize(direction);
         var jOrigin = new JVector(origin.X, origin.Y, origin.Z);
         var jDirection = new JVector(direction.X, direction.Y, direction.Z);
 
