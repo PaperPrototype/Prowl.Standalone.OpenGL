@@ -13,7 +13,7 @@ namespace Prowl.Runtime;
 public class ModelRenderer : MonoBehaviour
 {
     public Model Model;
-    public Color mainColor = Color.White;
+    public Color MainColor = Color.White;
 
     // Animation properties
     public AnimationClip CurrentAnimation;
@@ -235,6 +235,7 @@ public class ModelRenderer : MonoBehaviour
             {
                 PropertyState properties = new PropertyState();
                 properties.SetInt("_ObjectID", InstanceID);
+                properties.SetColor("_MainColor", MainColor);
 
                 // Add bone matrices for skinned meshes
                 if (modelMesh.HasBones)
