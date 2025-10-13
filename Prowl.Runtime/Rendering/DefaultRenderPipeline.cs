@@ -739,44 +739,6 @@ namespace Prowl.Runtime.Rendering
 
             if (light.DoCastShadows())
             {
-                Double3 oldPos = Double3.Zero;
-                //if (light is DirectionalLight dirLight)
-                //{
-                //    // Create light space transform matrices
-                //    Vector3 lightDir = dirLight.Transform.forward;
-                //    Vector3 lightUp = dirLight.Transform.up;
-                //    Vector3 lightRight = Vector3.Cross(lightUp, lightDir).normalized;
-                //    lightUp = Vector3.Cross(lightDir, lightRight).normalized; // Recompute to ensure orthogonality
-                //
-                //    // Create light space matrix (world to light space transform)
-                //    Matrix4x4 worldToLight = new Matrix4x4(
-                //        new Vector4(lightRight.x, lightUp.x, lightDir.x, 0),
-                //        new Vector4(lightRight.y, lightUp.y, lightDir.y, 0),
-                //        new Vector4(lightRight.z, lightUp.z, lightDir.z, 0),
-                //        new Vector4(0, 0, 0, 1)
-                //    );
-                //
-                //    // Transform camera position to light space
-                //    Vector3 lightSpacePos = Vector3.Transform(cameraPosition, worldToLight);
-                //
-                //    // Calculate texel size in light space
-                //    float texelSize = (dirLight.shadowDistance * 2) / res;
-                //
-                //    // Snap in light space (only X and Y components, Z doesn't matter for directional light)
-                //    Vector3 snappedLightPos = new Vector3(
-                //        Maths.Round(lightSpacePos.x / texelSize) * texelSize,
-                //        Maths.Round(lightSpacePos.y / texelSize) * texelSize,
-                //        lightSpacePos.z
-                //    );
-                //
-                //    // Transform back to world space
-                //    Matrix4x4 lightToWorld = worldToLight.Invert();
-                //    Vector3 snappedWorldPos = Vector3.Transform(snappedLightPos, lightToWorld);
-                //
-                //    oldPos = dirLight.Transform.position;
-                //    dirLight.Transform.position = snappedWorldPos;
-                //}
-
                 // Find a slot for the shadow map
                 Int2? slot;
                 bool isPointLight = light is PointLight;
@@ -845,7 +807,12 @@ namespace Prowl.Runtime.Rendering
 
                         Graphics.Device.Viewport(slot.Value.X, slot.Value.Y, (uint)res, (uint)res);
 
-                        light.GetShadowMatrix(out Double4x4 view, out Double4x4 proj);
+                        // Use camera-following shadow matrix for directional lights
+                        Double4x4 view, proj;
+                        if (light is DirectionalLight dirLight)
+                            dirLight.GetShadowMatrix(cameraPosition, res, out view, out proj);
+                        else
+                            light.GetShadowMatrix(out view, out proj);
 
                         Frustrum frustum = Frustrum.FromMatrix(proj * view);
                         if (CAMERA_RELATIVE)
@@ -866,8 +833,6 @@ namespace Prowl.Runtime.Rendering
 
                 if (light is DirectionalLight dirLight2)
                 {
-                    // Return the light to its original position
-                    //dirLight2.Transform.position = oldPos;
                     dirLight2.UploadToGPU(CAMERA_RELATIVE, cameraPosition, AtlasX, AtlasY, AtlasWidth);
                 }
                 else if (light is SpotLight spotLight && spotLightIndex < MAX_SPOT_LIGHTS)
