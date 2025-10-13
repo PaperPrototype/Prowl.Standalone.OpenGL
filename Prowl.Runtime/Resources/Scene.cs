@@ -335,6 +335,15 @@ namespace Prowl.Runtime.Resources
             });
         }
 
+        public void DrawGizmos()
+        {
+            List<GameObject> activeGOs = ActiveObjects.ToList();
+            ForeachComponent(activeGOs, (x) =>
+            {
+                x.DrawGizmos();
+            });
+        }
+
         /// <summary>
         /// Executes GUI update on all active GameObjects and their components.
         /// Calls OnGUI.

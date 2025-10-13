@@ -1,6 +1,8 @@
 // This file is part of the Prowl Game Engine
 // Licensed under the MIT License. See the LICENSE file in the project root for details.
 
+using System;
+
 using Jitter2;
 using Jitter2.Dynamics;
 using Jitter2.Dynamics.Constraints;
@@ -38,7 +40,12 @@ public abstract class PhysicsJoint : PhysicsConstraint
     {
         if (joint != null && GameObject?.Scene?.Physics?.World != null)
         {
-            joint.DebugDraw(JitterGizmosDrawer.Instance);
+            try
+            {
+                joint.DebugDraw(JitterGizmosDrawer.Instance);
+            }
+            catch (NotImplementedException)
+            { }
         }
     }
 }

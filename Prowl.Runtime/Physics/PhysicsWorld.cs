@@ -15,6 +15,10 @@ namespace Prowl.Runtime;
 
 public class PhysicsWorld
 {
+    public static void IgnoreCollisionBetween(Rigidbody3D bodyA, Rigidbody3D bodyB) => LayerFilter.IgnoreCollisionBetween(bodyA, bodyB);
+
+    public static void EnableCollisionBetween(Rigidbody3D bodyA, Rigidbody3D bodyB) => LayerFilter.EnableCollisionBetween(bodyA, bodyB);
+
     public World World { get; private set; }
 
     public Double3 Gravity = new Double3(0, -9.81f, 0);
