@@ -11,7 +11,7 @@ public class MeshRenderer : MonoBehaviour
 {
     public Mesh Mesh;
     public Material Material;
-    public Color mainColor = Color.White;
+    public Color MainColor = Color.White;
 
     public override void Update()
     {
@@ -19,6 +19,7 @@ public class MeshRenderer : MonoBehaviour
         {
             PropertyState properties = new PropertyState();
             properties.SetInt("_ObjectID", InstanceID);
+            properties.SetColor("_MainColor", MainColor);
             GameObject.Scene.PushRenderable(new MeshRenderable(
                 Mesh,
                 Material,

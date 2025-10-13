@@ -55,22 +55,15 @@ public sealed class PhysicsDemo : Game
 
         scene.Add(cam);
 
-        // Create materials
-        Material floorMaterial = new Material(Shader.LoadDefault(DefaultShader.Standard));
-        floorMaterial.SetColor("_MainColor", new Color(0.8f, 0.8f, 0.8f, 1.0f));
-
-        Material cubeMaterial = new Material(Shader.LoadDefault(DefaultShader.Standard));
-        cubeMaterial.SetColor("_MainColor", new Color(0.2f, 0.5f, 1.0f, 1.0f));
-
-        // Material for shootable cubes
+        // Create single shared material
         shootableCubeMaterial = new Material(Shader.LoadDefault(DefaultShader.Standard));
-        shootableCubeMaterial.SetColor("_MainColor", new Color(1.0f, 0.3f, 0.3f, 1.0f));
 
         // Create floor (static)
         GameObject floor = new GameObject("Floor");
         var floorRenderer = floor.AddComponent<MeshRenderer>();
         floorRenderer.Mesh = Mesh.CreateCube(new Double3(20, 1, 20));
-        floorRenderer.Material = floorMaterial;
+        floorRenderer.Material = shootableCubeMaterial;
+        floorRenderer.MainColor = new Color(0.8f, 0.8f, 0.8f, 1.0f);
         floor.Transform.position = new Double3(0, -0.5f, 0);
 
         // Add static rigidbody for floor
@@ -81,33 +74,23 @@ public sealed class PhysicsDemo : Game
 
         scene.Add(floor);
 
-        // Create materials for different demos
-        Material chainMaterial = new Material(Shader.LoadDefault(DefaultShader.Standard));
-        chainMaterial.SetColor("_MainColor", new Color(1.0f, 0.7f, 0.2f, 1.0f));
-
-        Material hingeMaterial = new Material(Shader.LoadDefault(DefaultShader.Standard));
-        hingeMaterial.SetColor("_MainColor", new Color(0.2f, 1.0f, 0.5f, 1.0f));
-
-        Material sliderMaterial = new Material(Shader.LoadDefault(DefaultShader.Standard));
-        sliderMaterial.SetColor("_MainColor", new Color(1.0f, 0.3f, 0.7f, 1.0f));
-
         // Demo 1: Chain of connected cubes (BallSocket + DistanceLimit)
-        CreateChainDemo(scene, new Double3(-8, 10, 0), chainMaterial);
+        CreateChainDemo(scene, new Double3(-8, 10, 0), new Color(1.0f, 0.7f, 0.2f, 1.0f));
 
         // Demo 2: Hinged door (HingeJoint)
-        CreateHingedDoorDemo(scene, new Double3(0, 2, 0), hingeMaterial);
+        CreateHingedDoorDemo(scene, new Double3(0, 2, 0), new Color(0.2f, 1.0f, 0.5f, 1.0f));
 
         // Demo 3: Prismatic slider (PrismaticJoint)
-        CreateSliderDemo(scene, new Double3(8, 3, 0), sliderMaterial);
+        CreateSliderDemo(scene, new Double3(8, 3, 0), new Color(1.0f, 0.3f, 0.7f, 1.0f));
 
         // Demo 4: Ragdoll-style cone limits
-        CreateRagdollDemo(scene, new Double3(-4, 8, -5), cubeMaterial);
+        CreateRagdollDemo(scene, new Double3(-4, 8, -5), new Color(0.2f, 0.5f, 1.0f, 1.0f));
 
         // Demo 5: Powered motor demo
-        CreateMotorDemo(scene, new Double3(4, 3, -5), chainMaterial);
+        CreateMotorDemo(scene, new Double3(4, 3, -5), new Color(1.0f, 0.7f, 0.2f, 1.0f));
     }
 
-    private void CreateChainDemo(Scene scene, Double3 startPos, Material material)
+    private void CreateChainDemo(Scene scene, Double3 startPos, Color color)
     {
         GameObject anchor = new GameObject("Chain Anchor");
         anchor.Transform.position = startPos;
@@ -117,7 +100,8 @@ public sealed class PhysicsDemo : Game
         anchorCollider.Radius = 0.2f;
         var anchorRenderer = anchor.AddComponent<MeshRenderer>();
         anchorRenderer.Mesh = Mesh.CreateSphere(0.2f, 8, 8);
-        anchorRenderer.Material = material;
+        anchorRenderer.Material = shootableCubeMaterial;
+        anchorRenderer.MainColor = color;
         scene.Add(anchor);
 
         GameObject previousLink = anchor;
@@ -127,7 +111,8 @@ public sealed class PhysicsDemo : Game
             link.Transform.position = startPos + new Double3(0, -(i + 1) * 1.5, 0);
             var linkRenderer = link.AddComponent<MeshRenderer>();
             linkRenderer.Mesh = Mesh.CreateCube(new Double3(0.5, 1, 0.5));
-            linkRenderer.Material = material;
+            linkRenderer.Material = shootableCubeMaterial;
+            linkRenderer.MainColor = color;
 
             var linkRb = link.AddComponent<Rigidbody3D>();
             linkRb.Mass = 1.0;
@@ -145,7 +130,7 @@ public sealed class PhysicsDemo : Game
         }
     }
 
-    private void CreateHingedDoorDemo(Scene scene, Double3 position, Material material)
+    private void CreateHingedDoorDemo(Scene scene, Double3 position, Color color)
     {
         // Door frame (static)
         GameObject frame = new GameObject("Door Frame");
@@ -156,7 +141,8 @@ public sealed class PhysicsDemo : Game
         frameCollider.Size = new Double3(0.2, 3, 0.2);
         var frameRenderer = frame.AddComponent<MeshRenderer>();
         frameRenderer.Mesh = Mesh.CreateCube(new Double3(0.2, 3, 0.2));
-        frameRenderer.Material = material;
+        frameRenderer.Material = shootableCubeMaterial;
+        frameRenderer.MainColor = color;
         scene.Add(frame);
 
         // Door (dynamic)
@@ -164,7 +150,8 @@ public sealed class PhysicsDemo : Game
         door.Transform.position = position + new Double3(1.5, 0, 0);
         var doorRenderer = door.AddComponent<MeshRenderer>();
         doorRenderer.Mesh = Mesh.CreateCube(new Double3(3, 2.8, 0.1));
-        doorRenderer.Material = material;
+        doorRenderer.Material = shootableCubeMaterial;
+        doorRenderer.MainColor = color;
 
         var doorRb = door.AddComponent<Rigidbody3D>();
         doorRb.Mass = 2.0;
@@ -183,7 +170,7 @@ public sealed class PhysicsDemo : Game
         scene.Add(door);
     }
 
-    private void CreateSliderDemo(Scene scene, Double3 position, Material material)
+    private void CreateSliderDemo(Scene scene, Double3 position, Color color)
     {
         // Rail (static)
         GameObject rail = new GameObject("Slider Rail");
@@ -194,7 +181,8 @@ public sealed class PhysicsDemo : Game
         railCollider.Size = new Double3(0.1, 4, 0.1);
         var railRenderer = rail.AddComponent<MeshRenderer>();
         railRenderer.Mesh = Mesh.CreateCube(new Double3(0.1, 4, 0.1));
-        railRenderer.Material = material;
+        railRenderer.Material = shootableCubeMaterial;
+        railRenderer.MainColor = color;
         scene.Add(rail);
 
         // Slider (dynamic)
@@ -202,7 +190,8 @@ public sealed class PhysicsDemo : Game
         slider.Transform.position = position + new Double3(0, 1, 0);
         var sliderRenderer = slider.AddComponent<MeshRenderer>();
         sliderRenderer.Mesh = Mesh.CreateCube(new Double3(1, 0.5, 1));
-        sliderRenderer.Material = material;
+        sliderRenderer.Material = shootableCubeMaterial;
+        sliderRenderer.MainColor = color;
 
         var sliderRb = slider.AddComponent<Rigidbody3D>();
         sliderRb.Mass = 1.5;
@@ -222,14 +211,15 @@ public sealed class PhysicsDemo : Game
         scene.Add(slider);
     }
 
-    private void CreateRagdollDemo(Scene scene, Double3 position, Material material)
+    private void CreateRagdollDemo(Scene scene, Double3 position, Color color)
     {
         // Torso (parent body)
         GameObject torso = new GameObject("Torso");
         torso.Transform.position = position;
         var torsoRenderer = torso.AddComponent<MeshRenderer>();
         torsoRenderer.Mesh = Mesh.CreateCube(new Double3(1, 1.5, 0.5));
-        torsoRenderer.Material = material;
+        torsoRenderer.Material = shootableCubeMaterial;
+        torsoRenderer.MainColor = color;
 
         var torsoRb = torso.AddComponent<Rigidbody3D>();
         torsoRb.Mass = 2.0;
@@ -244,7 +234,8 @@ public sealed class PhysicsDemo : Game
         leftArm.Transform.position = position + new Double3(-0.75, 0.5, 0);
         var armRenderer = leftArm.AddComponent<MeshRenderer>();
         armRenderer.Mesh = Mesh.CreateCube(new Double3(1, 0.3, 0.3));
-        armRenderer.Material = material;
+        armRenderer.Material = shootableCubeMaterial;
+        armRenderer.MainColor = color;
 
         var armRb = leftArm.AddComponent<Rigidbody3D>();
         armRb.Mass = 0.5;
@@ -267,7 +258,7 @@ public sealed class PhysicsDemo : Game
         scene.Add(leftArm);
     }
 
-    private void CreateMotorDemo(Scene scene, Double3 position, Material material)
+    private void CreateMotorDemo(Scene scene, Double3 position, Color color)
     {
         // Base (static)
         GameObject motorBase = new GameObject("Motor Base");
@@ -278,7 +269,8 @@ public sealed class PhysicsDemo : Game
         baseCollider.Size = new Double3(0.5, 0.5, 0.5);
         var baseRenderer = motorBase.AddComponent<MeshRenderer>();
         baseRenderer.Mesh = Mesh.CreateCube(new Double3(0.5, 0.5, 0.5));
-        baseRenderer.Material = material;
+        baseRenderer.Material = shootableCubeMaterial;
+        baseRenderer.MainColor = color;
         scene.Add(motorBase);
 
         // Spinning platform
@@ -286,7 +278,8 @@ public sealed class PhysicsDemo : Game
         platform.Transform.position = position + new Double3(0, 0.5, 0);
         var platformRenderer = platform.AddComponent<MeshRenderer>();
         platformRenderer.Mesh = Mesh.CreateCube(new Double3(2, 0.2, 2));
-        platformRenderer.Material = material;
+        platformRenderer.Material = shootableCubeMaterial;
+        platformRenderer.MainColor = color;
 
         var platformRb = platform.AddComponent<Rigidbody3D>();
         platformRb.Mass = 1.0;
@@ -321,6 +314,7 @@ public sealed class PhysicsDemo : Game
         cubeShootMesh = cubeShootMesh == null ? Mesh.CreateCube(new Double3(0.5, 0.5, 0.5)) : cubeShootMesh;
         cubeRenderer.Mesh = cubeShootMesh;
         cubeRenderer.Material = shootableCubeMaterial;
+        cubeRenderer.MainColor = new Color(1.0f, 0.3f, 0.3f, 1.0f);
 
         var cubeRb = cube.AddComponent<Rigidbody3D>();
         cubeRb.Mass = selectedCubeMass;
