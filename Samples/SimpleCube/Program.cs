@@ -2,17 +2,18 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for details.
 
 //
-// SimpleCube Demo - Showcasing Prowl's new Input Action System
+// LineRenderer Demo
 //
-// This demo demonstrates:
-// - Action-based input with multiple input sources
-// - Full keyboard + mouse + gamepad support
-// - Input processing (deadzone, normalization, scaling)
-// - Seamless switching between input methods
+// This demo demonstrates the LineRenderer component with:
+// - Billboard rendering (always faces camera)
+// - Animated lines with dynamic point updates
+// - Color gradients and width variation
+// - Looped lines
+// - Different texture wrap modes
 //
 // Controls:
 //   Movement:  WASD / Arrow Keys / Gamepad Left Stick
-//   Look:      Right Mouse + Drag / Gamepad Right Stick
+//   Look:      Mouse Move (when RMB held) / Gamepad Right Stick
 //   Fly Up:    E / Gamepad A Button
 //   Fly Down:  Q / Gamepad B Button
 //   Sprint:    Left Shift / Gamepad Left Stick Click
@@ -23,7 +24,7 @@ using Prowl.Vector;
 using Prowl.Runtime.Rendering;
 using Prowl.Runtime.Resources;
 
-using Silk.NET.Input;
+using MouseButton = Prowl.Runtime.MouseButton;
 
 namespace SimpleCube;
 
@@ -31,7 +32,7 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        new MyGame().Run("Demo", 1280, 720);
+        new MyGame().Run("LineRenderer Demo", 1280, 720);
     }
 }
 
@@ -39,134 +40,194 @@ public sealed class MyGame : Game
 {
     private GameObject cameraGO;
     private Scene scene;
-    private ModelRenderer model;
 
     // Input Actions
     private InputActionMap cameraMap = null!;
     private InputAction moveAction = null!;
     private InputAction lookAction = null!;
+    private InputAction lookEnableAction = null!;
     private InputAction flyUpAction = null!;
     private InputAction flyDownAction = null!;
     private InputAction sprintAction = null!;
 
+    // Line Renderer Examples
+    private LineRenderer helix;
+    private LineRenderer sineWave;
+    private LineRenderer orbitalRing;
+    private float time = 0;
+
     public override void Initialize()
     {
         scene = new Scene();
-
-        // Setup Input Actions
         SetupInputActions();
 
         // Create directional light
         GameObject lightGO = new("Directional Light");
-        var light = lightGO.AddComponent<DirectionalLight>();
+        lightGO.AddComponent<DirectionalLight>();
         lightGO.Transform.localEulerAngles = new Double3(-80, 5, 0);
         scene.Add(lightGO);
 
         // Create camera
         cameraGO = new("Main Camera");
         cameraGO.tag = "Main Camera";
-        cameraGO.Transform.position = new(0, 0, -10);
+        cameraGO.Transform.position = new(0, 2, -8);
         var camera = cameraGO.AddComponent<Camera>();
         camera.Depth = -1;
         camera.HDR = true;
-
         camera.Effects = new List<ImageEffect>()
         {
-            //new ScreenSpaceReflectionEffect(),
-            //new KawaseBloomEffect(),
-            //new BokehDepthOfFieldEffect(),
+            new FXAAEffect(),
+            new KawaseBloomEffect(),
             new TonemapperEffect(),
         };
-
         scene.Add(cameraGO);
 
-        Mesh cube = Mesh.CreateCube(Double3.One);
-        Material mat = new Material(Shader.LoadDefault(DefaultShader.Standard));
+        // Create ground plane
+        GameObject groundGO = new("Ground");
+        var mr = groundGO.AddComponent<MeshRenderer>();
+        mr.Mesh = Mesh.CreateCube(Double3.One);
+        mr.Material = new Material(Shader.LoadDefault(DefaultShader.Standard));
+        groundGO.Transform.position = new(0, -3, 0);
+        groundGO.Transform.localScale = new(20, 1, 20);
+        scene.Add(groundGO);
 
-        GameObject cubeGO = new GameObject("Cube");
-        var mr = cubeGO.AddComponent<MeshRenderer>();
-        mr.Mesh = cube;
-        mr.Material = mat;
+        // Create Line Renderer Examples
+        CreateLineExamples();
 
-        cubeGO.Transform.position = new(0, -1, 0);
-        cubeGO.Transform.localScale = new(10, 1, 10);
-
-        scene.Add(cubeGO);
-
-        //var m = Model.LoadFromFile("Banana Man\\scene.gltf");
-        var m = Model.LoadFromFile("glTF-Sponza\\Sponza.gltf");
-        model = new GameObject("Model").AddComponent<ModelRenderer>();
-        model.Model = m;
-        scene.Add(model.GameObject);
 
         Input.SetCursorVisible(false);
     }
 
+
+    private void CreateLineExamples()
+    {
+        Texture2D texture = Texture2D.LoadDefault(DefaultTexture.Grid);
+        Material lineMat = new Material(Shader.LoadDefault(DefaultShader.Line));
+        lineMat.SetTexture("_MainTex", texture);
+
+        // 1. Animated Helix with width variation
+        GameObject helixGO = new("Helix");
+        helix = helixGO.AddComponent<LineRenderer>();
+        helix.Material = lineMat;
+        helix.StartWidth = 0.05f;
+        helix.EndWidth = 0.15f;
+        helix.TextureTiling = 10f;
+        helix.StartColor = new Color(1, 0.2f, 0.2f, 1);  // Red
+        helix.EndColor = new Color(1, 0.8f, 0.2f, 1);    // Orange
+        helix.TextureMode = TextureWrapMode.Tile;
+
+        helix.Points = new List<Double3>();
+        for (int i = 0; i <= 80; i++)
+        {
+            float t = i / 80f;
+            float angle = t * MathF.PI * 4;
+            helix.Points.Add(new Double3(
+                MathF.Cos(angle) * 0.8f,
+                t * 3f - 1.5f,
+                MathF.Sin(angle) * 0.8f
+            ));
+        }
+        helixGO.Transform.position = new Double3(-4, 0, 0);
+        scene.Add(helixGO);
+
+        // 2. Animated Sine Wave
+        GameObject sineGO = new("SineWave");
+        sineWave = sineGO.AddComponent<LineRenderer>();
+        sineWave.Material = lineMat;
+        sineWave.StartWidth = 0.08f;
+        sineWave.EndWidth = 0.08f;
+        sineWave.StartColor = new Color(0.2f, 1, 0.5f, 1);  // Green
+        sineWave.EndColor = new Color(0.2f, 0.5f, 1, 1);    // Blue
+        sineWave.TextureMode = TextureWrapMode.Stretch;
+
+        sineWave.Points = new List<Double3>();
+        for (int i = 0; i <= 60; i++)
+        {
+            float t = i / 60f;
+            sineWave.Points.Add(new Double3(
+                t * 5f - 2.5f,
+                MathF.Sin(t * MathF.PI * 3) * 0.8f,
+                0
+            ));
+        }
+        sineGO.Transform.position = new Double3(0, 1, 3);
+        scene.Add(sineGO);
+
+        // 3. Looping Orbital Ring
+        GameObject ringGO = new("OrbitalRing");
+        orbitalRing = ringGO.AddComponent<LineRenderer>();
+        orbitalRing.Material = lineMat;
+        orbitalRing.StartWidth = 0.06f;
+        orbitalRing.EndWidth = 0.06f;
+        orbitalRing.Loop = true;
+        orbitalRing.StartColor = new Color(1, 0.3f, 1, 1);
+        orbitalRing.EndColor = new Color(1, 0.3f, 1, 1);
+        orbitalRing.TextureMode = TextureWrapMode.RepeatPerSegment;
+
+        orbitalRing.Points = new List<Double3>();
+        for (int i = 0; i < 48; i++)
+        {
+            float angle = (i / 48f) * MathF.PI * 2;
+            orbitalRing.Points.Add(new Double3(
+                MathF.Cos(angle) * 1.2f,
+                MathF.Sin(angle) * 0.3f,
+                MathF.Sin(angle) * 1.2f
+            ));
+        }
+        ringGO.Transform.position = new Double3(4, 1, 0);
+        ringGO.Transform.localEulerAngles = new Double3(30, 45, 0);
+        scene.Add(ringGO);
+    }
+
     private void SetupInputActions()
     {
-        // Create input action map
         cameraMap = new InputActionMap("Camera");
 
-        // Movement action
-        {
-            moveAction = cameraMap.AddAction("Move", InputActionType.Value);
-            moveAction.ExpectedValueType = typeof(Float2);
+        // Movement (WASD + Gamepad)
+        moveAction = cameraMap.AddAction("Move", InputActionType.Value);
+        moveAction.ExpectedValueType = typeof(Float2);
+        moveAction.AddBinding(new Vector2CompositeBinding(
+            InputBinding.CreateKeyBinding(KeyCode.W),
+            InputBinding.CreateKeyBinding(KeyCode.S),
+            InputBinding.CreateKeyBinding(KeyCode.A),
+            InputBinding.CreateKeyBinding(KeyCode.D),
+            true
+        ));
+        var leftStick = InputBinding.CreateGamepadAxisBinding(0, deviceIndex: 0);
+        leftStick.Processors.Add(new DeadzoneProcessor(0.15f));
+        leftStick.Processors.Add(new NormalizeProcessor());
+        moveAction.AddBinding(leftStick);
 
-            // Add WASD composite
-            var wasdComp = new Vector2CompositeBinding(
-                InputBinding.CreateKeyBinding(KeyCode.W),
-                InputBinding.CreateKeyBinding(KeyCode.S),
-                InputBinding.CreateKeyBinding(KeyCode.A),
-                InputBinding.CreateKeyBinding(KeyCode.D),
-                true // normalize
-            );
-            moveAction.AddBinding(wasdComp);
+        // Look enable (RMB)
+        lookEnableAction = cameraMap.AddAction("LookEnable", InputActionType.Button);
+        lookEnableAction.AddBinding(MouseButton.Right);
 
-            // Also add gamepad left stick with deadzone
-            var leftStick = InputBinding.CreateGamepadAxisBinding(0, deviceIndex: 0);
-            leftStick.Processors.Add(new DeadzoneProcessor(0.15f));
-            leftStick.Processors.Add(new NormalizeProcessor());
-            moveAction.AddBinding(leftStick);
-        }
+        // Look (Mouse + Gamepad)
+        lookAction = cameraMap.AddAction("Look", InputActionType.Value);
+        lookAction.ExpectedValueType = typeof(Float2);
+        var mouse = new DualAxisCompositeBinding(
+            InputBinding.CreateMouseAxisBinding(0),
+            InputBinding.CreateMouseAxisBinding(1));
+        mouse.Processors.Add(new ScaleProcessor(0.1f));
+        lookAction.AddBinding(mouse);
+        var rightStick = InputBinding.CreateGamepadAxisBinding(1, deviceIndex: 0);
+        rightStick.Processors.Add(new DeadzoneProcessor(0.15f));
+        rightStick.Processors.Add(new NormalizeProcessor());
+        lookAction.AddBinding(rightStick);
 
-        // Look action
-        {
-            lookAction = cameraMap.AddAction("Look", InputActionType.Value);
-            lookAction.ExpectedValueType = typeof(Float2);
+        // Fly Up/Down
+        flyUpAction = cameraMap.AddAction("FlyUp", InputActionType.Button);
+        flyUpAction.AddBinding(KeyCode.E);
+        flyUpAction.AddBinding(GamepadButton.A);
+        flyDownAction = cameraMap.AddAction("FlyDown", InputActionType.Button);
+        flyDownAction.AddBinding(KeyCode.Q);
+        flyDownAction.AddBinding(GamepadButton.B);
 
-            var mouse = new DualAxisCompositeBinding(InputBinding.CreateMouseAxisBinding(0), InputBinding.CreateMouseAxisBinding(1));
-            mouse.Processors.Add(new ScaleProcessor(0.25f)); // Decreased sensitivity for looking
-            lookAction.AddBinding(mouse);
+        // Sprint
+        sprintAction = cameraMap.AddAction("Sprint", InputActionType.Button);
+        sprintAction.AddBinding(KeyCode.ShiftLeft);
+        sprintAction.AddBinding(GamepadButton.LeftStick);
 
-            // Gamepad right stick for looking with higher sensitivity and deadzone
-            var rightStick = InputBinding.CreateGamepadAxisBinding(1, deviceIndex: 0);
-            rightStick.Processors.Add(new DeadzoneProcessor(0.15f));
-            rightStick.Processors.Add(new ScaleProcessor(3.0f)); // Increase sensitivity for looking
-            lookAction.AddBinding(rightStick);
-        }
-
-        // Fly Up (E key + Gamepad A button)
-        {
-            flyUpAction = cameraMap.AddAction("FlyUp", InputActionType.Button);
-            flyUpAction.AddBinding(KeyCode.E);
-            flyUpAction.AddBinding(GamepadButton.A);
-        }
-
-        // Fly Down (Q key + Gamepad B button)
-        {
-            flyDownAction = cameraMap.AddAction("FlyDown", InputActionType.Button);
-            flyDownAction.AddBinding(KeyCode.Q);
-            flyDownAction.AddBinding(GamepadButton.B);
-        }
-
-        // Sprint (Shift + Gamepad Left Stick Click)
-        {
-            sprintAction = cameraMap.AddAction("Sprint", InputActionType.Button);
-            sprintAction.AddBinding(KeyCode.ShiftLeft);
-            sprintAction.AddBinding(GamepadButton.LeftStick);
-        }
-
-        // Register and enable
         Input.RegisterActionMap(cameraMap);
         cameraMap.Enable();
     }
@@ -184,32 +245,59 @@ public sealed class MyGame : Game
     public override void Update()
     {
         scene.Update();
+        time += (float)Time.deltaTime;
 
-        // Read movement from action (works with WASD, arrows, and gamepad left stick)
+        // Animate helix rotation
+        if (helix != null)
+        {
+            helix.GameObject.Transform.localEulerAngles = new Double3(0, time * 25, 0);
+        }
+
+        // Animate sine wave
+        if (sineWave != null)
+        {
+            sineWave.Points.Clear();
+            for (int i = 0; i <= 60; i++)
+            {
+                float t = i / 60f;
+                sineWave.Points.Add(new Double3(
+                    t * 5f - 2.5f,
+                    MathF.Sin(t * MathF.PI * 3 + time * 2) * 0.8f,
+                    0
+                ));
+            }
+            sineWave.MarkDirty();
+        }
+
+        // Animate orbital ring rotation
+        if (orbitalRing != null)
+        {
+            orbitalRing.GameObject.Transform.localEulerAngles += new Double3(
+                10 * Time.deltaTime,
+                20 * Time.deltaTime,
+                15 * Time.deltaTime
+            );
+        }
+
+        // Camera controls
         Float2 movement = moveAction.ReadValue<Float2>();
-
-        // Calculate speed multiplier (sprint makes you move faster)
         float speedMultiplier = sprintAction.IsPressed() ? 2.5f : 1.0f;
         float moveSpeed = 5f * speedMultiplier * (float)Time.deltaTime;
 
-        // Apply movement
         cameraGO.Transform.position += cameraGO.Transform.forward * movement.Y * moveSpeed;
         cameraGO.Transform.position += cameraGO.Transform.right * movement.X * moveSpeed;
 
-        // Vertical movement (fly up/down)
         float upDown = 0;
         if (flyUpAction.IsPressed()) upDown += 1;
         if (flyDownAction.IsPressed()) upDown -= 1;
         cameraGO.Transform.position += Double3.UnitY * upDown * moveSpeed;
 
-        // Look/rotate camera
         Float2 lookInput = lookAction.ReadValue<Float2>();
+        if (lookEnableAction.IsPressed() || Math.Abs(lookInput.X) > 0.01f || Math.Abs(lookInput.Y) > 0.01f)
+        {
+            cameraGO.Transform.localEulerAngles += new Double3(lookInput.Y, lookInput.X, 0);
+        }
 
-        // Apply look rotation from gamepad right stick
-        float lookSpeed = 100f * (float)Time.deltaTime;
-        cameraGO.Transform.localEulerAngles += new Double3(lookInput.Y, lookInput.X, 0) * lookSpeed;
-
-        // Unlock cursor on press Escape
         if (Input.GetKeyDown(KeyCode.Escape))
             Input.SetCursorVisible(true);
     }

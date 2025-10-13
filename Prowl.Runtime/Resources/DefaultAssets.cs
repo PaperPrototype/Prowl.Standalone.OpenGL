@@ -9,6 +9,8 @@ namespace Prowl.Runtime.Resources
     public enum DefaultShader
     {
         Standard,
+        Unlit,
+        Line,
         Invalid,
         UI,
         Gizmos,
