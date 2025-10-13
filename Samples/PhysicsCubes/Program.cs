@@ -309,10 +309,12 @@ public sealed class PhysicsDemo : Game
 
     Mesh cubeShootMesh = null;
     int shootCounter = 0;
+    GameObject lastShot = null;
     private void ShootCube()
     {
         // Create a cube at camera position
         GameObject cube = new GameObject("Shot Cube");
+        lastShot = cube;
         cube.Transform.position = cameraGO.Transform.position + cameraGO.Transform.forward * 2.0;
 
         var cubeRenderer = cube.AddComponent<MeshRenderer>();
@@ -387,6 +389,11 @@ public sealed class PhysicsDemo : Game
             // Clear and reinitialize
             scene.Clear();
             Initialize();
+        }
+
+        if (Input.GetKeyDown(KeyCode.X) && lastShot != null)
+        {
+            lastShot.Destroy();
         }
 
         // Weight selection with number keys
