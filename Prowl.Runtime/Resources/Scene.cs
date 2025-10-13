@@ -305,7 +305,7 @@ namespace Prowl.Runtime.Resources
             // Clear render tracking at the start of each update
             ClearRenderTracking();
 
-            List<GameObject> activeGOs = ActiveObjects.ToList();
+            List<GameObject> activeGOs = new List<GameObject>(ActiveObjects);
             foreach (GameObject go in activeGOs)
                 go.PreUpdate();
 
@@ -317,6 +317,8 @@ namespace Prowl.Runtime.Resources
 
             ForeachComponent(activeGOs, (x) => x.LateUpdate());
             ForeachComponent(activeGOs, (x) => x.UpdateEndOfFrameCoroutines());
+
+            Flush();
         }
 
         /// <summary>
@@ -327,21 +329,25 @@ namespace Prowl.Runtime.Resources
         {
             Physics.Update();
 
-            List<GameObject> activeGOs = ActiveObjects.ToList();
+            List<GameObject> activeGOs = new List<GameObject>(ActiveObjects);
             ForeachComponent(activeGOs, (x) =>
             {
                 x.FixedUpdate();
                 x.UpdateFixedUpdateCoroutines();
             });
+
+            Flush();
         }
 
         public void DrawGizmos()
         {
-            List<GameObject> activeGOs = ActiveObjects.ToList();
+            List<GameObject> activeGOs = new List<GameObject>(ActiveObjects);
             ForeachComponent(activeGOs, (x) =>
             {
                 x.DrawGizmos();
             });
+
+            Flush();
         }
 
         /// <summary>
@@ -350,11 +356,13 @@ namespace Prowl.Runtime.Resources
         /// </summary>
         public void OnGUI(Paper paper)
         {
-            List<GameObject> activeGOs = ActiveObjects.ToList();
+            List<GameObject> activeGOs = new List<GameObject>(ActiveObjects);
             ForeachComponent(activeGOs, (x) =>
             {
                 x.OnGUI(paper);
             });
+
+            Flush();
         }
 
         /// <summary>
