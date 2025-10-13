@@ -18,8 +18,8 @@ public class LineRenderer : MonoBehaviour, IRenderable
     public float EndWidth = 0.1f;
     public List<Double3> Points = new();
     public bool Loop = false;
-    public Color StartColor = Color.white;
-    public Color EndColor = Color.white;
+    public Color StartColor = Color.White;
+    public Color EndColor = Color.White;
     public TextureWrapMode TextureMode = TextureWrapMode.Stretch;
     public float TextureTiling = 1.0f; // Controls UV tiling for Tile mode
     public bool RecalculateNormals = false;
@@ -28,7 +28,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
     private ViewerData _lastViewer;
     private bool _meshGenerated;
     private bool _isDirty = true;
-    private AABBD _bounds;
+    private AABB _bounds;
 
     // Cached state for change detection
     private List<Double3> _lastPoints;
@@ -104,7 +104,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
     {
         if (Points == null || Points.Count == 0)
         {
-            _bounds = new AABBD();
+            _bounds = new AABB();
             return;
         }
 
@@ -125,7 +125,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
         min -= expansion;
         max += expansion;
 
-        _bounds = new AABBD(min, max);
+        _bounds = new AABB(min, max);
     }
 
     public void MarkDirty()
@@ -199,7 +199,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
         model = Double4x4.Identity; // Vertices are already in world space
     }
 
-    public void GetCullingData(out bool isRenderable, out AABBD bounds)
+    public void GetCullingData(out bool isRenderable, out AABB bounds)
     {
         isRenderable = Points != null && Points.Count >= 2 && Material != null;
         bounds = _bounds;
@@ -242,7 +242,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
         {
             for (int i = 0; i < segmentCount; i++)
             {
-                float length = (float)Maths.Distance(worldPoints[i], worldPoints[i + 1]);
+                float length = (float)Double3.Distance(worldPoints[i], worldPoints[i + 1]);
                 segmentLengths[i] = length;
                 totalLength += length;
             }
@@ -259,25 +259,25 @@ public class LineRenderer : MonoBehaviour, IRenderable
             Double3 lineDir;
             if (i == 0)
             {
-                lineDir = Maths.Normalize(worldPoints[i + 1] - point);
+                lineDir = Double3.Normalize(worldPoints[i + 1] - point);
             }
             else if (i == worldPoints.Count - 1)
             {
-                lineDir = Maths.Normalize(point - worldPoints[i - 1]);
+                lineDir = Double3.Normalize(point - worldPoints[i - 1]);
             }
             else
             {
-                lineDir = Maths.Normalize((worldPoints[i + 1] - worldPoints[i - 1]) * 0.5);
+                lineDir = Double3.Normalize((worldPoints[i + 1] - worldPoints[i - 1]) * 0.5);
             }
 
             // Calculate perpendicular vector (billboard direction towards camera)
-            Double3 toCamera = Maths.Normalize(viewer.Position - point);
-            Double3 right = Maths.Normalize(Maths.Cross(toCamera, lineDir));
+            Double3 toCamera = Double3.Normalize(viewer.Position - point);
+            Double3 right = Double3.Normalize(Double3.Cross(toCamera, lineDir));
 
             // If cross product is near zero (line points at camera), use camera up vector
-            if (Maths.LengthSquared(right) < 0.001)
+            if (Double3.LengthSquared(right) < 0.001)
             {
-                right = Maths.Normalize(Maths.Cross(viewer.Up, lineDir));
+                right = Double3.Normalize(Double3.Cross(viewer.Up, lineDir));
             }
 
             // Interpolate width along the line
