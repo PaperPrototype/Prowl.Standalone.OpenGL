@@ -137,7 +137,6 @@ namespace Prowl.Runtime.Resources
                 DefaultShader.UI => "UI.shader",
                 DefaultShader.Gizmos => "Gizmos.shader",
                 DefaultShader.Blit => "Blit.shader",
-                DefaultShader.Depth => "Depth.shader",
                 DefaultShader.ProceduralSkybox => "ProceduralSkybox.shader",
                 DefaultShader.Tonemapper => "Tonemapper.shader",
                 DefaultShader.TAA => "TAA.shader",
@@ -145,11 +144,6 @@ namespace Prowl.Runtime.Resources
                 DefaultShader.FXAA => "FXAA.shader",
                 DefaultShader.Bloom => "Bloom.shader",
                 DefaultShader.BokehDoF => "BokehDoF.shader",
-                DefaultShader.GBufferCombine => "GBuffercombine.shader",
-                DefaultShader.AmbientLight => "AmbientLight.shader",
-                DefaultShader.DirectionalLight => "Directionallight.shader",
-                DefaultShader.PointLight => "Pointlight.shader",
-                DefaultShader.SpotLight => "Spotlight.shader",
                 _ => throw new ArgumentException($"Unknown default shader: {shader}")
             };
 
