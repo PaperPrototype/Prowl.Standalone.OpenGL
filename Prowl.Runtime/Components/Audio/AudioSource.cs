@@ -8,7 +8,7 @@ namespace Prowl.Runtime;
 public sealed class AudioSource : MonoBehaviour
 {
     public AudioClip Clip;
-    public bool PlayOnAwake = true;
+    public bool PlayOnStart = true;
     public bool Looping = false;
     public float Volume = 1f;
     public float MaxDistance = 32f;
@@ -32,7 +32,7 @@ public sealed class AudioSource : MonoBehaviour
             _source?.Stop();
     }
 
-    public override void Awake()
+    public override void Start()
     {
         _source = AudioSystem.Engine.CreateAudioSource();
         _source.PositionKind = AudioPositionKind.ListenerRelative;
@@ -46,7 +46,7 @@ public sealed class AudioSource : MonoBehaviour
         _source.MaxDistance = MaxDistance;
         if (Clip != null)
             _buffer = AudioSystem.GetAudioBuffer(Clip);
-        if (PlayOnAwake)
+        if (PlayOnStart)
             Play();
     }
 
