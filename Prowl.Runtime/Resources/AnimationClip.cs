@@ -236,7 +236,7 @@ public sealed class AnimationClip : EngineObject, ISerializable
                 t = Math.Clamp(t, 0f, 1f);
             }
 
-            return Maths.Slerp(q0, q1, t);
+            return Quaternion.Slerp(q0, q1, t);
         }
 
         public Double3 EvaluateScaleAt(double time)
