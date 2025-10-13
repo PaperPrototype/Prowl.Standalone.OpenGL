@@ -22,19 +22,20 @@ public class PhysicsWorld
     public World World { get; private set; }
 
     public Double3 Gravity = new Double3(0, -9.81f, 0);
-    public int SolverIterations = 6;
+    public int SolverIterations = 8;
     public int RelaxIterations = 4;
-    public int Substep = 1;
+    public int Substep = 2;
     public bool AllowSleep = true;
     public bool UseMultithreading = true;
     public bool AutoSyncTransforms = true;
 
     public PhysicsWorld()
     {
-        World = new World()
-        {
-            BroadPhaseFilter = new LayerFilter()
-        };
+        World = new World();
+
+        World.DynamicTree.Filter = World.DefaultDynamicTreeFilter;
+        World.BroadPhaseFilter = new LayerFilter();
+        World.NarrowPhaseFilter = new TriangleEdgeCollisionFilter();
     }
 
     public void Clear()
@@ -45,9 +46,10 @@ public class PhysicsWorld
     public void Update()
     {
         // Configure world settings
-        World.SolverIterations = (SolverIterations, RelaxIterations);
-        World.SubstepCount = Substep;
         World.AllowDeactivation = AllowSleep;
+
+        World.SubstepCount = Substep;
+        World.SolverIterations = (SolverIterations, RelaxIterations);
 
         World.Gravity = new JVector(Gravity.X, Gravity.Y, Gravity.Z);
 

@@ -22,6 +22,8 @@ public sealed class PhysicsDemo : Game
 {
     private GameObject cameraGO;
     private Scene scene;
+    private double selectedCubeMass = 1.0;
+    private Material shootableCubeMaterial;
 
     public override void Initialize()
     {
@@ -59,6 +61,10 @@ public sealed class PhysicsDemo : Game
 
         Material cubeMaterial = new Material(Shader.LoadDefault(DefaultShader.Standard));
         cubeMaterial.SetColor("_MainColor", new Color(0.2f, 0.5f, 1.0f, 1.0f));
+
+        // Material for shootable cubes
+        shootableCubeMaterial = new Material(Shader.LoadDefault(DefaultShader.Standard));
+        shootableCubeMaterial.SetColor("_MainColor", new Color(1.0f, 0.3f, 0.3f, 1.0f));
 
         // Create floor (static)
         GameObject floor = new GameObject("Floor");
@@ -125,8 +131,6 @@ public sealed class PhysicsDemo : Game
 
             var linkRb = link.AddComponent<Rigidbody3D>();
             linkRb.Mass = 1.0;
-            linkRb.LinearDamping = 0.1;
-            linkRb.AngularDamping = 0.1;
 
             var linkCollider = link.AddComponent<BoxCollider>();
             linkCollider.Size = new Double3(0.5, 1, 0.5);
@@ -164,7 +168,6 @@ public sealed class PhysicsDemo : Game
 
         var doorRb = door.AddComponent<Rigidbody3D>();
         doorRb.Mass = 2.0;
-        doorRb.AngularDamping = 0.3;
 
         var doorCollider = door.AddComponent<BoxCollider>();
         doorCollider.Size = new Double3(3, 2.8, 0.1);
@@ -203,7 +206,6 @@ public sealed class PhysicsDemo : Game
 
         var sliderRb = slider.AddComponent<Rigidbody3D>();
         sliderRb.Mass = 1.5;
-        sliderRb.LinearDamping = 0.2;
 
         var sliderCollider = slider.AddComponent<BoxCollider>();
         sliderCollider.Size = new Double3(1, 0.5, 1);
@@ -231,7 +233,6 @@ public sealed class PhysicsDemo : Game
 
         var torsoRb = torso.AddComponent<Rigidbody3D>();
         torsoRb.Mass = 2.0;
-        torsoRb.AngularDamping = 0.2;
 
         var torsoCollider = torso.AddComponent<BoxCollider>();
         torsoCollider.Size = new Double3(1, 1.5, 0.5);
@@ -247,7 +248,6 @@ public sealed class PhysicsDemo : Game
 
         var armRb = leftArm.AddComponent<Rigidbody3D>();
         armRb.Mass = 0.5;
-        armRb.AngularDamping = 0.3;
 
         var armCollider = leftArm.AddComponent<BoxCollider>();
         armCollider.Size = new Double3(1, 0.3, 0.3);
@@ -306,6 +306,30 @@ public sealed class PhysicsDemo : Game
         scene.Add(platform);
     }
 
+    private void ShootCube()
+    {
+        // Create a cube at camera position
+        GameObject cube = new GameObject("Shot Cube");
+        cube.Transform.position = cameraGO.Transform.position + cameraGO.Transform.forward * 2.0;
+
+        var cubeRenderer = cube.AddComponent<MeshRenderer>();
+        cubeRenderer.Mesh = Mesh.CreateCube(new Double3(0.5, 0.5, 0.5));
+        cubeRenderer.Material = shootableCubeMaterial;
+
+        var cubeRb = cube.AddComponent<Rigidbody3D>();
+        cubeRb.Mass = selectedCubeMass;
+        cubeRb.EnableSpeculativeContacts = true;
+
+        var cubeCollider = cube.AddComponent<BoxCollider>();
+        cubeCollider.Size = new Double3(0.5, 0.5, 0.5);
+
+        scene.Add(cube);
+
+        // Add velocity in the direction the camera is facing
+        cubeRb.LinearVelocity = cameraGO.Transform.forward * 20.0;
+
+    }
+
     public override void FixedUpdate()
     {
         scene.FixedUpdate();
@@ -352,6 +376,34 @@ public sealed class PhysicsDemo : Game
             // Clear and reinitialize
             scene.Clear();
             Initialize();
+        }
+
+        // Weight selection with number keys
+        if (Input.GetKeyDown(KeyCode.Number1))
+        {
+            selectedCubeMass = 0.5;
+            Debug.Log($"Cube weight set to: {selectedCubeMass}");
+        }
+        else if (Input.GetKeyDown(KeyCode.Number2))
+        {
+            selectedCubeMass = 1.0;
+            Debug.Log($"Cube weight set to: {selectedCubeMass}");
+        }
+        else if (Input.GetKeyDown(KeyCode.Number3))
+        {
+            selectedCubeMass = 2.0;
+            Debug.Log($"Cube weight set to: {selectedCubeMass}");
+        }
+        else if (Input.GetKeyDown(KeyCode.Number4))
+        {
+            selectedCubeMass = 5.0;
+            Debug.Log($"Cube weight set to: {selectedCubeMass}");
+        }
+
+        // Shoot cube with left mouse button
+        if (Input.GetMouseButtonDown(0))
+        {
+            ShootCube();
         }
     }
 }
