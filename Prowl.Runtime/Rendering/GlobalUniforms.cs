@@ -85,6 +85,8 @@ namespace Prowl.Runtime.Rendering
         /// </summary>
         public static void Upload()
         {
+            Initialize();
+
             if (s_isDirty && s_uniformBuffer != null)
             {
                 Graphics.Device.UpdateBuffer(s_uniformBuffer, 0, [s_data]);
