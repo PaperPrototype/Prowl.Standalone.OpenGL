@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Prowl.Vector;
 using Prowl.Runtime.Resources;
@@ -7,116 +8,205 @@ namespace Prowl.Runtime.Rendering
 {
     public static class ShadowAtlas
     {
-        private static int size, freeTiles, tileSize, tileCount;
+        private static int size;
         private static int maxShadowSize;
-        private static int?[,] tiles;
-
         private static RenderTexture? atlas;
+
+        // Skyline algorithm data structures
+        private struct SkylineSegment
+        {
+            public int X;       // Start position
+            public int Y;       // Height of this segment
+            public int Width;   // Width of this segment
+
+            public SkylineSegment(int x, int y, int width)
+            {
+                X = x;
+                Y = y;
+                Width = width;
+            }
+        }
+
+        private struct PackedRect
+        {
+            public int X, Y, Width, Height;
+            public int LightID;
+
+            public PackedRect(int x, int y, int width, int height, int lightID)
+            {
+                X = x;
+                Y = y;
+                Width = width;
+                Height = height;
+                LightID = lightID;
+            }
+        }
+
+        private static List<SkylineSegment> skyline = new();
+        private static List<PackedRect> packedRects = new();
 
         public static void TryInitialize()
         {
-            tileSize = 32;
-            maxShadowSize = 256;
             if (atlas != null) return;
 
             bool supports8k = Graphics.MaxTextureSize >= 8192;
-
             size = supports8k ? 8192 : 4096;
-            tileSize = 32;
             maxShadowSize = 1024;
 
-            if (size % tileSize != 0)
-                throw new ArgumentException("Size must be divisible by tileSize");
-
-            tileCount = size / tileSize;
-            freeTiles = tileCount * tileCount;
-            tiles = new int?[tileCount, tileCount];
-
             atlas ??= new RenderTexture(size, size, true, []);
+
+            // Initialize skyline with one segment spanning the entire width at y=0
+            skyline.Clear();
+            skyline.Add(new SkylineSegment(0, 0, size));
+            packedRects.Clear();
         }
 
-        public static int GetAtlasWidth() => tileCount;
-
-        public static int GetTileSize() => tileSize;
+        public static int GetMinShadowSize() => 32; // Minimum shadow resolution
         public static int GetMaxShadowSize() => maxShadowSize;
         public static int GetSize() => size;
-
         public static RenderTexture? GetAtlas() => atlas;
 
         public static Int2? ReserveTiles(int width, int height, int lightID)
         {
-            int tileWidth = width / tileSize;
-            int tileHeight = height / tileSize;
+            // Clamp to min/max bounds
+            width = Math.Clamp(width, 32, maxShadowSize);
+            height = Math.Clamp(height, 32, maxShadowSize);
 
-            for (int i = 0; i <= tileCount - tileWidth; i++)
-                for (int j = 0; j <= tileCount - tileHeight; j++)
-                    if (tiles[i, j] == null)
-                    {
-                        bool found = true;
-                        for (int x = i; x < i + tileWidth && found; x++)
-                            for (int y = j; y < j + tileHeight && found; y++)
-                                if (tiles[x, y] != null)
-                                    found = false;
+            if (width > size || height > size)
+                return null;
 
-                        if (found)
-                        {
-                            ReserveTile(i, j, tileWidth, tileHeight, lightID);
-                            return new Int2(i * tileSize, j * tileSize);
-                        }
-                    }
+            // Find best position using bottom-left heuristic
+            int bestIndex = -1;
+            int bestY = int.MaxValue;
+            int bestX = int.MaxValue;
+            int bestWastedArea = int.MaxValue;
 
-            return null;
+            for (int i = 0; i < skyline.Count; i++)
+            {
+                int x = skyline[i].X;
+                int y = 0;
+                int wastedArea = 0;
+
+                if (!CanFit(i, width, height, ref x, ref y, ref wastedArea))
+                    continue;
+
+                // Prefer lower positions (bottom-left), then leftmost, then least waste
+                if (y < bestY || (y == bestY && x < bestX) || (y == bestY && x == bestX && wastedArea < bestWastedArea))
+                {
+                    bestIndex = i;
+                    bestY = y;
+                    bestX = x;
+                    bestWastedArea = wastedArea;
+                }
+            }
+
+            if (bestIndex == -1)
+                return null;
+
+            // Place the rectangle
+            PlaceRect(bestIndex, bestX, bestY, width, height, lightID);
+
+            return new Int2(bestX, bestY);
         }
 
         // Reserve tiles for point light cubemap shadows (2x3 grid layout)
-        // Returns the base position where the 6 faces start
         public static Int2? ReserveCubemapTiles(int faceSize, int lightID)
         {
-            // Layout: 2 columns x 3 rows for the 6 cubemap faces
-            // [+X][-X]
-            // [+Y][-Y]
-            // [+Z][-Z]
             int cubemapWidth = faceSize * 2;  // 2 faces wide
             int cubemapHeight = faceSize * 3; // 3 faces tall
-
             return ReserveTiles(cubemapWidth, cubemapHeight, lightID);
         }
 
-        private static void ReserveTile(int x, int y, int width, int height, int lightID)
+        private static bool CanFit(int segmentIndex, int width, int height, ref int outX, ref int outY, ref int wastedArea)
         {
-            if (x < 0 || y < 0 || x + width > tileCount || y + height > tileCount)
-                throw new ArgumentException("Tile is out of bounds");
+            int x = skyline[segmentIndex].X;
+            int y = skyline[segmentIndex].Y;
 
-            for (int i = x; i < x + width; i++)
-                for (int j = y; j < y + height; j++)
-                {
-                    if (tiles[i, j].HasValue)
-                        throw new ArgumentException("Tile is already reserved");
-                    tiles[i, j] = lightID;
-                }
+            // Check if we go beyond atlas width
+            if (x + width > size)
+                return false;
 
-            freeTiles -= width * height;
+            int maxY = y;
+            int currentX = x;
+            int segmentIdx = segmentIndex;
+            wastedArea = 0;
+
+            // Check all segments we would overlap
+            while (currentX < x + width && segmentIdx < skyline.Count)
+            {
+                var segment = skyline[segmentIdx];
+                maxY = Math.Max(maxY, segment.Y);
+
+                // Check if height fits
+                if (maxY + height > size)
+                    return false;
+
+                // Calculate wasted area (area below rect but above skyline)
+                int overlapWidth = Math.Min(segment.X + segment.Width, x + width) - currentX;
+                wastedArea += overlapWidth * (maxY - segment.Y);
+
+                currentX += overlapWidth;
+                segmentIdx++;
+            }
+
+            outX = x;
+            outY = maxY;
+            return true;
         }
 
-
-        public static void FreeTiles(int lightID)
+        private static void PlaceRect(int segmentIndex, int x, int y, int width, int height, int lightID)
         {
-            for (int i = 0; i < tileCount; i++)
-                for (int j = 0; j < tileCount; j++)
-                    if (tiles[i, j] == lightID)
-                    {
-                        tiles[i, j] = null;
-                        freeTiles++;
-                    }
+            // Add to packed rects
+            packedRects.Add(new PackedRect(x, y, width, height, lightID));
+
+            // Update skyline
+            int newY = y + height;
+            int i = segmentIndex;
+
+            // Remove or trim segments that are covered by this rectangle
+            while (i < skyline.Count && skyline[i].X < x + width)
+            {
+                var segment = skyline[i];
+
+                if (segment.X + segment.Width <= x + width)
+                {
+                    // Segment is completely covered, remove it
+                    skyline.RemoveAt(i);
+                }
+                else
+                {
+                    // Segment extends beyond rectangle, trim it
+                    skyline[i] = new SkylineSegment(x + width, segment.Y, segment.Width - (x + width - segment.X));
+                    break;
+                }
+            }
+
+            // Add new skyline segment for the placed rectangle
+            skyline.Insert(segmentIndex, new SkylineSegment(x, newY, width));
+
+            // Merge adjacent segments with same height
+            MergeSkyline();
+        }
+
+        private static void MergeSkyline()
+        {
+            for (int i = 0; i < skyline.Count - 1; i++)
+            {
+                if (skyline[i].Y == skyline[i + 1].Y)
+                {
+                    skyline[i] = new SkylineSegment(skyline[i].X, skyline[i].Y, skyline[i].Width + skyline[i + 1].Width);
+                    skyline.RemoveAt(i + 1);
+                    i--;
+                }
+            }
         }
 
         public static void Clear()
         {
-            for (int i = 0; i < tileCount; i++)
-                for (int j = 0; j < tileCount; j++)
-                    tiles[i, j] = null;
-
-            freeTiles = tileCount * tileCount;
+            // Reset skyline to initial state
+            skyline.Clear();
+            skyline.Add(new SkylineSegment(0, 0, size));
+            packedRects.Clear();
         }
     }
 }

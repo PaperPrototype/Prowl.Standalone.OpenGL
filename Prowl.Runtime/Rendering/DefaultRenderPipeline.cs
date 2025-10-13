@@ -615,8 +615,6 @@ namespace Prowl.Runtime.Rendering
             // a single shadow map can consume multiple slots if its larger then 128x128
             // We need to distribute these slots and resolutions out to lights
             // based on their distance from the camera
-            int width = ShadowAtlas.GetAtlasWidth();
-
             int numDirLights = 0;
             int spotLightIndex = 0;
             int pointLightIndex = 0;
@@ -910,11 +908,12 @@ namespace Prowl.Runtime.Rendering
         private static int CalculateResolution(double distance)
         {
             double t = Maths.Clamp(distance / 48f, 0, 1);
-            int tileSize = ShadowAtlas.GetTileSize();
-            int resolution = Maths.RoundToInt(Maths.Lerp(ShadowAtlas.GetMaxShadowSize(), tileSize, t));
+            int minSize = ShadowAtlas.GetMinShadowSize();
+            int maxSize = ShadowAtlas.GetMaxShadowSize();
+            int resolution = Maths.RoundToInt(Maths.Lerp(maxSize, minSize, t));
 
-            // Round to nearest multiple of tile size
-            return Maths.Max(tileSize, (resolution / tileSize) * tileSize);
+            // Clamp to valid range
+            return Maths.Clamp(resolution, minSize, maxSize);
         }
 
         private static Double3 GetSunDirection(IReadOnlyList<IRenderableLight> lights)
