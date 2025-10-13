@@ -6,8 +6,17 @@ namespace Prowl.Runtime.GraphicsBackend
 {
     public abstract class GraphicsProgram : IDisposable
     {
+        private static int _nextId = 0;
+
+        public int ID { get; }
+
         public abstract bool IsDisposed { get; protected set; }
         public abstract void Dispose();
+
+        protected GraphicsProgram()
+        {
+            ID = System.Threading.Interlocked.Increment(ref _nextId);
+        }
 
         // Uniform cache - tracks what values are currently set in this shader program
         internal class UniformCache

@@ -162,9 +162,17 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
 
         public override GraphicsProgram CurrentProgram => GLProgram.currentProgram;
 
+        // Helper method to combine program ID and string hash into a unique ulong key
+        private static ulong CombineKey(int programId, string name)
+        {
+            // Combine program ID (upper 32 bits) and string hash (lower 32 bits)
+            uint nameHash = unchecked((uint)name.GetHashCode());
+            return ((ulong)programId << 32) | nameHash;
+        }
+
         #region Buffers
 
-        public static Dictionary<string, uint> cachedBlockLocations = [];
+        public static Dictionary<ulong, uint> cachedBlockLocations = [];
 
         public override GraphicsBuffer CreateBuffer<T>(BufferType bufferType, T[] data, bool dynamic = false)
         {
@@ -192,7 +200,7 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
 
         public override uint GetBlockIndex(GraphicsProgram program, string blockName)
         {
-            string key = program.ToString() + ":" + blockName;
+            ulong key = CombineKey(program.ID, blockName);
             if (cachedBlockLocations.TryGetValue(key, out var loc))
                 return loc;
 
@@ -286,35 +294,33 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
 
         #region Shaders
 
-        public static Dictionary<string, int> cachedUniformLocations = [];
-        public static Dictionary<string, int> cachedAttribLocations = [];
+        public static Dictionary<ulong, int> cachedUniformLocations = [];
+        public static Dictionary<ulong, int> cachedAttribLocations = [];
 
         public override GraphicsProgram CompileProgram(string fragment, string vertex, string geometry) => new GLProgram(fragment, vertex, geometry);
         public override void BindProgram(GraphicsProgram program) => (program as GLProgram)!.Use();
 
         public override int GetUniformLocation(GraphicsProgram program, string name)
         {
-            // TODO: THis isnt reliable for caching uniforms! If a shader is unloaded a new onw loaded it will get the same ID
-            // So we need to assign each Program with our own custom ID that gurantees uniqueness
-            string key = program.ToString() + ":" + name;
+            ulong key = CombineKey(program.ID, name);
             if (cachedUniformLocations.TryGetValue(key, out var loc))
                 return loc;
 
             BindProgram(program);
             int newLoc = GL.GetUniformLocation((program as GLProgram).Handle, name);
-            cachedUniformLocations[name] = newLoc;
+            cachedUniformLocations[key] = newLoc;
             return newLoc;
         }
 
         public override int GetAttribLocation(GraphicsProgram program, string name)
         {
-            string key = program.ToString() + ":" + name;
+            ulong key = CombineKey(program.ID, name);
             if (cachedAttribLocations.TryGetValue(key, out var loc))
                 return loc;
 
             BindProgram(program);
             int newLoc = GL.GetAttribLocation((program as GLProgram).Handle, name);
-            cachedAttribLocations[name] = newLoc;
+            cachedAttribLocations[key] = newLoc;
             return newLoc;
         }
 

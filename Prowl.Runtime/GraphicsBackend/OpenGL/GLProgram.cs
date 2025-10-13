@@ -9,7 +9,7 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
 
         public uint Handle { get; private set; }
 
-        public GLProgram(string fragmentSource, string vertexSource, string geometrySource)
+        public GLProgram(string fragmentSource, string vertexSource, string geometrySource) : base()
         {
             // Initialize compilation log info variables
             int statusCode = -1;
