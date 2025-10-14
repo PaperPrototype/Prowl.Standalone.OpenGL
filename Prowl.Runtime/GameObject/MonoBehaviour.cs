@@ -353,6 +353,9 @@ public abstract class MonoBehaviour : EngineObject
             return null;
         }
 
+        // Stop any existing coroutine with the same name
+        StopCoroutine(methodName);
+
         var coroutine = new Coroutine(method.Invoke(this, null) as IEnumerator);
 
         if (coroutine.Enumerator.Current is WaitForEndOfFrame)
