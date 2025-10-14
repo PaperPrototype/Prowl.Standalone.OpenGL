@@ -172,7 +172,7 @@ public abstract class MonoBehaviour : EngineObject
             if (object.ReferenceEquals(GameObject._components[i], this))
                 return i;
 
-        throw new Exception($"This Component appears to be in Limbo, This should never happen!, The Component believes its a child of {GameObject.Name} but they don't have it as an attatched component!");
+        throw new Exception($"This Component appears to be in Limbo, This should never happen!, The Component believes its a child of {GameObject.Name} but they don't have it as an attached component!");
     }
 
     /// <summary>
