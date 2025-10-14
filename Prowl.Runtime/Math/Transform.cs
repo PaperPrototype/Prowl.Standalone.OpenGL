@@ -17,15 +17,10 @@ public class Transform
     {
         get
         {
-            if (_isWorldPosDirty)
-            {
-                if (parent != null)
-                    _cachedWorldPosition = Double4x4.TransformPoint(m_LocalPosition, parent.localToWorldMatrix);
-                else
-                    _cachedWorldPosition = m_LocalPosition;
-                _isWorldPosDirty = false;
-            }
-            return MakeSafe(_cachedWorldPosition);
+            if (parent != null)
+                return MakeSafe(Double4x4.TransformPoint(m_LocalPosition, parent.localToWorldMatrix));
+            else
+                return MakeSafe(m_LocalPosition);
         }
         set
         {
@@ -36,7 +31,7 @@ public class Transform
             if (!m_LocalPosition.Equals(newPosition))
             {
                 m_LocalPosition = MakeSafe(newPosition);
-                InvalidateTransformCache();
+                _version++;
             }
         }
     }
@@ -49,7 +44,7 @@ public class Transform
             if (!m_LocalPosition.Equals(value))
             {
                 m_LocalPosition = MakeSafe(value);
-                InvalidateTransformCache();
+                _version++;
             }
         }
     }
@@ -60,19 +55,14 @@ public class Transform
     {
         get
         {
-            if (_isWorldRotDirty)
+            Quaternion worldRot = m_LocalRotation;
+            Transform p = parent;
+            while (p != null)
             {
-                Quaternion worldRot = m_LocalRotation;
-                Transform p = parent;
-                while (p != null)
-                {
-                    worldRot = p.m_LocalRotation * worldRot;
-                    p = p.parent;
-                }
-                _cachedWorldRotation = worldRot;
-                _isWorldRotDirty = false;
+                worldRot = p.m_LocalRotation * worldRot;
+                p = p.parent;
             }
-            return MakeSafe(_cachedWorldRotation);
+            return MakeSafe(worldRot);
         }
         set
         {
@@ -84,7 +74,6 @@ public class Transform
             if(localRotation != newVale)
             {
                 localRotation = newVale;
-                InvalidateTransformCache();
             }
         }
     }
@@ -94,11 +83,10 @@ public class Transform
         get => MakeSafe(m_LocalRotation);
         set
         {
-
             if (m_LocalRotation != value)
             {
                 m_LocalRotation = MakeSafe(value);
-                InvalidateTransformCache();
+                _version++;
             }
         }
     }
@@ -109,7 +97,6 @@ public class Transform
         set
         {
             rotation = MakeSafe(Quaternion.FromEuler((Float3)value));
-            // InvalidateTransformCache() already called by rotation setter
         }
     }
 
@@ -118,8 +105,8 @@ public class Transform
         get => MakeSafe(m_LocalRotation.EulerAngles);
         set
         {
-            m_LocalRotation.EulerAngles = (Float3)MakeSafe(value);
-            InvalidateTransformCache();
+            m_LocalRotation = MakeSafe(Quaternion.FromEuler((Float3)value));
+            _version++;
         }
     }
     #endregion
@@ -134,7 +121,7 @@ public class Transform
             if (!m_LocalScale.Equals(value))
             {
                 m_LocalScale = MakeSafe(value);
-                InvalidateTransformCache();
+                _version++;
             }
         }
     }
@@ -143,19 +130,14 @@ public class Transform
     {
         get
         {
-            if (_isWorldScaleDirty)
+            Double3 scale = localScale;
+            Transform p = parent;
+            while (p != null)
             {
-                Double3 scale = localScale;
-                Transform p = parent;
-                while (p != null)
-                {
-                    scale = p.localScale * scale;
-                    p = p.parent;
-                }
-                _cachedLossyScale = scale;
-                _isWorldScaleDirty = false;
+                scale = p.localScale * scale;
+                p = p.parent;
             }
-            return MakeSafe(_cachedLossyScale);
+            return MakeSafe(scale);
         }
     }
 
@@ -171,15 +153,8 @@ public class Transform
     {
         get
         {
-            if (_isLocalToWorldMatrixDirty)
-            {
-                Double4x4 t = Double4x4.CreateTRS(m_LocalPosition, m_LocalRotation, m_LocalScale);
-                _cachedLocalToWorldMatrix = parent != null ? (parent.localToWorldMatrix * t) : t;
-                _isLocalToWorldMatrixDirty = false;
-            }
-            return _cachedLocalToWorldMatrix;
-            //Matrix4x4 t = Matrix4x4.TRS(m_LocalPosition, m_LocalRotation, m_LocalScale);
-            //return parent != null ? parent.localToWorldMatrix * t : t;
+            Double4x4 t = Double4x4.CreateTRS(m_LocalPosition, m_LocalRotation, m_LocalScale);
+            return parent != null ? (parent.localToWorldMatrix * t) : t;
         }
     }
 
@@ -211,37 +186,15 @@ public class Transform
     [SerializeIgnore]
     uint _version = 1;
 
-    [SerializeIgnore] private Double3 _cachedWorldPosition;
-    [SerializeIgnore] private Quaternion _cachedWorldRotation;
-    [SerializeIgnore] private Double3 _cachedLossyScale;
-    [SerializeIgnore] private Double4x4 _cachedLocalToWorldMatrix;
-    [SerializeIgnore] private bool _isLocalToWorldMatrixDirty = true;
-    [SerializeIgnore] private bool _isWorldPosDirty = true;
-    [SerializeIgnore] private bool _isWorldRotDirty = true;
-    [SerializeIgnore] private bool _isWorldScaleDirty = true;
-
     public GameObject gameObject { get; internal set; }
     #endregion
-
-    private void InvalidateTransformCache()
-    {
-        _isLocalToWorldMatrixDirty = true;
-        _isWorldPosDirty = true;
-        _isWorldRotDirty = true;
-        _isWorldScaleDirty = true;
-        _version++;
-
-        // Invalidate children
-        foreach (GameObject child in gameObject.children)
-            child.Transform.InvalidateTransformCache();
-    }
 
     public void SetLocalTransform(Double3 position, Quaternion rotation, Double3 scale)
     {
         m_LocalPosition = position;
         m_LocalRotation = rotation;
         m_LocalScale = scale;
-        InvalidateTransformCache();
+        _version++;
     }
 
     private double MakeSafe(double v) => double.IsNaN(v) ? 0 : v;

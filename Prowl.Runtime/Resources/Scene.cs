@@ -405,9 +405,12 @@ namespace Prowl.Runtime.Resources
         public void ForeachComponent(IEnumerable<GameObject> objs, Action<MonoBehaviour> action)
         {
             foreach (var go in objs)
-                foreach (var comp in go.GetComponents<MonoBehaviour>())
+            {
+                var components = go.GetComponents<MonoBehaviour>().ToArray(); 
+                foreach (var comp in components)
                     if (comp.EnabledInHierarchy)
                         action.Invoke(comp);
+            }
         }
     }
 }
