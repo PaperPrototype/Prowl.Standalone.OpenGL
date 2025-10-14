@@ -298,8 +298,9 @@ namespace Prowl.Runtime.Resources
 
         public void OnAfterDeserialize()
         {
-            foreach (GameObject obj in serializeObj)
-                Add(obj);
+            if (serializeObj != null)
+                foreach (GameObject obj in serializeObj)
+                    Add(obj);
         }
 
         /// <summary>
@@ -413,7 +414,7 @@ namespace Prowl.Runtime.Resources
         public void ForeachComponent(IEnumerable<GameObject> objs, Action<MonoBehaviour> action)
         {
             foreach (var go in objs)
-                foreach (var comp in go.GetComponents(typeof(MonoBehaviour)))
+                foreach (var comp in go.GetComponents<MonoBehaviour>())
                     if (comp.EnabledInHierarchy)
                         action.Invoke(comp);
         }
