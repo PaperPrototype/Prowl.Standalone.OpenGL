@@ -126,6 +126,7 @@ public class GameObject : EngineObject, ISerializable
     /// <returns>True if this GameObject is a child or the same as the given parent, false otherwise.</returns>
     public static bool IsChildOrSameTransform(GameObject transform, GameObject inParent)
     {
+        if (inParent == null) return false;
         GameObject child = transform;
         while (child != null)
         {
@@ -776,7 +777,7 @@ public class GameObject : EngineObject, ISerializable
 
         foreach (GameObject child in children)
         {
-            MonoBehaviour component = child.GetComponentByIdentifier(identifier);
+            MonoBehaviour component = child.GetComponentByIdentifier(identifier) ?? child.GetComponentInChildrenByIdentifier(identifier, true);
             if (component != null)
                 return component;
         }
