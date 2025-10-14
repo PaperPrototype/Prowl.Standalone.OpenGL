@@ -586,7 +586,7 @@ public class GameObject : EngineObject, ISerializable
     {
         if (type == null) return null;
         if (_componentCache.TryGetValue(type, out var components))
-            return components.First();
+            return components.FirstOrDefault();
         else
             foreach (var comp in _components)
                 if (comp.GetType().IsAssignableTo(type))
