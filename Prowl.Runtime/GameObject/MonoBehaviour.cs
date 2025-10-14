@@ -30,6 +30,7 @@ public abstract class MonoBehaviour : EngineObject
     private Dictionary<string, Coroutine> _coroutines = new();
     private Dictionary<string, Coroutine> _endOfFrameCoroutines = new();
     private Dictionary<string, Coroutine> _fixedUpdateCoroutines = new();
+    private bool _stoppingAll = false;
 
     private GameObject _go;
 
@@ -379,6 +380,7 @@ public abstract class MonoBehaviour : EngineObject
     /// </summary>
     public void StopAllCoroutines()
     {
+        _stoppingAll = true;
         _coroutines.Clear();
         _endOfFrameCoroutines.Clear();
         _fixedUpdateCoroutines.Clear();
@@ -477,17 +479,34 @@ public abstract class MonoBehaviour : EngineObject
     {
         var tempList = new Dictionary<string, Coroutine>(_coroutines);
         _coroutines.Clear();
+        _stoppingAll = false; // Reset the flag at the start of update
+
         foreach (var coroutine in tempList)
         {
             coroutine.Value.Run();
+
+            // Don't re-add any coroutines if StopAllCoroutines was called during Run()
+            if (_stoppingAll)
+                continue;
+
             if (!coroutine.Value.isDone)
             {
+                // Check if key already exists (can happen if coroutine restarted itself during Run())
                 if (coroutine.Value.Enumerator.Current is WaitForEndOfFrame)
-                    _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
+                {
+                    if (!_endOfFrameCoroutines.ContainsKey(coroutine.Key))
+                        _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
+                }
                 else if (coroutine.Value.Enumerator.Current is WaitForFixedUpdate)
-                    _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
+                {
+                    if (!_fixedUpdateCoroutines.ContainsKey(coroutine.Key))
+                        _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
+                }
                 else
-                    _coroutines.Add(coroutine.Key, coroutine.Value);
+                {
+                    if (!_coroutines.ContainsKey(coroutine.Key))
+                        _coroutines.Add(coroutine.Key, coroutine.Value);
+                }
             }
         }
     }
@@ -496,17 +515,34 @@ public abstract class MonoBehaviour : EngineObject
     {
         var tempList = new Dictionary<string, Coroutine>(_endOfFrameCoroutines);
         _endOfFrameCoroutines.Clear();
+        _stoppingAll = false; // Reset the flag at the start of update
+
         foreach (var coroutine in tempList)
         {
             coroutine.Value.Run();
+
+            // Don't re-add any coroutines if StopAllCoroutines was called during Run()
+            if (_stoppingAll)
+                continue;
+
             if (!coroutine.Value.isDone)
             {
+                // Check if key already exists (can happen if coroutine restarted itself during Run())
                 if (coroutine.Value.Enumerator.Current is WaitForEndOfFrame)
-                    _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
+                {
+                    if (!_endOfFrameCoroutines.ContainsKey(coroutine.Key))
+                        _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
+                }
                 else if (coroutine.Value.Enumerator.Current is WaitForFixedUpdate)
-                    _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
+                {
+                    if (!_fixedUpdateCoroutines.ContainsKey(coroutine.Key))
+                        _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
+                }
                 else
-                    _coroutines.Add(coroutine.Key, coroutine.Value);
+                {
+                    if (!_coroutines.ContainsKey(coroutine.Key))
+                        _coroutines.Add(coroutine.Key, coroutine.Value);
+                }
             }
         }
     }
@@ -515,17 +551,34 @@ public abstract class MonoBehaviour : EngineObject
     {
         var tempList = new Dictionary<string, Coroutine>(_fixedUpdateCoroutines);
         _fixedUpdateCoroutines.Clear();
+        _stoppingAll = false; // Reset the flag at the start of update
+
         foreach (var coroutine in tempList)
         {
             coroutine.Value.Run();
+
+            // Don't re-add any coroutines if StopAllCoroutines was called during Run()
+            if (_stoppingAll)
+                continue;
+
             if (!coroutine.Value.isDone)
             {
+                // Check if key already exists (can happen if coroutine restarted itself during Run())
                 if (coroutine.Value.Enumerator.Current is WaitForFixedUpdate)
-                    _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
+                {
+                    if (!_fixedUpdateCoroutines.ContainsKey(coroutine.Key))
+                        _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
+                }
                 else if (coroutine.Value.Enumerator.Current is WaitForEndOfFrame)
-                    _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
+                {
+                    if (!_endOfFrameCoroutines.ContainsKey(coroutine.Key))
+                        _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
+                }
                 else
-                    _coroutines.Add(coroutine.Key, coroutine.Value);
+                {
+                    if (!_coroutines.ContainsKey(coroutine.Key))
+                        _coroutines.Add(coroutine.Key, coroutine.Value);
+                }
             }
         }
     }
