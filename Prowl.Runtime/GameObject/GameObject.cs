@@ -755,7 +755,7 @@ public class GameObject : EngineObject, ISerializable
         // Now check all children
         foreach (GameObject child in children)
         {
-            if (enabledInHierarchy || includeInactive)
+            if (child.enabledInHierarchy || includeInactive)
             {
                 component = child.GetComponent(componentType) ?? child.GetComponentInChildren(componentType);
                 if (component != null)
@@ -808,7 +808,7 @@ public class GameObject : EngineObject, ISerializable
         // Now check all children
         foreach (GameObject child in children)
         {
-            if (enabledInHierarchy || includeInactive)
+            if (child.enabledInHierarchy || includeInactive)
                 foreach (MonoBehaviour component in child.GetComponentsInChildren(type, true, includeInactive))
                     yield return component;
         }
