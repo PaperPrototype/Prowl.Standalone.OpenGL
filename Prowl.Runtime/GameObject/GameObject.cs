@@ -758,12 +758,13 @@ public class GameObject : EngineObject, ISerializable
         // Now check all children
         foreach (GameObject child in children)
         {
-            if (child.enabledInHierarchy || includeInactive)
-            {
-                component = child.GetComponent(componentType) ?? child.GetComponentInChildren(componentType, true, includeInactive);
-                if (component != null)
-                    return component;
-            }
+            // Skip inactive children unless includeInactive is true
+            if (!child.enabledInHierarchy && !includeInactive)
+                continue;
+
+            component = child.GetComponentInChildren(componentType, true, includeInactive);
+            if (component != null)
+                return component;
         }
         return null;
     }
@@ -779,7 +780,11 @@ public class GameObject : EngineObject, ISerializable
 
         foreach (GameObject child in children)
         {
-            MonoBehaviour component = child.GetComponentByIdentifier(identifier) ?? child.GetComponentInChildrenByIdentifier(identifier, true);
+            // Skip inactive children unless includeInactive is true
+            if (!child.enabledInHierarchy && !includeInactive)
+                continue;
+
+            MonoBehaviour component = child.GetComponentByIdentifier(identifier) ?? child.GetComponentInChildrenByIdentifier(identifier, true, includeInactive);
             if (component != null)
                 return component;
         }
@@ -811,9 +816,12 @@ public class GameObject : EngineObject, ISerializable
         // Now check all children
         foreach (GameObject child in children)
         {
-            if (child.enabledInHierarchy || includeInactive)
-                foreach (MonoBehaviour component in child.GetComponentsInChildren(type, true, includeInactive))
-                    yield return component;
+            // Skip inactive children unless includeInactive is true
+            if (!child.enabledInHierarchy && !includeInactive)
+                continue;
+
+            foreach (MonoBehaviour component in child.GetComponentsInChildren(type, true, includeInactive))
+                yield return component;
         }
     }
 
