@@ -186,7 +186,7 @@ public class Transform
     public Transform parent
     {
         get => gameObject?.parent?.Transform;
-        set => gameObject?.SetParent(value.gameObject, true);
+        set => gameObject?.SetParent(value?.gameObject, true);
     }
 
     // https://forum.unity.com/threads/transform-haschanged-would-be-better-if-replaced-by-a-version-number.700004/
