@@ -769,9 +769,9 @@ public class GameObject : EngineObject, ISerializable
         return null;
     }
 
-    public MonoBehaviour GetComponentInChildrenByIdentifier(Guid identifier, bool includeSelf = true)
+    public MonoBehaviour GetComponentInChildrenByIdentifier(Guid identifier, bool includeSelf = true, bool includeInactive = false)
     {
-        if (includeSelf)
+        if (includeSelf && (enabledInHierarchy || includeInactive))
         {
             MonoBehaviour component = GetComponentByIdentifier(identifier);
             if (component != null)
