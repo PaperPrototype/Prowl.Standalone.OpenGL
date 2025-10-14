@@ -995,7 +995,7 @@ public class GameObject : EngineObject, ISerializable
         _enabledInHierarchy = value["EnabledInHierarchy"]?.ByteValue == 1;
         tagIndex = value["TagIndex"]?.IntValue ?? 0;
         layerIndex = value["LayerIndex"]?.IntValue ?? 0;
-        hideFlags = (HideFlags)value["HideFlags"]?.IntValue!;
+        hideFlags = (HideFlags)(value["HideFlags"]?.IntValue ?? 0);
 
         _transform = Serializer.Deserialize<Transform>(value["Transform"], ctx);
         _transform.gameObject = this;
