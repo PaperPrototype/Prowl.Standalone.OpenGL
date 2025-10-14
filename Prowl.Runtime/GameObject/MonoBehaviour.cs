@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for details.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -15,7 +14,7 @@ namespace Prowl.Runtime;
 
 /// <summary>
 /// Represents the base class for all scripts that attach to GameObjects in the Prowl Game Engine.
-/// MonoBehaviour provides lifecycle methods and coroutine functionality for game object behaviors.
+/// MonoBehaviour provides lifecycle methods for game object behaviors.
 /// </summary>
 public abstract class MonoBehaviour : EngineObject
 {
@@ -26,11 +25,6 @@ public abstract class MonoBehaviour : EngineObject
     protected internal bool _enabled = true;
     [SerializeField]
     protected internal bool _enabledInHierarchy = true;
-
-    private Dictionary<string, Coroutine> _coroutines = new();
-    private Dictionary<string, Coroutine> _endOfFrameCoroutines = new();
-    private Dictionary<string, Coroutine> _fixedUpdateCoroutines = new();
-    private bool _stoppingAll = false;
 
     private GameObject _go;
 
@@ -339,249 +333,6 @@ public abstract class MonoBehaviour : EngineObject
             GameObject.RemoveComponent(this);
     }
 
-    /// <summary>
-    /// Starts a coroutine with the specified method name.
-    /// </summary>
-    /// <param name="methodName">The name of the coroutine method to start.</param>
-    /// <returns>A Coroutine object representing the started coroutine.</returns>
-    public Coroutine StartCoroutine(string methodName)
-    {
-        methodName = methodName.Trim();
-        var method = GetType().GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-        if (method == null)
-        {
-            Debug.LogError("Coroutine '" + methodName + "' couldn't be started, the method doesn't exist.");
-            return null;
-        }
-
-        // Stop any existing coroutine with the same name
-        StopCoroutine(methodName);
-
-        var enumerator = method.Invoke(this, null) as IEnumerator;
-        var coroutine = new Coroutine(enumerator);
-
-        // Move to the first yield to get the initial Current value
-        if (enumerator.MoveNext())
-        {
-            if (coroutine.Enumerator.Current is WaitForEndOfFrame)
-                _endOfFrameCoroutines.Add(methodName, coroutine);
-            else if (coroutine.Enumerator.Current is WaitForFixedUpdate)
-                _fixedUpdateCoroutines.Add(methodName, coroutine);
-            else
-                _coroutines.Add(methodName, coroutine);
-        }
-        // If MoveNext returns false, coroutine is already done, don't add it
-
-        return coroutine;
-    }
-
-    /// <summary>
-    /// Stops all running coroutines on this MonoBehaviour.
-    /// </summary>
-    public void StopAllCoroutines()
-    {
-        _stoppingAll = true;
-        _coroutines.Clear();
-        _endOfFrameCoroutines.Clear();
-        _fixedUpdateCoroutines.Clear();
-    }
-
-    /// <summary>
-    /// Stops the coroutine with the specified method name.
-    /// </summary>
-    /// <param name="methodName">The name of the coroutine method to stop.</param>
-    public void StopCoroutine(string methodName)
-    {
-        methodName = methodName.Trim();
-        _coroutines.Remove(methodName);
-        _endOfFrameCoroutines.Remove(methodName);
-        _fixedUpdateCoroutines.Remove(methodName);
-    }
-
-    /// <summary>
-    /// Base class for all yield instructions used in coroutines.
-    /// </summary>
-    public class YieldInstruction
-    {
-    }
-
-    /// <summary>
-    /// Suspends the coroutine execution for the given amount of seconds.
-    /// </summary>
-    public class WaitForSeconds : YieldInstruction
-    {
-        public double Duration { get; private set; }
-        public WaitForSeconds(float seconds)
-        {
-            Duration = Time.time + seconds;
-        }
-    }
-
-    /// <summary>
-    /// Waits until the end of the frame after all cameras and GUI is rendered, just before displaying the frame on screen.
-    /// </summary>
-    public class WaitForEndOfFrame : YieldInstruction
-    {
-    }
-
-    /// <summary>
-    /// Waits until the next fixed frame rate update function.
-    /// </summary>
-    public class WaitForFixedUpdate : YieldInstruction
-    {
-    }
-
-    /// <summary>
-    /// Represents a coroutine in the Prowl Game Engine.
-    /// </summary>
-    public sealed class Coroutine : YieldInstruction
-    {
-        internal bool isDone { get; private set; }
-        internal IEnumerator Enumerator { get; private set; }
-        internal Coroutine(IEnumerator routine)
-        {
-            Enumerator = routine;
-        }
-
-        internal bool CanRun
-        {
-            get
-            {
-                object current = Enumerator.Current;
-
-                if (current is Coroutine)
-                {
-                    Coroutine dep = current as Coroutine;
-                    return dep.isDone;
-                }
-                else if (current is WaitForSeconds)
-                {
-                    WaitForSeconds wait = current as WaitForSeconds;
-                    return wait.Duration <= Time.time;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-        }
-
-        internal void Run()
-        {
-            if (CanRun)
-            {
-                isDone = !Enumerator.MoveNext();
-            }
-        }
-    }
-
-    internal void UpdateCoroutines()
-    {
-        var tempList = new Dictionary<string, Coroutine>(_coroutines);
-        _coroutines.Clear();
-        _stoppingAll = false; // Reset the flag at the start of update
-
-        foreach (var coroutine in tempList)
-        {
-            coroutine.Value.Run();
-
-            // Don't re-add any coroutines if StopAllCoroutines was called during Run()
-            if (_stoppingAll)
-                continue;
-
-            if (!coroutine.Value.isDone)
-            {
-                // Check if key already exists (can happen if coroutine restarted itself during Run())
-                if (coroutine.Value.Enumerator.Current is WaitForEndOfFrame)
-                {
-                    if (!_endOfFrameCoroutines.ContainsKey(coroutine.Key))
-                        _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
-                }
-                else if (coroutine.Value.Enumerator.Current is WaitForFixedUpdate)
-                {
-                    if (!_fixedUpdateCoroutines.ContainsKey(coroutine.Key))
-                        _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
-                }
-                else
-                {
-                    if (!_coroutines.ContainsKey(coroutine.Key))
-                        _coroutines.Add(coroutine.Key, coroutine.Value);
-                }
-            }
-        }
-    }
-
-    internal void UpdateEndOfFrameCoroutines()
-    {
-        var tempList = new Dictionary<string, Coroutine>(_endOfFrameCoroutines);
-        _endOfFrameCoroutines.Clear();
-        _stoppingAll = false; // Reset the flag at the start of update
-
-        foreach (var coroutine in tempList)
-        {
-            coroutine.Value.Run();
-
-            // Don't re-add any coroutines if StopAllCoroutines was called during Run()
-            if (_stoppingAll)
-                continue;
-
-            if (!coroutine.Value.isDone)
-            {
-                // Check if key already exists (can happen if coroutine restarted itself during Run())
-                if (coroutine.Value.Enumerator.Current is WaitForEndOfFrame)
-                {
-                    if (!_endOfFrameCoroutines.ContainsKey(coroutine.Key))
-                        _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
-                }
-                else if (coroutine.Value.Enumerator.Current is WaitForFixedUpdate)
-                {
-                    if (!_fixedUpdateCoroutines.ContainsKey(coroutine.Key))
-                        _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
-                }
-                else
-                {
-                    if (!_coroutines.ContainsKey(coroutine.Key))
-                        _coroutines.Add(coroutine.Key, coroutine.Value);
-                }
-            }
-        }
-    }
-
-    internal void UpdateFixedUpdateCoroutines()
-    {
-        var tempList = new Dictionary<string, Coroutine>(_fixedUpdateCoroutines);
-        _fixedUpdateCoroutines.Clear();
-        _stoppingAll = false; // Reset the flag at the start of update
-
-        foreach (var coroutine in tempList)
-        {
-            coroutine.Value.Run();
-
-            // Don't re-add any coroutines if StopAllCoroutines was called during Run()
-            if (_stoppingAll)
-                continue;
-
-            if (!coroutine.Value.isDone)
-            {
-                // Check if key already exists (can happen if coroutine restarted itself during Run())
-                if (coroutine.Value.Enumerator.Current is WaitForFixedUpdate)
-                {
-                    if (!_fixedUpdateCoroutines.ContainsKey(coroutine.Key))
-                        _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
-                }
-                else if (coroutine.Value.Enumerator.Current is WaitForEndOfFrame)
-                {
-                    if (!_endOfFrameCoroutines.ContainsKey(coroutine.Key))
-                        _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
-                }
-                else
-                {
-                    if (!_coroutines.ContainsKey(coroutine.Key))
-                        _coroutines.Add(coroutine.Key, coroutine.Value);
-                }
-            }
-        }
-    }
 
     /// <summary>
     /// Calls the method named methodName on every MonoBehaviour in this game object or any of its children.

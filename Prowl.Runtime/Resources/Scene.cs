@@ -305,7 +305,7 @@ namespace Prowl.Runtime.Resources
 
         /// <summary>
         /// Updates all active GameObjects and their components in this scene.
-        /// Calls PreUpdate, Update, UpdateCoroutines, LateUpdate, and EndOfFrameCoroutines.
+        /// Calls PreUpdate, Update, and LateUpdate.
         /// </summary>
         public void Update()
         {
@@ -316,32 +316,23 @@ namespace Prowl.Runtime.Resources
             foreach (GameObject go in activeGOs)
                 go.PreUpdate();
 
-            ForeachComponent(activeGOs, (x) =>
-            {
-                x.UpdateCoroutines();
-                x.Update();
-            });
+            ForeachComponent(activeGOs, (x) => x.Update());
 
             ForeachComponent(activeGOs, (x) => x.LateUpdate());
-            ForeachComponent(activeGOs, (x) => x.UpdateEndOfFrameCoroutines());
 
             Flush();
         }
 
         /// <summary>
         /// Executes physics update on all active GameObjects and their components.
-        /// Calls Physics.Update, FixedUpdate and UpdateFixedUpdateCoroutines.
+        /// Calls Physics.Update and FixedUpdate.
         /// </summary>
         public void FixedUpdate()
         {
             Physics.Update();
 
             List<GameObject> activeGOs = new List<GameObject>(ActiveObjects);
-            ForeachComponent(activeGOs, (x) =>
-            {
-                x.FixedUpdate();
-                x.UpdateFixedUpdateCoroutines();
-            });
+            ForeachComponent(activeGOs, (x) => x.FixedUpdate());
 
             Flush();
         }
