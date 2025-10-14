@@ -466,13 +466,12 @@ public abstract class MonoBehaviour : EngineObject
 
     internal void UpdateCoroutines()
     {
-        _coroutines ??= new Dictionary<string, Coroutine>();
         var tempList = new Dictionary<string, Coroutine>(_coroutines);
         _coroutines.Clear();
         foreach (var coroutine in tempList)
         {
             coroutine.Value.Run();
-            if (coroutine.Value.isDone)
+            if (!coroutine.Value.isDone)
             {
                 if (coroutine.Value.Enumerator.Current is WaitForEndOfFrame)
                     _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
@@ -486,13 +485,12 @@ public abstract class MonoBehaviour : EngineObject
 
     internal void UpdateEndOfFrameCoroutines()
     {
-        _endOfFrameCoroutines ??= new Dictionary<string, Coroutine>();
         var tempList = new Dictionary<string, Coroutine>(_endOfFrameCoroutines);
         _endOfFrameCoroutines.Clear();
         foreach (var coroutine in tempList)
         {
             coroutine.Value.Run();
-            if (coroutine.Value.isDone)
+            if (!coroutine.Value.isDone)
             {
                 if (coroutine.Value.Enumerator.Current is WaitForEndOfFrame)
                     _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
@@ -504,13 +502,12 @@ public abstract class MonoBehaviour : EngineObject
 
     internal void UpdateFixedUpdateCoroutines()
     {
-        _fixedUpdateCoroutines ??= new Dictionary<string, Coroutine>();
         var tempList = new Dictionary<string, Coroutine>(_fixedUpdateCoroutines);
         _fixedUpdateCoroutines.Clear();
         foreach (var coroutine in tempList)
         {
             coroutine.Value.Run();
-            if (coroutine.Value.isDone)
+            if (!coroutine.Value.isDone)
             {
                 if (coroutine.Value.Enumerator.Current is WaitForFixedUpdate)
                     _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
