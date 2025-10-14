@@ -257,7 +257,7 @@ public class Transform
 
         foreach (var name in names)
         {
-            ArgumentException.ThrowIfNullOrEmpty(path, nameof(path));
+            ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
 
             var childTransform = FindImmediateChild(currentTransform, name);
             if (childTransform == null)
