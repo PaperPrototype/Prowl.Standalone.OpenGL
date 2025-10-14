@@ -109,7 +109,7 @@ public class Transform
         set
         {
             rotation = MakeSafe(Quaternion.FromEuler((Float3)value));
-            InvalidateTransformCache();
+            // InvalidateTransformCache() already called by rotation setter
         }
     }
 
