@@ -266,21 +266,21 @@ public class GameObject : EngineObject, ISerializable
     /// <param name="otherName">The name of the GameObject to find.</param>
     /// <param name="ignoreCase">If true, the search is case-insensitive.</param>
     /// <returns>The first GameObject with the given name, or null if not found.</returns>
-    public GameObject Find(string otherName, bool ignoreCase = false) => this.Scene.AllObjects.FirstOrDefault(gameObject => gameObject.Name.Equals(otherName, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
+    public GameObject Find(string otherName, bool ignoreCase = false) => this.Scene?.AllObjects.FirstOrDefault(gameObject => gameObject.Name.Equals(otherName, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
 
     /// <summary>
     /// Finds a GameObject with the specified tag in the same scene.
     /// </summary>
     /// <param name="otherTag">The tag to search for.</param>
     /// <returns>The first GameObject with the given tag, or null if not found.</returns>
-    public GameObject FindGameObjectWithTag(string otherTag) => this.Scene.AllObjects.FirstOrDefault(gameObject => gameObject.CompareTag(otherTag));
+    public GameObject FindGameObjectWithTag(string otherTag) => this.Scene?.AllObjects.FirstOrDefault(gameObject => gameObject.CompareTag(otherTag));
 
     /// <summary>
     /// Finds all GameObjects with the specified tag in the same scene.
     /// </summary>
     /// <param name="otherTag">The tag to search for.</param>
     /// <returns>An array of GameObjects with the given tag.</returns>
-    public GameObject[] FindGameObjectsWithTag(string otherTag) => this.Scene.AllObjects.Where(gameObject => gameObject.CompareTag(otherTag)).ToArray();
+    public GameObject[] FindGameObjectsWithTag(string otherTag) => this.Scene?.AllObjects.Where(gameObject => gameObject.CompareTag(otherTag)).ToArray() ?? [];
 
 
     /// <summary>
