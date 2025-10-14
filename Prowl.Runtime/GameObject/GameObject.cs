@@ -947,6 +947,75 @@ public class GameObject : EngineObject, ISerializable
     }
 
     /// <summary>
+    /// Prints the GameObject hierarchy including all components and children to Debug.Log.
+    /// Useful for debugging scene structure.
+    /// </summary>
+    public void Print()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.AppendLine("========================================");
+        sb.AppendLine($"GameObject Hierarchy: {Name}");
+        sb.AppendLine("========================================");
+        PrintRecursive(this, sb, "", true);
+        sb.AppendLine("========================================");
+        Debug.Log(sb.ToString());
+    }
+
+    private void PrintRecursive(GameObject obj, System.Text.StringBuilder sb, string indent, bool isRoot)
+    {
+        // Print GameObject info
+        string enabledIndicator = obj.enabled ? "" : " [DISABLED]";
+        string staticIndicator = obj.isStatic ? " [STATIC]" : "";
+        sb.AppendLine($"{indent}{obj.Name}{enabledIndicator}{staticIndicator}");
+
+        // Print additional info
+        string detailIndent = indent + "  ";
+        if (!string.IsNullOrEmpty(obj.tag) && obj.tag != "Untagged")
+            sb.AppendLine($"{detailIndent}Tag: {obj.tag}");
+        if (!string.IsNullOrEmpty(obj.layer) && obj.layer != "Default")
+            sb.AppendLine($"{detailIndent}Layer: {obj.layer}");
+
+        // Print Transform info
+        var t = obj.Transform;
+        sb.AppendLine($"{detailIndent}Position: {FormatVector(t.localPosition)} (World: {FormatVector(t.position)})");
+        sb.AppendLine($"{detailIndent}Rotation: {FormatVector(t.localEulerAngles)} (World: {FormatVector(t.eulerAngles)})");
+        sb.AppendLine($"{detailIndent}Scale: {FormatVector(t.localScale)} (Lossy: {FormatVector(t.lossyScale)})");
+
+        // Print Components
+        var components = obj.GetComponents<MonoBehaviour>().ToList();
+        if (components.Count > 0)
+        {
+            sb.AppendLine($"{detailIndent}Components ({components.Count}):");
+            foreach (var comp in components)
+            {
+                string compEnabled = comp.Enabled ? "" : " [DISABLED]";
+                sb.AppendLine($"{detailIndent}  - {comp.GetType().Name}{compEnabled}");
+            }
+        }
+
+        // Print Children
+        if (obj.children.Count > 0)
+        {
+            sb.AppendLine($"{detailIndent}Children ({obj.children.Count}):");
+            for (int i = 0; i < obj.children.Count; i++)
+            {
+                bool isLast = i == obj.children.Count - 1;
+                string childIndent = indent + (isRoot ? "  " : "  ");
+                string connector = isLast ? "└─ " : "├─ ";
+                string nextIndent = indent + (isRoot ? "  " : "  ") + (isLast ? "   " : "│  ");
+
+                sb.Append($"{childIndent}{connector}");
+                PrintRecursive(obj.children[i], sb, nextIndent, false);
+            }
+        }
+    }
+
+    private string FormatVector(Double3 v)
+    {
+        return $"({v.X:F2}, {v.Y:F2}, {v.Z:F2})";
+    }
+
+    /// <summary>
     /// Serializes the GameObject to a SerializedProperty.
     /// </summary>
     /// <param name="ctx">The serialization context.</param>
