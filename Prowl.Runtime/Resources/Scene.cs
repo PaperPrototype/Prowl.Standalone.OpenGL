@@ -282,10 +282,13 @@ namespace Prowl.Runtime.Resources
         {
             base.OnDispose();
 
-            foreach (GameObject g in AllObjects)
+            // Dispose all GameObjects which will also remove them from the scene
+            List<GameObject> allObjects = AllObjects.ToList();
+            foreach (GameObject g in allObjects)
                 g.OnDispose();
 
-            Clear();
+            // Clear any remaining references
+            _allObj.Clear();
         }
 
         public void OnBeforeSerialize()
