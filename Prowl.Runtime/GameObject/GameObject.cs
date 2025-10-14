@@ -673,7 +673,7 @@ public class GameObject : EngineObject, ISerializable
         if (componentType == null) return null;
         // First check the current Object
         MonoBehaviour component;
-        if (includeSelf && enabledInHierarchy)
+        if (includeSelf && (enabledInHierarchy || includeInactive))
         {
             component = GetComponent(componentType);
             if (component != null)
@@ -712,7 +712,7 @@ public class GameObject : EngineObject, ISerializable
     public IEnumerable<MonoBehaviour> GetComponentsInParent(Type type, bool includeSelf = true, bool includeInactive = false)
     {
         // First check the current Object
-        if (includeSelf && enabledInHierarchy)
+        if (includeSelf && (enabledInHierarchy || includeInactive))
             foreach (MonoBehaviour component in GetComponents(type))
                 yield return component;
         // Now check all parents
@@ -746,7 +746,7 @@ public class GameObject : EngineObject, ISerializable
         if (componentType == null) return null;
         // First check the current Object
         MonoBehaviour component;
-        if (includeSelf && enabledInHierarchy)
+        if (includeSelf && (enabledInHierarchy || includeInactive))
         {
             component = GetComponent(componentType);
             if (component != null)
@@ -757,7 +757,7 @@ public class GameObject : EngineObject, ISerializable
         {
             if (child.enabledInHierarchy || includeInactive)
             {
-                component = child.GetComponent(componentType) ?? child.GetComponentInChildren(componentType);
+                component = child.GetComponent(componentType) ?? child.GetComponentInChildren(componentType, true, includeInactive);
                 if (component != null)
                     return component;
             }
@@ -802,7 +802,7 @@ public class GameObject : EngineObject, ISerializable
     public IEnumerable<MonoBehaviour> GetComponentsInChildren(Type type, bool includeSelf = true, bool includeInactive = false)
     {
         // First check the current Object
-        if (includeSelf && enabledInHierarchy)
+        if (includeSelf && (enabledInHierarchy || includeInactive))
             foreach (MonoBehaviour component in GetComponents(type))
                 yield return component;
         // Now check all children
