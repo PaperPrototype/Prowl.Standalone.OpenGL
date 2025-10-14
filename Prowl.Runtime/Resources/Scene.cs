@@ -254,9 +254,12 @@ namespace Prowl.Runtime.Resources
         /// <summary> Unregisters all GameObjects. </summary>
         public void Clear()
         {
-            foreach (GameObject obj in _allObj)
-                obj.Scene = null;
-            _allObj.Clear();
+            // Create a copy to iterate over since RemoveObject modifies the collection
+            List<GameObject> rootObjects = RootObjects.ToList();
+            foreach (GameObject obj in rootObjects)
+            {
+                Remove(obj);
+            }
         }
 
         /// <summary> Unregisters all dead / disposed GameObjects </summary>
