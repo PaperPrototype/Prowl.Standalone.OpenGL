@@ -146,9 +146,8 @@ public class GameObject : EngineObject, ISerializable
     public bool IsChildOf(GameObject parent)
     {
         if (parent == null) return false;
-        if (InstanceID == parent.InstanceID) return false; // Not a child they're the same object
 
-        GameObject child = this;
+        GameObject child = this._parent;
         while (child != null)
         {
             if (child == parent)
