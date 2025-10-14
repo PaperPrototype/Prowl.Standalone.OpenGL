@@ -30,7 +30,7 @@ public class GameObject : EngineObject, ISerializable
     private bool _enabled = true;
     private bool _enabledInHierarchy = true;
 
-    // We dont serialize parent, since if we want to serialize X object who is a child to Y object, we dont want to serialize Y object as well.
+    // We don't serialize parent, since if we want to serialize X object who is a child to Y object, we don't want to serialize Y object as well.
     // The parent is reconstructed when the object is deserialized for all children.
     private GameObject? _parent;
 
@@ -60,7 +60,7 @@ public class GameObject : EngineObject, ISerializable
         set { if (value != _enabled) { SetEnabled(value); } }
     }
 
-    /// <summary> Gets whether this gameobejct is enabled in the hierarchy, so if its parent is disabled this will return false </summary>
+    /// <summary> Gets whether this gameobject is enabled in the hierarchy, so if its parent is disabled this will return false </summary>
     public bool enabledInHierarchy => _enabledInHierarchy;
 
     /// <summary> The Tag of this GameObject </summary>
@@ -377,7 +377,7 @@ public class GameObject : EngineObject, ISerializable
             if (parent.children[i] == this)
                 return i;
 
-        throw new Exception($"This gameobject appears to be in Limbo, This should never happen!, The gameobject believes its a child of {parent.Name} but parent doesnt have it as a child!");
+        throw new Exception($"This gameobject appears to be in Limbo, This should never happen!, The gameobject believes its a child of {parent.Name} but parent doesn't have it as a child!");
     }
 
     /// <summary>
