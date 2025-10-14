@@ -1036,6 +1036,7 @@ public class GameObject : EngineObject, ISerializable
             MonoBehaviour? component = Serializer.Deserialize<MonoBehaviour>(compTag, ctx);
             if (component == null) continue;
             _components.Add(component);
+            _componentCache.Add(component.GetType(), component);
         }
         // Attach all components
         foreach (MonoBehaviour comp in _components)
