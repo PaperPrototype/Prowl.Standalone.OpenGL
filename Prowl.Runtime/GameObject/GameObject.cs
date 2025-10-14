@@ -145,6 +145,7 @@ public class GameObject : EngineObject, ISerializable
     /// <returns>True if this GameObject is a child of the given parent, false otherwise.</returns>
     public bool IsChildOf(GameObject parent)
     {
+        if (parent == null) return false;
         if (InstanceID == parent.InstanceID) return false; // Not a child they're the same object
 
         GameObject child = this;
@@ -242,6 +243,7 @@ public class GameObject : EngineObject, ISerializable
     /// <summary> Recursive function to check if this GameObject is a parent of another GameObject </summary>
     public bool IsParentOf(GameObject go)
     {
+        if (go == null) return false;
         if (go.parent?.InstanceID == InstanceID)
             return true;
 
