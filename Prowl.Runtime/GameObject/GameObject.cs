@@ -367,7 +367,7 @@ public class GameObject : EngineObject, ISerializable
     /// Gets the index of this GameObject in its parent's children list.
     /// </summary>
     /// <returns>The index of this GameObject in its parent's children list, or null if it has no parent.</returns>
-    /// <exception cref="Exception">Thrown if the GameObject is not found in its parent's children list.</exception>q
+    /// <exception cref="Exception">Thrown if the GameObject is not found in its parent's children list.</exception>
     public int? GetSiblingIndex()
     {
         if (parent == null) return null;

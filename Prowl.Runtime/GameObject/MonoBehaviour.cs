@@ -163,7 +163,7 @@ public abstract class MonoBehaviour : EngineObject
     /// Gets the index of this Component in its GameObject's Component list.
     /// </summary>
     /// <returns>The index of this Component in its GameObject's Component list, or null if it has no GameObject.</returns>
-    /// <exception cref="Exception">Thrown if the Component is not found in its GameObject's Component list.</exception>q
+    /// <exception cref="Exception">Thrown if the Component is not found in its GameObject's Component list.</exception>
     public int? GetSiblingIndex()
     {
         if (GameObject == null) return null;
