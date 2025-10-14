@@ -510,13 +510,16 @@ public class GameObject : EngineObject, ISerializable
     /// <typeparam name="T">The type of components to remove.</typeparam>
     public void RemoveAll<T>() where T : MonoBehaviour
     {
-        IReadOnlyCollection<MonoBehaviour> components;
-        if (_componentCache.TryGetValue(typeof(T), out components))
+        if (_componentCache.TryGetValue(typeof(T), out var components))
         {
-            foreach (MonoBehaviour c in components)
+            // Create a copy to avoid potential collection modification issues
+            var componentList = components.ToList();
+
+            foreach (MonoBehaviour c in componentList)
                 if (c.EnabledInHierarchy)
                     c.OnDisable();
-            foreach (MonoBehaviour c in components)
+
+            foreach (MonoBehaviour c in componentList)
             {
                 if (c.HasStarted) // OnDestroy is only called if the component has previously been active
                     c.OnDestroy();
