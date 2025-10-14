@@ -546,7 +546,7 @@ public static class ShaderParser
             tags[key] = value;
 
             // Next token should either be a comma or a closing brace
-            // if its a comma theres another tag so continue, if not break
+            // if it's a comma there's another tag so continue, if not break
             tokenizer.MoveNext();
 
             if (tokenizer.TokenType == ShaderToken.Comma)

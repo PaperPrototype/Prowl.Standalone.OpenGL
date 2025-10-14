@@ -144,7 +144,7 @@ public class GameObject : EngineObject, ISerializable
     /// <returns>True if this GameObject is a child of the given parent, false otherwise.</returns>
     public bool IsChildOf(GameObject parent)
     {
-        if (InstanceID == parent.InstanceID) return false; // Not a child their the same object
+        if (InstanceID == parent.InstanceID) return false; // Not a child they're the same object
 
         GameObject child = this;
         while (child != null)
@@ -228,7 +228,7 @@ public class GameObject : EngineObject, ISerializable
 
     #region Constructors
 
-    /// <summary>Creates a new gameobject with tbe name 'New GameObject'.</summary>
+    /// <summary>Creates a new gameobject with the name 'New GameObject'.</summary>
     public GameObject() : base("New GameObject") { }
 
     /// <summary>Creates a new gameobject.</summary>
