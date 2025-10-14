@@ -783,7 +783,7 @@ public class GameObject : EngineObject, ISerializable
             if (!child.enabledInHierarchy && !includeInactive)
                 continue;
 
-            MonoBehaviour component = child.GetComponentByIdentifier(identifier) ?? child.GetComponentInChildrenByIdentifier(identifier, true, includeInactive);
+            MonoBehaviour component = child.GetComponentInChildrenByIdentifier(identifier, true, includeInactive);
             if (component != null)
                 return component;
         }
@@ -870,7 +870,7 @@ public class GameObject : EngineObject, ISerializable
 
         for (int i = _components.Count - 1; i >= 0; i--)
         {
-            MonoBehaviour component = _components.ElementAt(i);
+            MonoBehaviour component = _components[i];
             if (component.IsDestroyed) continue;
             if (component.EnabledInHierarchy) component.OnDisable();
             if (component.HasStarted) component.OnDestroy(); // OnDestroy is only called if the component has previously been active

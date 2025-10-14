@@ -356,14 +356,20 @@ public abstract class MonoBehaviour : EngineObject
         // Stop any existing coroutine with the same name
         StopCoroutine(methodName);
 
-        var coroutine = new Coroutine(method.Invoke(this, null) as IEnumerator);
+        var enumerator = method.Invoke(this, null) as IEnumerator;
+        var coroutine = new Coroutine(enumerator);
 
-        if (coroutine.Enumerator.Current is WaitForEndOfFrame)
-            _endOfFrameCoroutines.Add(methodName, coroutine);
-        else if (coroutine.Enumerator.Current is WaitForFixedUpdate)
-            _fixedUpdateCoroutines.Add(methodName, coroutine);
-        else
-            _coroutines.Add(methodName, coroutine);
+        // Move to the first yield to get the initial Current value
+        if (enumerator.MoveNext())
+        {
+            if (coroutine.Enumerator.Current is WaitForEndOfFrame)
+                _endOfFrameCoroutines.Add(methodName, coroutine);
+            else if (coroutine.Enumerator.Current is WaitForFixedUpdate)
+                _fixedUpdateCoroutines.Add(methodName, coroutine);
+            else
+                _coroutines.Add(methodName, coroutine);
+        }
+        // If MoveNext returns false, coroutine is already done, don't add it
 
         return coroutine;
     }
@@ -497,6 +503,8 @@ public abstract class MonoBehaviour : EngineObject
             {
                 if (coroutine.Value.Enumerator.Current is WaitForEndOfFrame)
                     _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
+                else if (coroutine.Value.Enumerator.Current is WaitForFixedUpdate)
+                    _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
                 else
                     _coroutines.Add(coroutine.Key, coroutine.Value);
             }
@@ -514,6 +522,8 @@ public abstract class MonoBehaviour : EngineObject
             {
                 if (coroutine.Value.Enumerator.Current is WaitForFixedUpdate)
                     _fixedUpdateCoroutines.Add(coroutine.Key, coroutine.Value);
+                else if (coroutine.Value.Enumerator.Current is WaitForEndOfFrame)
+                    _endOfFrameCoroutines.Add(coroutine.Key, coroutine.Value);
                 else
                     _coroutines.Add(coroutine.Key, coroutine.Value);
             }
