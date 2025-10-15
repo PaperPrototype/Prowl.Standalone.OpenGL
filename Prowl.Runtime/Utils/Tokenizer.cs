@@ -168,7 +168,8 @@ public class Tokenizer
 
     static bool DefaultWhitespaceHandler(char c, Tokenizer t)
     {
-        return char.IsWhiteSpace(c);
+        // Use explicit whitespace check to avoid culture-dependent behavior
+        return c == ' ' || c == '\t' || c == '\n' || c == '\r';
     }
 
     static bool DefaultQuoteHandler(char c, Tokenizer t)

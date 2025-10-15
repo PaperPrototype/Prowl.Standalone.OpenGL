@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -82,7 +83,7 @@ public static class ShaderParser
         {
             tokenizer.MoveNext();
 
-            if (tokenizer.Token.ToString() != "Shader")
+            if (!tokenizer.Token.ToString().Equals("Shader", StringComparison.Ordinal))
                 throw new ParseException("shader", $"expected top-level 'Shader' declaration, found '{tokenizer.Token}'");
 
             tokenizer.MoveNext(); // Move to string
@@ -301,7 +302,8 @@ public static class ShaderParser
 
     private static bool HandleCommentWhitespace(char c, Tokenizer tokenizer)
     {
-        if (char.IsWhiteSpace(c))
+        // Use explicit whitespace check to avoid culture-dependent behavior
+        if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
             return true;
 
         if (c != '/')
@@ -648,7 +650,7 @@ public static class ShaderParser
 
         while (tokenizer.MoveNext())
         {
-            if (tokenizer.Token.ToString() == token)
+            if (tokenizer.Token.ToString().Equals(token, StringComparison.Ordinal))
             {
                 tokenizer.TokenMemory = tokenizer.Input.Slice(startPos, tokenizer.InputPosition - tokenizer.Token.Length - startPos);
 
@@ -681,7 +683,7 @@ public static class ShaderParser
     {
         try
         {
-            return double.Parse(text);
+            return double.Parse(text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture);
         }
         catch (FormatException)
         {
