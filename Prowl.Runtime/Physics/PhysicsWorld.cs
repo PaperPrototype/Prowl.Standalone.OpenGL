@@ -623,4 +623,196 @@ public class PhysicsWorld
     }
 
     #endregion
+
+    #region Overlap Queries
+
+    /// <summary>
+    /// Generic overlap query that returns all colliders overlapping the given shape.
+    /// </summary>
+    /// <param name="shape">The shape to test for overlaps.</param>
+    /// <param name="orientation">The orientation of the shape.</param>
+    /// <param name="position">Position of the shape.</param>
+    /// <param name="hits">List to populate with all overlapping colliders.</param>
+    /// <param name="layerMask">Layer mask for filtering.</param>
+    /// <returns>Number of overlapping colliders found.</returns>
+    public int Overlap(RigidBodyShape shape, JQuaternion orientation, Double3 position, List<ShapeCastHit> hits, LayerMask layerMask)
+    {
+        var jPosition = new JVector(position.X, position.Y, position.Z);
+        hits.Clear();
+
+        // Get all shapes from the dynamic tree that could potentially overlap
+        var potentialShapes = new List<IDynamicTreeProxy>();
+
+        // Create a bounding box for the shape
+        shape.CalculateBoundingBox(orientation, jPosition, out var shapeBounds);
+        World.DynamicTree.Query(potentialShapes, in shapeBounds);
+
+        foreach (var proxy in potentialShapes)
+        {
+            if (proxy is not RigidBodyShape targetShape) continue;
+
+            // Check layer mask
+            var userData = targetShape.RigidBody.Tag as Rigidbody3D.RigidBodyUserData;
+            if (!layerMask.HasLayer(userData.Layer)) continue;
+
+            var targetBody = targetShape.RigidBody;
+
+            // Perform overlap test using sweep with zero distance
+            bool overlaps = NarrowPhase.Sweep(
+                shape, targetShape,
+                orientation, targetBody.Data.Orientation,
+                jPosition, targetBody.Data.Position,
+                JVector.Zero, JVector.Zero,
+                out JVector pointA, out JVector pointB, out JVector normal, out double lambda);
+
+            if (overlaps)
+            {
+                var hit = new ShapeCastHit
+                {
+                    hit = true,
+                    fraction = 0,
+                    normal = -(new Double3(normal.X, normal.Y, normal.Z)),
+                    point = new Double3(pointA.X, pointA.Y, pointA.Z),
+                    hitPoint = new Double3(pointB.X, pointB.Y, pointB.Z),
+                    rigidbody = userData.Rigidbody,
+                    shape = targetShape,
+                    transform = userData.Rigidbody?.GameObject?.Transform
+                };
+                hits.Add(hit);
+            }
+        }
+
+        return hits.Count;
+    }
+
+    /// <summary>
+    /// Generic overlap query with default layer mask.
+    /// </summary>
+    public int Overlap(RigidBodyShape shape, JQuaternion orientation, Double3 position, List<ShapeCastHit> hits)
+    {
+        return Overlap(shape, orientation, position, hits, LayerMask.Everything);
+    }
+
+    /// <summary>
+    /// Tests if a sphere overlaps with any colliders.
+    /// </summary>
+    /// <param name="position">Center position of the sphere.</param>
+    /// <param name="radius">Radius of the sphere.</param>
+    /// <param name="hits">List to populate with all overlapping colliders.</param>
+    /// <returns>Number of overlapping colliders found.</returns>
+    public int OverlapSphere(Double3 position, double radius, List<ShapeCastHit> hits)
+    {
+        return OverlapSphere(position, radius, hits, LayerMask.Everything);
+    }
+
+    /// <summary>
+    /// Tests if a sphere overlaps with any colliders with layer filtering.
+    /// </summary>
+    public int OverlapSphere(Double3 position, double radius, List<ShapeCastHit> hits, LayerMask layerMask)
+    {
+        var sphere = new SphereShape(radius);
+        return Overlap(sphere, JQuaternion.Identity, position, hits, layerMask);
+    }
+
+    /// <summary>
+    /// Tests if a capsule overlaps with any colliders.
+    /// </summary>
+    /// <param name="point1">Start point of the capsule's line segment.</param>
+    /// <param name="point2">End point of the capsule's line segment.</param>
+    /// <param name="radius">Radius of the capsule.</param>
+    /// <param name="hits">List to populate with all overlapping colliders.</param>
+    /// <returns>Number of overlapping colliders found.</returns>
+    public int OverlapCapsule(Double3 point1, Double3 point2, double radius, List<ShapeCastHit> hits)
+    {
+        return OverlapCapsule(point1, point2, radius, hits, LayerMask.Everything);
+    }
+
+    /// <summary>
+    /// Tests if a capsule overlaps with any colliders with layer filtering.
+    /// </summary>
+    public int OverlapCapsule(Double3 point1, Double3 point2, double radius, List<ShapeCastHit> hits, LayerMask layerMask)
+    {
+        // Calculate capsule properties
+        Double3 capsuleCenter = (point1 + point2) * 0.5;
+        Double3 capsuleAxis = point2 - point1;
+        double capsuleLength = Double3.Length(capsuleAxis);
+
+        // Create a capsule shape (aligned along Y-axis)
+        var capsule = new CapsuleShape(radius, capsuleLength);
+
+        // Calculate orientation to align capsule with the segment
+        JQuaternion capsuleOrientation = CalculateCapsuleOrientation(capsuleAxis, capsuleLength);
+
+        return Overlap(capsule, capsuleOrientation, capsuleCenter, hits, layerMask);
+    }
+
+    /// <summary>
+    /// Tests if a box overlaps with any colliders.
+    /// </summary>
+    /// <param name="position">Center position of the box.</param>
+    /// <param name="size">Size of the box (width, height, depth).</param>
+    /// <param name="orientation">Orientation of the box.</param>
+    /// <param name="hits">List to populate with all overlapping colliders.</param>
+    /// <returns>Number of overlapping colliders found.</returns>
+    public int OverlapBox(Double3 position, Double3 size, JQuaternion orientation, List<ShapeCastHit> hits)
+    {
+        return OverlapBox(position, size, orientation, hits, LayerMask.Everything);
+    }
+
+    /// <summary>
+    /// Tests if a box overlaps with any colliders with layer filtering.
+    /// </summary>
+    public int OverlapBox(Double3 position, Double3 size, JQuaternion orientation, List<ShapeCastHit> hits, LayerMask layerMask)
+    {
+        var box = new BoxShape(size.X, size.Y, size.Z);
+        return Overlap(box, orientation, position, hits, layerMask);
+    }
+
+    /// <summary>
+    /// Tests if a cylinder overlaps with any colliders.
+    /// </summary>
+    /// <param name="position">Center position of the cylinder.</param>
+    /// <param name="radius">Radius of the cylinder.</param>
+    /// <param name="height">Height of the cylinder.</param>
+    /// <param name="orientation">Orientation of the cylinder.</param>
+    /// <param name="hits">List to populate with all overlapping colliders.</param>
+    /// <returns>Number of overlapping colliders found.</returns>
+    public int OverlapCylinder(Double3 position, double radius, double height, JQuaternion orientation, List<ShapeCastHit> hits)
+    {
+        return OverlapCylinder(position, radius, height, orientation, hits, LayerMask.Everything);
+    }
+
+    /// <summary>
+    /// Tests if a cylinder overlaps with any colliders with layer filtering.
+    /// </summary>
+    public int OverlapCylinder(Double3 position, double radius, double height, JQuaternion orientation, List<ShapeCastHit> hits, LayerMask layerMask)
+    {
+        var cylinder = new CylinderShape(radius, height);
+        return Overlap(cylinder, orientation, position, hits, layerMask);
+    }
+
+    /// <summary>
+    /// Tests if a cone overlaps with any colliders.
+    /// </summary>
+    /// <param name="position">Center position of the cone.</param>
+    /// <param name="radius">Base radius of the cone.</param>
+    /// <param name="height">Height of the cone.</param>
+    /// <param name="orientation">Orientation of the cone.</param>
+    /// <param name="hits">List to populate with all overlapping colliders.</param>
+    /// <returns>Number of overlapping colliders found.</returns>
+    public int OverlapCone(Double3 position, double radius, double height, JQuaternion orientation, List<ShapeCastHit> hits)
+    {
+        return OverlapCone(position, radius, height, orientation, hits, LayerMask.Everything);
+    }
+
+    /// <summary>
+    /// Tests if a cone overlaps with any colliders with layer filtering.
+    /// </summary>
+    public int OverlapCone(Double3 position, double radius, double height, JQuaternion orientation, List<ShapeCastHit> hits, LayerMask layerMask)
+    {
+        var cone = new ConeShape(radius, height);
+        return Overlap(cone, orientation, position, hits, layerMask);
+    }
+
+    #endregion
 }
