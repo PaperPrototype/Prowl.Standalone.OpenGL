@@ -48,6 +48,11 @@ public class CharacterController : MonoBehaviour
     private ShapeCastHit lastGroundHit;
     private Double3 lastVelocity;
 
+    // Debug visualization for failed height attempts
+    private bool failedHeightAttempt = false;
+    private double failedAttemptHeight;
+    private double failedAttemptRadius;
+
     /// <summary>
     /// Moves the character controller by the specified motion vector.
     /// This handles collision detection and sliding.
@@ -106,7 +111,10 @@ public class CharacterController : MonoBehaviour
     {
         double minHeight = Shape == ColliderShape.Capsule ? Radius * 2 : 0.1;
         if (newHeight <= minHeight)
+        {
+            failedHeightAttempt = false;
             return false;
+        }
 
         Double3 position = GameObject.Transform.position;
         bool wouldCollide = CheckShapeOverlap(position, newHeight, Radius);
@@ -114,8 +122,14 @@ public class CharacterController : MonoBehaviour
         if (!wouldCollide)
         {
             Height = newHeight;
+            failedHeightAttempt = false;
             return true;
         }
+
+        // Store failed attempt for debug visualization
+        failedHeightAttempt = true;
+        failedAttemptHeight = newHeight;
+        failedAttemptRadius = Radius;
 
         return false;
     }
@@ -420,6 +434,22 @@ public class CharacterController : MonoBehaviour
         if (lastGroundHit.hit)
         {
             lastGroundHit.DrawGizmos();
+        }
+
+        // Draw failed height attempt in red
+        if (failedHeightAttempt)
+        {
+            if (Shape == ColliderShape.Capsule)
+            {
+                Double3 bottom = position + new Double3(0, failedAttemptRadius, 0);
+                Double3 top = position + new Double3(0, failedAttemptHeight - failedAttemptRadius, 0);
+                Debug.DrawWireCapsule(bottom, top, failedAttemptRadius, Color.Red, 16);
+            }
+            else // Cylinder
+            {
+                Double3 center = position + new Double3(0, failedAttemptHeight * 0.5, 0);
+                Debug.DrawWireCylinder(center, Quaternion.Identity, failedAttemptRadius, failedAttemptHeight, Color.Red, 16);
+            }
         }
     }
 }
