@@ -750,6 +750,155 @@ namespace Prowl.Runtime.Resources
             return mesh;
         }
 
+        /// <summary>
+        /// Creates a capsule mesh (cylinder with hemisphere caps).
+        /// </summary>
+        /// <param name="radius">Radius of the capsule.</param>
+        /// <param name="height">Total height of the capsule including the hemisphere caps.</param>
+        /// <param name="slices">Number of subdivisions around the capsule.</param>
+        /// <param name="stacks">Number of subdivisions along the height of the cylinder portion.</param>
+        /// <returns>A new capsule mesh.</returns>
+        public static Mesh CreateCapsule(float radius, float height, int slices = 16, int stacks = 4)
+        {
+            Mesh mesh = new Mesh();
+
+            List<Float3> vertices = new List<Float3>();
+            List<Float2> uvs = new List<Float2>();
+            List<uint> indices = new List<uint>();
+
+            // Calculate cylinder height (total height minus the two hemisphere radii)
+            float cylinderHeight = MathF.Max(0, height - 2 * radius);
+            float halfCylinderHeight = cylinderHeight / 2.0f;
+
+            // Generate vertices for the cylinder portion
+            for (int i = 0; i <= stacks; i++)
+            {
+                float v = (float)i / stacks;
+                float y = -halfCylinderHeight + cylinderHeight * v;
+
+                for (int j = 0; j <= slices; j++)
+                {
+                    float u = (float)j / slices;
+                    float angle = u * MathF.PI * 2;
+                    float x = radius * MathF.Cos(angle);
+                    float z = radius * MathF.Sin(angle);
+
+                    vertices.Add(new Float3(x, y, z));
+                    uvs.Add(new Float2(u, v * 0.5f + 0.25f)); // Middle 50% of UV space
+                }
+            }
+
+            // Generate indices for cylinder
+            int cylinderVertexCount = (stacks + 1) * (slices + 1);
+            for (int i = 0; i < stacks; i++)
+            {
+                for (int j = 0; j < slices; j++)
+                {
+                    uint a = (uint)(i * (slices + 1) + j);
+                    uint b = (uint)(a + slices + 1);
+
+                    indices.Add(a);
+                    indices.Add(b);
+                    indices.Add(a + 1);
+
+                    indices.Add(b);
+                    indices.Add(b + 1);
+                    indices.Add(a + 1);
+                }
+            }
+
+            // Generate top hemisphere (cap)
+            int hemisphereStacks = (int)MathF.Max(2, stacks / 2);
+            int topHemisphereStart = vertices.Count;
+
+            for (int i = 0; i <= hemisphereStacks; i++)
+            {
+                float v = (float)i / hemisphereStacks;
+                float phi = v * MathF.PI / 2; // 0 to PI/2 for top hemisphere
+
+                for (int j = 0; j <= slices; j++)
+                {
+                    float u = (float)j / slices;
+                    float theta = u * MathF.PI * 2;
+
+                    float x = radius * MathF.Sin(phi) * MathF.Cos(theta);
+                    float y = halfCylinderHeight + radius * MathF.Cos(phi);
+                    float z = radius * MathF.Sin(phi) * MathF.Sin(theta);
+
+                    vertices.Add(new Float3(x, y, z));
+                    uvs.Add(new Float2(u, 0.75f + v * 0.25f)); // Top 25% of UV space
+                }
+            }
+
+            // Generate indices for top hemisphere
+            for (int i = 0; i < hemisphereStacks; i++)
+            {
+                for (int j = 0; j < slices; j++)
+                {
+                    uint a = (uint)(topHemisphereStart + i * (slices + 1) + j);
+                    uint b = (uint)(a + slices + 1);
+
+                    indices.Add(a);
+                    indices.Add(a + 1);
+                    indices.Add(b);
+
+                    indices.Add(b);
+                    indices.Add(a + 1);
+                    indices.Add(b + 1);
+                }
+            }
+
+            // Generate bottom hemisphere (cap)
+            int bottomHemisphereStart = vertices.Count;
+
+            for (int i = 0; i <= hemisphereStacks; i++)
+            {
+                float v = (float)i / hemisphereStacks;
+                float phi = MathF.PI / 2 + v * MathF.PI / 2; // PI/2 to PI for bottom hemisphere
+
+                for (int j = 0; j <= slices; j++)
+                {
+                    float u = (float)j / slices;
+                    float theta = u * MathF.PI * 2;
+
+                    float x = radius * MathF.Sin(phi) * MathF.Cos(theta);
+                    float y = -halfCylinderHeight + radius * MathF.Cos(phi);
+                    float z = radius * MathF.Sin(phi) * MathF.Sin(theta);
+
+                    vertices.Add(new Float3(x, y, z));
+                    uvs.Add(new Float2(u, v * 0.25f)); // Bottom 25% of UV space
+                }
+            }
+
+            // Generate indices for bottom hemisphere
+            for (int i = 0; i < hemisphereStacks; i++)
+            {
+                for (int j = 0; j < slices; j++)
+                {
+                    uint a = (uint)(bottomHemisphereStart + i * (slices + 1) + j);
+                    uint b = (uint)(a + slices + 1);
+
+                    indices.Add(a);
+                    indices.Add(a + 1);
+                    indices.Add(b);
+
+                    indices.Add(b);
+                    indices.Add(a + 1);
+                    indices.Add(b + 1);
+                }
+            }
+
+            mesh.vertices = vertices.ToArray();
+            mesh.uv = uvs.ToArray();
+            mesh.indices = indices.ToArray();
+
+            mesh.RecalculateBounds();
+            mesh.RecalculateNormals();
+            mesh.RecalculateTangents();
+
+            return mesh;
+        }
+
         public static Mesh CreateTriangle(Float3 a, Float3 b, Float3 c)
         {
             Mesh mesh = new Mesh();
