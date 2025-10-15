@@ -578,7 +578,7 @@ public class PhysicsWorld
     /// </summary>
     public int CylinderCastAll(Double3 origin, double radius, double height, Quaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits, LayerMask layerMask)
     {
-        var cylinder = new CylinderShape(radius, height);
+        var cylinder = new CylinderShape(height, radius);
         return ShapeCastAll(cylinder, orientation, origin, direction, maxDistance, hits, layerMask);
     }
 
@@ -797,7 +797,7 @@ public class PhysicsWorld
     /// </summary>
     public int OverlapCylinder(Double3 position, double radius, double height, Quaternion orientation, List<ShapeCastHit> hits, LayerMask layerMask)
     {
-        var cylinder = new CylinderShape(radius, height);
+        var cylinder = new CylinderShape(height, radius);
         return Overlap(cylinder, orientation, position, hits, layerMask);
     }
 
