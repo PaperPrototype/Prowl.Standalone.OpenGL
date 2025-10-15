@@ -18,7 +18,6 @@ namespace Prowl.Runtime.Resources
         Depth,
         ProceduralSkybox,
         Tonemapper,
-        TAA,
         SSR,
         FXAA,
         Bloom,

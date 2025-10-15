@@ -139,7 +139,6 @@ namespace Prowl.Runtime.Resources
                 DefaultShader.Blit => "Blit.shader",
                 DefaultShader.ProceduralSkybox => "ProceduralSkybox.shader",
                 DefaultShader.Tonemapper => "Tonemapper.shader",
-                DefaultShader.TAA => "TAA.shader",
                 DefaultShader.SSR => "SSR.shader",
                 DefaultShader.FXAA => "FXAA.shader",
                 DefaultShader.Bloom => "Bloom.shader",
