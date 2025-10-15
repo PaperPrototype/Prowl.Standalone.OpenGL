@@ -9,6 +9,7 @@ Pass "Tonemapper"
     Tags { "RenderOrder" = "Opaque" }
 
     // Rasterizer culling mode
+    Blend Alpha
     Cull None
     ZTest Off
     ZWrite Off
@@ -164,7 +165,9 @@ Pass "Tonemapper"
 
 		void main()
 		{
-			vec3 color = texture(_MainTex, TexCoords).rgb;
+			vec4 base = texture(_MainTex, TexCoords);
+
+			vec3 color = base.rgb;
 			
 			color = Tonemap(color);
 
@@ -172,7 +175,7 @@ Pass "Tonemapper"
 			//color = pow(color, vec3(1.0 / 2.2));
             color = LinearToGammaSpace(color);
 			
-			OutputColor = contrastMatrix() * saturationMatrix() * vec4(color, 1.0);
+			OutputColor = contrastMatrix() * saturationMatrix() * vec4(color, base.a);
 		}
 	}
 

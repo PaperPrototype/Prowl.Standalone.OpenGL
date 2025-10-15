@@ -7,7 +7,8 @@ Properties
 Pass "FXAA"
 {
     Tags { "RenderOrder" = "Opaque" }
-
+    
+    Blend Alpha
     Cull None
     ZTest Off
     ZWrite Off
@@ -205,8 +206,9 @@ Pass "FXAA"
 
         void main()
         {
+            vec4 base = texture(_MainTex, TexCoords);
             vec3 color = FXAA311(TexCoords);
-            OutputColor = vec4(color, 1.0);
+            OutputColor = vec4(color, base.a);
         }
     }
 
