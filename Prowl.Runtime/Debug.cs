@@ -221,6 +221,7 @@ public static class Debug
     public static void DrawSphere(Double3 center, double radius, Color color, int segments = 16) => s_gizmoBuilder.DrawSphere(center, radius, color, segments);
     public static void DrawWireCone(Double3 start, Double3 direction, double radius, Color color, int segments = 16) => s_gizmoBuilder.DrawWireCone(start, direction, radius, color, segments);
     public static void DrawWireCapsule(Double3 point1, Double3 point2, double radius, Color color, int segments = 16) => s_gizmoBuilder.DrawWireCapsule(point1, point2, radius, color, segments);
+    public static void DrawWireCylinder(Double3 center, Quaternion rotation, double radius, double height, Color color, int segments = 16) => s_gizmoBuilder.DrawWireCylinder(center, rotation, radius, height, color, segments);
     public static void DrawArrow(Double3 start, Double3 direction, Color color) => s_gizmoBuilder.DrawArrow(start, direction, color);
 
     public static void DrawIcon(Texture2D icon, Double3 center, double scale, Color color) => s_gizmoBuilder.DrawIcon(icon, center, scale, color);
@@ -650,6 +651,33 @@ public class GizmoBuilder
                 {
                     AddLine(v1, v2, color);
                 }
+            }
+        }
+    }
+
+    public void DrawWireCylinder(Double3 center, Quaternion rotation, double radius, double height, Color color, int segments)
+    {
+        Double3 up = rotation * Double3.UnitY;
+        Double3 forward = rotation * Double3.UnitZ;
+        Double3 right = rotation * Double3.UnitX;
+        Double3 topCenter = center + (up * (height / 2));
+        Double3 bottomCenter = center - (up * (height / 2));
+        double step = MathF.PI * 2 / segments;
+        // Draw top and bottom circles
+        for (int i = 0; i < segments; i++)
+        {
+            double angle1 = i * step;
+            double angle2 = (i + 1) * step;
+            Double3 topA = topCenter + radius * (Math.Cos(angle1) * right + Math.Sin(angle1) * forward);
+            Double3 topB = topCenter + radius * (Math.Cos(angle2) * right + Math.Sin(angle2) * forward);
+            Double3 bottomA = bottomCenter + radius * (Math.Cos(angle1) * right + Math.Sin(angle1) * forward);
+            Double3 bottomB = bottomCenter + radius * (Math.Cos(angle2) * right + Math.Sin(angle2) * forward);
+            AddLine(topA, topB, color);
+            AddLine(bottomA, bottomB, color);
+            // Connecting lines every quarter
+            if (i % (segments / 4) == 0)
+            {
+                AddLine(topA, bottomA, color);
             }
         }
     }
