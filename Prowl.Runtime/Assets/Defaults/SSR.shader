@@ -46,9 +46,29 @@ Pass "SSR"
 		#include "Random"
         
 		vec3 calculateSSR(vec3 viewPos, vec3 screenPos, vec3 gBMVNorm, float dither) {
-			vec3 reflectedScreenPos = rayTrace(screenPos, viewPos, reflect(normalize(viewPos), gBMVNorm), dither, _RayStepCount, 4, _CameraDepthTexture);
+			vec3 viewDir = normalize(viewPos);
+			vec3 reflectDir = reflect(viewDir, gBMVNorm);
+
+			vec3 reflectedScreenPos = rayTrace(screenPos, viewPos, reflectDir, dither, _RayStepCount, 4, _CameraDepthTexture);
 			if(reflectedScreenPos.z < 0.5) return vec3(0);
-			return vec3(reflectedScreenPos.xy, 1);
+
+			// Get the world position of the hit point
+			vec3 hitViewPos = getViewPos(reflectedScreenPos.xy, _CameraDepthTexture);
+
+			// Calculate the expected point on the ray
+			float rayLength = length(hitViewPos - viewPos);
+			vec3 expectedViewPos = viewPos + reflectDir * rayLength;
+
+			// Check if the hit point is close to the ray
+			// If not, it's likely hitting geometry that shouldn't be reflected
+			float threshold = 0.25;
+			float dist = length(hitViewPos - expectedViewPos);
+
+			if(dist > threshold) {
+				return vec3(0);
+			}
+
+			return vec3(reflectedScreenPos.xy, 1.0);
 		}
 
         void main()
@@ -82,10 +102,12 @@ Pass "SSR"
 				float dither = fract(sin(dot(TexCoords + vec2(_Time.y, _Time.y), vec2(12.9898,78.233))) * 43758.5453123);
 
 				vec3 SSRCoord = calculateSSR(viewPos, screenPos, normalize(normal), dither);
+
 				if(SSRCoord.z > 0.5)
 				{
+					vec3 reflectionColor = texture(_MainTex, SSRCoord.xy).xyz;
 					OutputColor.rgb *= isMetal ? vec3(1.0 - smoothness) : 1.0 - fresnel;
-					OutputColor.rgb += texture(_MainTex, SSRCoord.xy).xyz * fresnel;
+					OutputColor.rgb += reflectionColor * fresnel;
 				}
 			}
         }
