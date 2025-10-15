@@ -15,18 +15,13 @@ namespace Prowl.Runtime.Resources
         UI,
         Gizmos,
         Blit,
-        Depth,
+
         ProceduralSkybox,
         Tonemapper,
         SSR,
         FXAA,
         Bloom,
-        BokehDoF,
-        GBufferCombine,
-        AmbientLight,
-        DirectionalLight,
-        PointLight,
-        SpotLight
+        BokehDoF
     }
 
     /// <summary>
