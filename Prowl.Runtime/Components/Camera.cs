@@ -27,10 +27,9 @@ public abstract class ImageEffect
 
 public enum CameraClearFlags
 {
-    None,
-    DepthOnly,
-    ColorOnly,
-    DepthColor,
+    Nothing,
+    SolidColor,
+    Depth,
     Skybox,
 }
 

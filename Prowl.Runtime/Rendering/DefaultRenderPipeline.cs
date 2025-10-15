@@ -438,6 +438,9 @@ namespace Prowl.Runtime.Rendering
         {
             // =======================================================
             // 0. Setup variables, and prepare the camera
+            bool clearColor = camera.ClearFlags == CameraClearFlags.SolidColor;
+            bool clearDepth = camera.ClearFlags == CameraClearFlags.Depth;
+            bool drawSkybox = camera.ClearFlags == CameraClearFlags.Skybox;
             bool isHDR = camera.HDR;
             (List<ImageEffect> all, List<ImageEffect> opaqueEffects, List<ImageEffect> finalEffects) = GatherImageEffects(camera);
             IReadOnlyList<IRenderableLight> lights = camera.GameObject.Scene.Lights;
@@ -480,7 +483,7 @@ namespace Prowl.Runtime.Rendering
 
             // Bind depth texture as the target
             Graphics.Device.BindFramebuffer(preDepth.frameBuffer);
-            Graphics.Device.Clear(1.0f, 1.0f, 1.0f, 1.0f, ClearFlags.Depth | ClearFlags.Stencil);
+            Graphics.Device.Clear(0f, 0f, 0, 0f, ClearFlags.Depth | ClearFlags.Stencil);
 
             // Draw depth for all visible objects
             DrawRenderables(renderables, "RenderOrder", "DepthOnly", new ViewerData(css), culledRenderableIndices, false);
@@ -508,7 +511,38 @@ namespace Prowl.Runtime.Rendering
 
             // 7.1 Bind the forward buffer fully, The bit only binds it for Drawing into, We need to bind it for reading too
             Graphics.Device.BindFramebuffer(forwardBuffer.frameBuffer);
-            Graphics.Device.Clear(0.0f, 0.0f, 0.0f, 1.0f, ClearFlags.Color | ClearFlags.Stencil); // Dont clear Depth
+            switch (camera.ClearFlags)
+            {
+                case CameraClearFlags.Skybox:
+                    Graphics.Device.Clear(
+                        (float)camera.ClearColor.R,
+                        (float)camera.ClearColor.G,
+                        (float)camera.ClearColor.B,
+                        (float)camera.ClearColor.A,
+                        ClearFlags.Color | ClearFlags.Depth
+                    );
+
+                    RenderSkybox(css);
+                    break;
+
+                case CameraClearFlags.SolidColor:
+                    Graphics.Device.Clear(
+                        (float)camera.ClearColor.R,
+                        (float)camera.ClearColor.G,
+                        (float)camera.ClearColor.B,
+                        (float)camera.ClearColor.A,
+                        ClearFlags.Color | ClearFlags.Depth
+                    );
+                    break;
+
+                case CameraClearFlags.Depth:
+                    Graphics.Device.Clear(0, 0, 0, 0, ClearFlags.Depth);
+                    break;
+
+                case CameraClearFlags.Nothing:
+                    // Do not clear anything
+                    break;
+            }
 
             DrawRenderables(renderables, "RenderOrder", "Opaque", new ViewerData(css), culledRenderableIndices, true);
 
@@ -519,23 +553,14 @@ namespace Prowl.Runtime.Rendering
             // 8.3 Set the Surface Texture for use in post-processing
             PropertyState.SetGlobalTexture("_CameraSurfaceTexture", forwardBuffer.InternalTextures[3]);
 
-            // 9. Skybox (if enabled)
-            // You may be wondering why we render the skybox here, after the opaque geometry
-            // and not before it. This is actually an optimization.
-            // The skybox can be expensive to draw since its a Procedural Atmosphere Shader
-            // We want to avoid drawing as much of it as possible, So by drawing it AFTER the Opaque geometry
-            // The GPU Knows that it can skip drawing the skybox for pixels that are already covered by opaque geometry
-            if (css.clearFlags == CameraClearFlags.Skybox)
-                RenderSkybox(css);
-
-            // 10. Apply opaque post-processing effects
+            // 9. Apply opaque post-processing effects
             if (opaqueEffects.Count > 0)
                 DrawImageEffects(forwardBuffer, opaqueEffects, ref isHDR);
 
-            // 11. Transparent geometry
+            // 10. Transparent geometry
             DrawRenderables(renderables, "RenderOrder", "Transparent", new ViewerData(css), culledRenderableIndices, false);
 
-            // 12. Apply final post-processing effects
+            // 11. Apply final post-processing effects
             if (finalEffects.Count > 0)
                 DrawImageEffects(forwardBuffer, finalEffects, ref isHDR);
 
@@ -543,15 +568,12 @@ namespace Prowl.Runtime.Rendering
             //if (data.DisplayGizmo)
                 RenderGizmos(css);
 
-            // 13. Blit the Result to the camera's Target whether thats the Screen or a RenderTexture
-            bool clearColor = camera.ClearFlags == CameraClearFlags.ColorOnly || camera.ClearFlags == CameraClearFlags.DepthColor;
-            bool clearDepth = camera.ClearFlags == CameraClearFlags.DepthOnly || camera.ClearFlags == CameraClearFlags.DepthColor;
-            bool drawSkybox = camera.ClearFlags == CameraClearFlags.Skybox;
+            // 12. Blit the Result to the camera's Target whether thats the Screen or a RenderTexture
 
-            // 14. Blit Result to target, If target is null Blit will go to the Screen/Window
-            Graphics.Blit(forwardBuffer, target, null, 0, clearDepth || drawSkybox, clearColor || drawSkybox, camera.ClearColor);
+            // 13. Blit Result to target, If target is null Blit will go to the Screen/Window
+            Graphics.Blit(forwardBuffer, target, null, 0, false, false);
 
-            // 15. Post Render
+            // 14. Post Render
             foreach (ImageEffect effect in all)
                 effect.OnPostRender(camera);
 
