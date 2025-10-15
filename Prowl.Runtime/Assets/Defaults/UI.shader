@@ -31,7 +31,6 @@ Pass "UI"
         void main()
         {
             fragTexCoord = aTexCoord;
-            //fragColor = vec4(1.0, 0.0, 0.0, 1.0);
             fragColor = aColor;
             fragPos = aPosition;
             gl_Position = projection * vec4(aPosition, 0.0, 1.0);
@@ -112,8 +111,8 @@ Pass "UI"
         
         // Determines whether a point is within the scissor region and returns the appropriate mask value
         float scissorMask(vec2 p) {
-            // Early exit if scissoring is disabled (when scissorExt.x is negative or zero)
-            if(scissorExt.x <= 0.0) return 1.0;
+            // Early exit if scissoring is disabled (when any scissor dimension is negative)
+            if(scissorExt.x < 0.0 || scissorExt.y < 0.0) return 1.0;
             
             // Transform point to scissor space
             vec2 transformedPoint = (scissorMat * vec4(p, 0.0, 1.0)).xy;
@@ -131,8 +130,6 @@ Pass "UI"
         
         void main()
         {
-            //finalColor = vec4(1.0, 0.0, 0.0, 1.0);
-            //return;
             vec2 pixelSize = fwidth(fragTexCoord);
             vec2 edgeDistance = min(fragTexCoord, 1.0 - fragTexCoord);
             float edgeAlpha = smoothstep(0.0, pixelSize.x, edgeDistance.x) * smoothstep(0.0, pixelSize.y, edgeDistance.y);
