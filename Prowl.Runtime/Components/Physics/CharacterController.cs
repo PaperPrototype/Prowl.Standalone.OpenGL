@@ -31,11 +31,17 @@ public class CharacterController : MonoBehaviour
     public double MaxSlopeAngle = 55.0;
 
     /// <summary>
+    /// Distance to snap down to ground when walking off slopes (default: 0.5)
+    /// </summary>
+    public double SnapDownDistance = 0.15;
+
+    /// <summary>
     /// Whether the character controller is currently grounded.
     /// </summary>
     public bool IsGrounded { get; private set; }
 
     private ShapeCastHit lastGroundHit;
+    private Double3 lastVelocity;
 
     /// <summary>
     /// Moves the character controller by the specified motion vector.
@@ -45,12 +51,20 @@ public class CharacterController : MonoBehaviour
     public void Move(Double3 motion)
     {
         Double3 position = GameObject.Transform.position;
+        lastVelocity = motion;
 
         // Update grounded state before moving
         UpdateGroundedState(position);
 
         // Perform movement with collision
         Double3 finalPosition = CollideAndSlide(position, motion, 0);
+
+        // Snap down to ground if moving horizontally on slopes
+        if (IsGrounded && motion.Y <= 0)
+        {
+            finalPosition = SnapToGround(finalPosition);
+        }
+
         GameObject.Transform.position = finalPosition;
     }
 
@@ -69,7 +83,6 @@ public class CharacterController : MonoBehaviour
     /// </summary>
     private bool PerformGroundCheck(Double3 position, double distance, out ShapeCastHit hitInfo)
     {
-        return PerformShapeCast(position, new Double3(0, -1, 0), distance, out hitInfo);
         bool hit = PerformShapeCast(position, new Double3(0, -1, 0), distance, out hitInfo);
 
         if (!hit)
@@ -221,7 +234,6 @@ public class CharacterController : MonoBehaviour
         if (hit)
         {
             // Move to safe distance from hit point
-            double safeDistance = System.Math.Max(0, moveDistance * hitInfo.fraction - SkinWidth);
             double safeDistance = (moveDistance * hitInfo.fraction - SkinWidth);
             position += moveDirection * safeDistance;
 
@@ -271,6 +283,43 @@ public class CharacterController : MonoBehaviour
     {
         // Angle between surface normal and up vector
         return System.Math.Acos(normal.Y) * (180.0 / System.Math.PI);
+    }
+
+    /// <summary>
+    /// Snaps the character down to the ground when walking on slopes.
+    /// This prevents the character from "floating" when transitioning between slopes.
+    /// </summary>
+    private Double3 SnapToGround(Double3 position)
+    {
+        // Only snap if we have horizontal velocity
+        double horizontalSpeed = System.Math.Sqrt(lastVelocity.X * lastVelocity.X + lastVelocity.Z * lastVelocity.Z);
+        if (horizontalSpeed < 0.0001)
+            return position;
+
+        // Check if there's ground below us within snap distance
+        bool hit = PerformShapeCast(
+            position,
+            new Double3(0, -1, 0),
+            SnapDownDistance,
+            out var hitInfo
+        );
+
+        if (hit)
+        {
+            // Check if the surface is walkable
+            double slopeAngle = GetSlopeAngle(hitInfo.normal);
+            if (slopeAngle <= MaxSlopeAngle)
+            {
+                // Snap down to the surface
+                double snapDistance = hitInfo.fraction * SnapDownDistance - SkinWidth;
+                if (snapDistance > 0)
+                {
+                    position.Y -= snapDistance;
+                }
+            }
+        }
+
+        return position;
     }
 
     public override void DrawGizmos()
