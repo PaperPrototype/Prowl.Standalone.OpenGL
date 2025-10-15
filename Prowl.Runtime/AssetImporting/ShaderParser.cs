@@ -593,7 +593,7 @@ public static class ShaderParser
                 state.doBlend = false;
             }
             else
-                throw new ParseException("blend state", "unknown blend preset: " + preset);
+                throw new ParseException("blend state", $"unknown blend preset '{preset}' (valid presets: Additive, Alpha, Override, Off)");
 
             return;
         }
@@ -638,7 +638,7 @@ public static class ShaderParser
         tokenizer.MoveNext();
 
         if (tokenizer.TokenType != expectedType)
-            throw new ParseException(type, expectedType, tokenizer.TokenType);
+            throw new ParseException(type, expectedType, $"{tokenizer.TokenType} ('{tokenizer.Token}')");
     }
 
 
@@ -674,7 +674,7 @@ public static class ShaderParser
         List<string> values = [.. Enum.GetNames<T>()];
         values.AddRange(extraValues);
 
-        throw new ParseException(fieldName, $"unknown value (possible values: [{string.Join(", ", values)}])");
+        throw new ParseException(fieldName, $"unknown value '{text.ToString()}' (possible values: [{string.Join(", ", values)}])");
     }
 
     private static double DoubleParse(ReadOnlySpan<char> text, string fieldName)
@@ -685,11 +685,11 @@ public static class ShaderParser
         }
         catch (FormatException)
         {
-            throw new ParseException(fieldName, "incorrect format");
+            throw new ParseException(fieldName, $"incorrect format. Attempted to parse '{text.ToString()}' as a number");
         }
         catch (OverflowException)
         {
-            throw new ParseException(fieldName, "value is too large");
+            throw new ParseException(fieldName, $"value is too large. Attempted to parse '{text.ToString()}'");
         }
     }
 
@@ -703,19 +703,26 @@ public static class ShaderParser
 
         while (tokenizer.MoveNext() && tokenizer.TokenType != ShaderToken.CloseParen)
         {
-            vector[count] = DoubleParse(tokenizer.Token, "vector element");
+            try
+            {
+                vector[count] = DoubleParse(tokenizer.Token, $"vector element at index {count}");
+            }
+            catch (ParseException ex)
+            {
+                throw new ParseException("vector", $"failed to parse element {count} of {dimensions}-dimensional vector. {ex.Message}");
+            }
 
             if (count != dimensions - 1)
                 ExpectToken("vector", tokenizer, ShaderToken.Comma);
 
             if (count >= dimensions)
-                throw new ParseException("vector", dimensions, $"{count}+");
+                throw new ParseException("vector", $"too many elements: expected {dimensions}, got {count + 1}+");
 
             count++;
         }
 
         if (count < dimensions - 1)
-            throw new ParseException("vector", dimensions, $"{count}+");
+            throw new ParseException("vector", $"not enough elements: expected {dimensions}, got {count}");
 
         return vector;
     }
@@ -745,7 +752,7 @@ public static class ShaderParser
         if (text.Equals("off", StringComparison.OrdinalIgnoreCase))
             return false;
 
-        throw new ParseException(fieldName, "incorrect format");
+        throw new ParseException(fieldName, $"incorrect format. Attempted to parse '{text.ToString()}' as boolean (expected 'On' or 'Off')");
     }
 
     public class ParsedPass
