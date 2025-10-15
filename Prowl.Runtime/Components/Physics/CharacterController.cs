@@ -33,7 +33,12 @@ public class CharacterController : MonoBehaviour
     /// <summary>
     /// Distance to snap down to ground when walking off slopes (default: 0.5)
     /// </summary>
-    public double SnapDownDistance = 0.15;
+    public double SnapDownDistance = 0.5;
+
+    /// <summary>
+    /// Maximum height the character can step up onto (default: 0.3)
+    /// </summary>
+    public double StepSize = 0.3;
 
     /// <summary>
     /// Whether the character controller is currently grounded.
@@ -241,6 +246,17 @@ public class CharacterController : MonoBehaviour
             double remainingDistance = moveDistance - safeDistance;
             Double3 remainingMove = moveDirection * remainingDistance;
 
+            // Check if this is a step we can climb
+            // Only attempt step-up if we're grounded and moving mostly horizontally
+            double horizontalSpeed = System.Math.Sqrt(velocity.X * velocity.X + velocity.Z * velocity.Z);
+            if (IsGrounded && horizontalSpeed > 0.0001 && StepSize > 0)
+            {
+                if (TryStepUp(position, moveDirection, remainingDistance, out Double3 steppedPosition))
+                {
+                    return steppedPosition;
+                }
+            }
+
             // Project remaining movement onto the hit surface (slide)
             Double3 slideMove = ProjectOntoSurface(remainingMove, hitInfo.normal);
 
@@ -253,6 +269,84 @@ public class CharacterController : MonoBehaviour
         }
 
         return position;
+    }
+
+    /// <summary>
+    /// Attempts to step up onto an obstacle.
+    /// Returns true if step-up was successful, with the new position.
+    /// </summary>
+    private bool TryStepUp(Double3 position, Double3 moveDirection, double moveDistance, out Double3 newPosition)
+    {
+        newPosition = position;
+
+        // Step 1: Extract horizontal direction
+        Double3 forwardDirection = new Double3(moveDirection.X, 0, moveDirection.Z);
+        if (Double3.LengthSquared(forwardDirection) < 0.0001)
+            return false; // No horizontal movement
+
+        forwardDirection = Double3.Normalize(forwardDirection);
+
+        // Step 2: Move up by StepSize
+        Double3 upPosition = position + new Double3(0, StepSize, 0);
+
+        // Step 3: Check if there's clearance at the elevated position
+        bool hasOverheadClearance = !PerformShapeCast(
+            position,
+            new Double3(0, 1, 0),
+            StepSize + SkinWidth,
+            out _
+        );
+
+        if (!hasOverheadClearance)
+            return false;
+
+        // Step 4: Try to move forward at the elevated position
+        bool hitAtElevated = PerformShapeCast(
+            upPosition,
+            forwardDirection,
+            moveDistance + SkinWidth,
+            out var elevatedHit
+        );
+
+        // If we still hit something at the elevated position, we can't step up
+        if (hitAtElevated && elevatedHit.fraction < 0.5)
+            return false;
+
+        // Step 5: Move forward at elevated height
+        Double3 forwardPosition = upPosition + forwardDirection * moveDistance;
+
+        // Step 6: Cast down to find the actual step surface
+        // Search from StepSize height down to slightly below original position for reliability sake
+        double maxStepDownDistance = StepSize + SkinWidth + 0.1;
+        bool hasGroundBelow = PerformShapeCast(
+            forwardPosition,
+            new Double3(0, -1, 0),
+            maxStepDownDistance,
+            out var downHit
+        );
+
+        if (hasGroundBelow)
+        {
+            // Verify the surface is walkable dont want to perform steps on steep surfaces or walls
+            double slopeAngle = GetSlopeAngle(downHit.normal);
+            if (slopeAngle > MaxSlopeAngle)
+                return false; // Surface is too steep
+
+            // Calculate the actual step height
+            double actualStepHeight = StepSize - (downHit.fraction * maxStepDownDistance - SkinWidth);
+
+            // Only accept if we're actually stepping up (not down)
+            if (actualStepHeight < 0.0)
+                return false;
+
+            // Step down onto the surface
+            double stepDownDistance = downHit.fraction * maxStepDownDistance - SkinWidth;
+            newPosition = forwardPosition - new Double3(0, stepDownDistance, 0);
+            return true;
+        }
+
+        // No ground found - don't allow step up as character would fall
+        return false;
     }
 
     private Double3 ProjectOntoSurface(Double3 movement, Double3 surfaceNormal)
