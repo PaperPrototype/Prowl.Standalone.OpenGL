@@ -9,6 +9,7 @@ Pass "Gizmos"
     Tags { "RenderOrder" = "Opaque" }
 
     // Rasterizer culling mode
+    Blend Alpha
     Cull None
     ZTest Off
     ZWrite Off
@@ -39,7 +40,7 @@ Pass "Gizmos"
 
 		void main()
 		{
-			finalColor = vec4(texture(_MainTex, TexCoords).rgb, 1.0);
+			finalColor = texture(_MainTex, TexCoords).rgba;
 		}
 	}
 
