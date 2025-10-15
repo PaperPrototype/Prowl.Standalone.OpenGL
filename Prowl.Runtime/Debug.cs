@@ -220,6 +220,7 @@ public static class Debug
     public static void DrawWireSphere(Double3 center, double radius, Color color, int segments = 16) => s_gizmoBuilder.DrawWireSphere(center, radius, color, segments);
     public static void DrawSphere(Double3 center, double radius, Color color, int segments = 16) => s_gizmoBuilder.DrawSphere(center, radius, color, segments);
     public static void DrawWireCone(Double3 start, Double3 direction, double radius, Color color, int segments = 16) => s_gizmoBuilder.DrawWireCone(start, direction, radius, color, segments);
+    public static void DrawWireCapsule(Double3 point1, Double3 point2, double radius, Color color, int segments = 16) => s_gizmoBuilder.DrawWireCapsule(point1, point2, radius, color, segments);
     public static void DrawArrow(Double3 start, Double3 direction, Color color) => s_gizmoBuilder.DrawArrow(start, direction, color);
 
     public static void DrawIcon(Texture2D icon, Double3 center, double scale, Color color) => s_gizmoBuilder.DrawIcon(icon, center, scale, color);
@@ -552,6 +553,104 @@ public class GizmoBuilder
             AddLine(a, b, color);
             if (i == 0 || i == segments / 4 || i == segments / 2 || i == segments * 3 / 4)
                 AddLine(a, tip, color);
+        }
+    }
+
+    public void DrawWireCapsule(Double3 point1, Double3 point2, double radius, Color color, int segments = 16)
+    {
+        // Calculate the axis of the capsule
+        Double3 axis = point2 - point1;
+        double height = Double3.Length(axis);
+
+        if (height < 1e-6)
+        {
+            // Degenerate case: draw a sphere
+            DrawWireSphere(point1, radius, color, segments);
+            return;
+        }
+
+        Double3 dir = axis / height;
+
+        // Find perpendicular vectors
+        Double3 u = GetPerpendicularVector(dir);
+        Double3 v = Double3.Cross(dir, u);
+
+        double step = MathF.PI * 2 / segments;
+
+        // Draw the cylindrical body (circles at both ends and connecting lines)
+        for (int i = 0; i < segments; i++)
+        {
+            double angle1 = i * step;
+            double angle2 = (i + 1) * step;
+
+            // Circle at point1
+            Double3 a1 = point1 + radius * (Math.Cos(angle1) * u + Math.Sin(angle1) * v);
+            Double3 b1 = point1 + radius * (Math.Cos(angle2) * u + Math.Sin(angle2) * v);
+
+            // Circle at point2
+            Double3 a2 = point2 + radius * (Math.Cos(angle1) * u + Math.Sin(angle1) * v);
+            Double3 b2 = point2 + radius * (Math.Cos(angle2) * u + Math.Sin(angle2) * v);
+
+            AddLine(a1, b1, color);
+            AddLine(a2, b2, color);
+
+            // Connecting lines every quarter
+            if (i % (segments / 4) == 0)
+            {
+                AddLine(a1, a2, color);
+            }
+        }
+
+        // Draw hemisphere at point1 (bottom cap)
+        for (int i = 0; i < segments / 2; i++)
+        {
+            double theta1 = MathF.PI / 2 + i * MathF.PI / segments;
+            double theta2 = MathF.PI / 2 + (i + 1) * MathF.PI / segments;
+
+            for (int j = 0; j < segments; j++)
+            {
+                double phi1 = j * 2 * MathF.PI / segments;
+                double phi2 = (j + 1) * 2 * MathF.PI / segments;
+
+                Double3 v1 = point1 + radius * (Math.Sin(theta1) * Math.Cos(phi1) * u + Math.Sin(theta1) * Math.Sin(phi1) * v + Math.Cos(theta1) * dir);
+                Double3 v2 = point1 + radius * (Math.Sin(theta1) * Math.Cos(phi2) * u + Math.Sin(theta1) * Math.Sin(phi2) * v + Math.Cos(theta1) * dir);
+                Double3 v3 = point1 + radius * (Math.Sin(theta2) * Math.Cos(phi1) * u + Math.Sin(theta2) * Math.Sin(phi1) * v + Math.Cos(theta2) * dir);
+
+                if (j % (segments / 4) == 0)
+                {
+                    AddLine(v1, v3, color);
+                }
+                if (i == 0 || i == segments / 2 - 1)
+                {
+                    AddLine(v1, v2, color);
+                }
+            }
+        }
+
+        // Draw hemisphere at point2 (top cap)
+        for (int i = 0; i < segments / 2; i++)
+        {
+            double theta1 = i * MathF.PI / segments;
+            double theta2 = (i + 1) * MathF.PI / segments;
+
+            for (int j = 0; j < segments; j++)
+            {
+                double phi1 = j * 2 * MathF.PI / segments;
+                double phi2 = (j + 1) * 2 * MathF.PI / segments;
+
+                Double3 v1 = point2 + radius * (Math.Sin(theta1) * Math.Cos(phi1) * u + Math.Sin(theta1) * Math.Sin(phi1) * v + Math.Cos(theta1) * dir);
+                Double3 v2 = point2 + radius * (Math.Sin(theta1) * Math.Cos(phi2) * u + Math.Sin(theta1) * Math.Sin(phi2) * v + Math.Cos(theta1) * dir);
+                Double3 v3 = point2 + radius * (Math.Sin(theta2) * Math.Cos(phi1) * u + Math.Sin(theta2) * Math.Sin(phi1) * v + Math.Cos(theta2) * dir);
+
+                if (j % (segments / 4) == 0)
+                {
+                    AddLine(v1, v3, color);
+                }
+                if (i == 0 || i == segments / 2 - 1)
+                {
+                    AddLine(v1, v2, color);
+                }
+            }
         }
     }
 
