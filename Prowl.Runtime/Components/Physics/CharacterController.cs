@@ -26,6 +26,11 @@ public class CharacterController : MonoBehaviour
     public double SkinWidth = 0.02;
 
     /// <summary>
+    /// Maximum angle in degrees for a surface to be considered walkable (default: 45 degrees)
+    /// </summary>
+    public double MaxSlopeAngle = 55.0;
+
+    /// <summary>
     /// Whether the character controller is currently grounded.
     /// </summary>
     public bool IsGrounded { get; private set; }
@@ -60,10 +65,19 @@ public class CharacterController : MonoBehaviour
 
     /// <summary>
     /// Performs a ground check using shape casting.
+    /// Only considers the character grounded if the surface angle is walkable.
     /// </summary>
     private bool PerformGroundCheck(Double3 position, double distance, out ShapeCastHit hitInfo)
     {
         return PerformShapeCast(position, new Double3(0, -1, 0), distance, out hitInfo);
+        bool hit = PerformShapeCast(position, new Double3(0, -1, 0), distance, out hitInfo);
+
+        if (!hit)
+            return false;
+
+        // Check if the surface is walkable
+        double slopeAngle = GetSlopeAngle(hitInfo.normal);
+        return slopeAngle <= MaxSlopeAngle;
     }
 
     /// <summary>
@@ -208,6 +222,7 @@ public class CharacterController : MonoBehaviour
         {
             // Move to safe distance from hit point
             double safeDistance = System.Math.Max(0, moveDistance * hitInfo.fraction - SkinWidth);
+            double safeDistance = (moveDistance * hitInfo.fraction - SkinWidth);
             position += moveDirection * safeDistance;
 
             // Calculate remaining movement after hitting surface
@@ -216,6 +231,21 @@ public class CharacterController : MonoBehaviour
 
             // Project remaining movement onto the hit surface (slide)
             Double3 slideMove = ProjectOntoSurface(remainingMove, hitInfo.normal);
+
+            // Check if the surface is too steep to walk on
+            double slopeAngle = GetSlopeAngle(hitInfo.normal);
+            if (slopeAngle > MaxSlopeAngle)
+            {
+                // For steep slopes, remove vertical component if moving up
+                if (slideMove.Y > 0)
+                {
+                    slideMove.Y = 0;
+                }
+            }
+
+            // Prevent jittering by checking if slide move is very small
+            if (Double3.Length(slideMove) < 0.0001)
+                return position;
 
             // Recurse with remaining slide movement
             return CollideAndSlide(position, slideMove, depth + 1);
@@ -232,6 +262,15 @@ public class CharacterController : MonoBehaviour
     {
         // Project remaining movement onto the hit surface
         return Double3.ProjectOntoPlane(movement, surfaceNormal);
+    }
+
+    /// <summary>
+    /// Calculates the angle of a surface in degrees from horizontal.
+    /// </summary>
+    private double GetSlopeAngle(Double3 normal)
+    {
+        // Angle between surface normal and up vector
+        return System.Math.Acos(normal.Y) * (180.0 / System.Math.PI);
     }
 
     public override void DrawGizmos()
