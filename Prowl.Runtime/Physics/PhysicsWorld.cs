@@ -275,7 +275,7 @@ public class PhysicsWorld
             {
                 closestHit.hit = true;
                 closestHit.fraction = lambda;
-                closestHit.normal = new Double3(normal.X, normal.Y, normal.Z);
+                closestHit.normal = -(new Double3(normal.X, normal.Y, normal.Z));
                 closestHit.point = new Double3(pointA.X, pointA.Y, pointA.Z);
                 closestHit.hitPoint = new Double3(pointB.X, pointB.Y, pointB.Z);
                 closestHit.rigidbody = userData.Rigidbody;
@@ -396,7 +396,7 @@ public class PhysicsWorld
             {
                 closestHit.hit = true;
                 closestHit.fraction = lambda;
-                closestHit.normal = new Double3(normal.X, normal.Y, normal.Z);
+                closestHit.normal = -(new Double3(normal.X, normal.Y, normal.Z));
                 closestHit.point = new Double3(pointA.X, pointA.Y, pointA.Z);
                 closestHit.hitPoint = new Double3(pointB.X, pointB.Y, pointB.Z);
                 closestHit.rigidbody = userData.Rigidbody;
