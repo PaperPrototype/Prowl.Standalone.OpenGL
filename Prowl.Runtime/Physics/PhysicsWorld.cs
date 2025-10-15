@@ -262,6 +262,16 @@ public class PhysicsWorld
 
             if (hit && lambda >= 0 && lambda <= 1.0)
             {
+                if(normal.LengthSquared() <= 0)
+                {
+                    _ = NarrowPhase.MprEpa(
+                        shape, targetShape,
+                        new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), targetBody.Data.Orientation,
+                        jOrigin, targetBody.Data.Position,
+                        out JVector _, out JVector _, out normal, out lambda);
+                    normal = JVector.Normalize(normal);
+                }
+
                 var castHit = new ShapeCastHit
                 {
                     hit = true,
