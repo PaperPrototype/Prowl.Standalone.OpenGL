@@ -244,21 +244,6 @@ public class CharacterController : MonoBehaviour
             // Project remaining movement onto the hit surface (slide)
             Double3 slideMove = ProjectOntoSurface(remainingMove, hitInfo.normal);
 
-            // Check if the surface is too steep to walk on
-            double slopeAngle = GetSlopeAngle(hitInfo.normal);
-            if (slopeAngle > MaxSlopeAngle)
-            {
-                // For steep slopes, remove vertical component if moving up
-                if (slideMove.Y > 0)
-                {
-                    slideMove.Y = 0;
-                }
-            }
-
-            // Prevent jittering by checking if slide move is very small
-            if (Double3.Length(slideMove) < 0.0001)
-                return position;
-
             // Recurse with remaining slide movement
             return CollideAndSlide(position, slideMove, depth + 1);
         }
