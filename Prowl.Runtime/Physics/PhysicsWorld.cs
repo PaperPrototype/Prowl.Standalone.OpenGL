@@ -219,7 +219,7 @@ public class PhysicsWorld
     /// <param name="hits">List to populate with all hits found.</param>
     /// <param name="layerMask">Layer mask for filtering.</param>
     /// <returns>Number of hits found.</returns>
-    public int ShapeCastAll(RigidBodyShape shape, JQuaternion orientation, Double3 origin, Double3 direction, double maxDistance, List<ShapeCastHit> hits, LayerMask layerMask)
+    public int ShapeCastAll(RigidBodyShape shape, Quaternion orientation, Double3 origin, Double3 direction, double maxDistance, List<ShapeCastHit> hits, LayerMask layerMask)
     {
         direction = Double3.Normalize(direction);
 
@@ -234,8 +234,8 @@ public class PhysicsWorld
 
         // Create a bounding box that encompasses the entire sweep
         JBoundingBox sweepBox = new JBoundingBox();
-        shape.CalculateBoundingBox(orientation, jOrigin, out var startBox);
-        shape.CalculateBoundingBox(orientation, jOrigin + sweep, out var endBox);
+        shape.CalculateBoundingBox(new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), jOrigin, out var startBox);
+        shape.CalculateBoundingBox(new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), jOrigin + sweep, out var endBox);
 
         sweepBox.Min = JVector.Min(startBox.Min, endBox.Min);
         sweepBox.Max = JVector.Max(startBox.Max, endBox.Max);
@@ -255,7 +255,7 @@ public class PhysicsWorld
             // Perform sweep test
             bool hit = NarrowPhase.Sweep(
                 shape, targetShape,
-                orientation, targetBody.Data.Orientation,
+                new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), targetBody.Data.Orientation,
                 jOrigin, targetBody.Data.Position,
                 sweep, JVector.Zero,
                 out JVector pointA, out JVector pointB, out JVector normal, out double lambda);
@@ -283,7 +283,7 @@ public class PhysicsWorld
     /// <summary>
     /// Generic shape cast that returns all hits with default layer mask.
     /// </summary>
-    public int ShapeCastAll(RigidBodyShape shape, JQuaternion orientation, Double3 origin, Double3 direction, double maxDistance, List<ShapeCastHit> hits)
+    public int ShapeCastAll(RigidBodyShape shape, Quaternion orientation, Double3 origin, Double3 direction, double maxDistance, List<ShapeCastHit> hits)
     {
         return ShapeCastAll(shape, orientation, origin, direction, maxDistance, hits, LayerMask.Everything);
     }
@@ -299,7 +299,7 @@ public class PhysicsWorld
     /// <param name="hitInfo">Information about the closest hit.</param>
     /// <param name="layerMask">Layer mask for filtering.</param>
     /// <returns>True if the shape hit something.</returns>
-    public bool ShapeCast(RigidBodyShape shape, JQuaternion orientation, Double3 origin, Double3 direction, double maxDistance, out ShapeCastHit hitInfo, LayerMask layerMask)
+    public bool ShapeCast(RigidBodyShape shape, Quaternion orientation, Double3 origin, Double3 direction, double maxDistance, out ShapeCastHit hitInfo, LayerMask layerMask)
     {
         var hits = new List<ShapeCastHit>();
         int hitCount = ShapeCastAll(shape, orientation, origin, direction, maxDistance, hits, layerMask);
@@ -326,7 +326,7 @@ public class PhysicsWorld
     /// </summary>
     public bool ShapeCast(RigidBodyShape shape, Double3 origin, Double3 direction, double maxDistance, out ShapeCastHit hitInfo)
     {
-        return ShapeCast(shape, JQuaternion.Identity, origin, direction, maxDistance, out hitInfo, LayerMask.Everything);
+        return ShapeCast(shape, Quaternion.Identity, origin, direction, maxDistance, out hitInfo, LayerMask.Everything);
     }
 
     /// <summary>
@@ -349,7 +349,7 @@ public class PhysicsWorld
     public bool SphereCast(Double3 origin, double radius, Double3 direction, double maxDistance, out ShapeCastHit hitInfo, LayerMask layerMask)
     {
         var sphere = new SphereShape(radius);
-        return ShapeCast(sphere, JQuaternion.Identity, origin, direction, maxDistance, out hitInfo, layerMask);
+        return ShapeCast(sphere, Quaternion.Identity, origin, direction, maxDistance, out hitInfo, layerMask);
     }
 
     /// <summary>
@@ -372,7 +372,7 @@ public class PhysicsWorld
     public int SphereCastAll(Double3 origin, double radius, Double3 direction, double maxDistance, List<ShapeCastHit> hits, LayerMask layerMask)
     {
         var sphere = new SphereShape(radius);
-        return ShapeCastAll(sphere, JQuaternion.Identity, origin, direction, maxDistance, hits, layerMask);
+        return ShapeCastAll(sphere, Quaternion.Identity, origin, direction, maxDistance, hits, layerMask);
     }
 
     /// <summary>
@@ -404,7 +404,7 @@ public class PhysicsWorld
         var capsule = new CapsuleShape(radius, capsuleLength);
 
         // Calculate orientation to align capsule with the segment
-        JQuaternion capsuleOrientation = CalculateCapsuleOrientation(capsuleAxis, capsuleLength);
+        Quaternion capsuleOrientation = CalculateCapsuleOrientation(capsuleAxis, capsuleLength);
 
         return ShapeCast(capsule, capsuleOrientation, capsuleCenter, direction, maxDistance, out hitInfo, layerMask);
     }
@@ -438,7 +438,7 @@ public class PhysicsWorld
         var capsule = new CapsuleShape(radius, capsuleLength);
 
         // Calculate orientation to align capsule with the segment
-        JQuaternion capsuleOrientation = CalculateCapsuleOrientation(capsuleAxis, capsuleLength);
+        Quaternion capsuleOrientation = CalculateCapsuleOrientation(capsuleAxis, capsuleLength);
 
         return ShapeCastAll(capsule, capsuleOrientation, capsuleCenter, direction, maxDistance, hits, layerMask);
     }
@@ -446,10 +446,10 @@ public class PhysicsWorld
     /// <summary>
     /// Helper method to calculate the orientation needed to align a capsule (Y-axis aligned) with a given axis.
     /// </summary>
-    private static JQuaternion CalculateCapsuleOrientation(Double3 capsuleAxis, double capsuleLength)
+    private static Quaternion CalculateCapsuleOrientation(Double3 capsuleAxis, double capsuleLength)
     {
         if (capsuleLength <= 1e-6)
-            return JQuaternion.Identity;
+            return Quaternion.Identity;
 
         Double3 normalizedAxis = capsuleAxis / capsuleLength;
         Double3 yAxis = new Double3(0, 1, 0);
@@ -457,12 +457,12 @@ public class PhysicsWorld
         // If axis is aligned with Y, no rotation needed
         if (Math.Abs(Double3.Dot(normalizedAxis, yAxis) - 1.0) < 1e-6)
         {
-            return JQuaternion.Identity;
+            return Quaternion.Identity;
         }
         // If axis is opposite to Y, rotate 180 degrees around X
         else if (Math.Abs(Double3.Dot(normalizedAxis, yAxis) + 1.0) < 1e-6)
         {
-            return JQuaternion.CreateFromAxisAngle(new JVector(1, 0, 0), Math.PI);
+            return Quaternion.AxisAngle(new Double3(1, 0, 0), Math.PI);
         }
         // Calculate rotation from Y-axis to the capsule axis
         else
@@ -470,7 +470,7 @@ public class PhysicsWorld
             Double3 rotAxis = Double3.Cross(yAxis, normalizedAxis);
             rotAxis = Double3.Normalize(rotAxis);
             double angle = Math.Acos(Double3.Dot(yAxis, normalizedAxis));
-            return JQuaternion.CreateFromAxisAngle(new JVector(rotAxis.X, rotAxis.Y, rotAxis.Z), angle);
+            return Quaternion.AxisAngle(new Double3(rotAxis.X, rotAxis.Y, rotAxis.Z), angle);
         }
     }
 
@@ -484,7 +484,7 @@ public class PhysicsWorld
     /// <param name="maxDistance">Maximum distance to cast.</param>
     /// <param name="hitInfo">Information about what was hit.</param>
     /// <returns>True if the box hit something.</returns>
-    public bool BoxCast(Double3 origin, Double3 size, JQuaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo)
+    public bool BoxCast(Double3 origin, Double3 size, Quaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo)
     {
         return BoxCast(origin, size, orientation, direction, maxDistance, out hitInfo, LayerMask.Everything);
     }
@@ -492,7 +492,7 @@ public class PhysicsWorld
     /// <summary>
     /// Casts a box along a direction with layer filtering and returns the closest hit.
     /// </summary>
-    public bool BoxCast(Double3 origin, Double3 size, JQuaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo, LayerMask layerMask)
+    public bool BoxCast(Double3 origin, Double3 size, Quaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo, LayerMask layerMask)
     {
         var box = new BoxShape(size.X, size.Y, size.Z);
         return ShapeCast(box, orientation, origin, direction, maxDistance, out hitInfo, layerMask);
@@ -508,7 +508,7 @@ public class PhysicsWorld
     /// <param name="maxDistance">Maximum distance to cast.</param>
     /// <param name="hits">List to populate with all hits found.</param>
     /// <returns>Number of hits found.</returns>
-    public int BoxCastAll(Double3 origin, Double3 size, JQuaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits)
+    public int BoxCastAll(Double3 origin, Double3 size, Quaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits)
     {
         return BoxCastAll(origin, size, orientation, direction, maxDistance, hits, LayerMask.Everything);
     }
@@ -516,7 +516,7 @@ public class PhysicsWorld
     /// <summary>
     /// Casts a box along a direction with layer filtering and returns all hits.
     /// </summary>
-    public int BoxCastAll(Double3 origin, Double3 size, JQuaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits, LayerMask layerMask)
+    public int BoxCastAll(Double3 origin, Double3 size, Quaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits, LayerMask layerMask)
     {
         var box = new BoxShape(size.X, size.Y, size.Z);
         return ShapeCastAll(box, orientation, origin, direction, maxDistance, hits, layerMask);
@@ -533,7 +533,7 @@ public class PhysicsWorld
     /// <param name="maxDistance">Maximum distance to cast.</param>
     /// <param name="hitInfo">Information about what was hit.</param>
     /// <returns>True if the cylinder hit something.</returns>
-    public bool CylinderCast(Double3 origin, double radius, double height, JQuaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo)
+    public bool CylinderCast(Double3 origin, double radius, double height, Quaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo)
     {
         return CylinderCast(origin, radius, height, orientation, direction, maxDistance, out hitInfo, LayerMask.Everything);
     }
@@ -541,9 +541,9 @@ public class PhysicsWorld
     /// <summary>
     /// Casts a cylinder along a direction with layer filtering and returns the closest hit.
     /// </summary>
-    public bool CylinderCast(Double3 origin, double radius, double height, JQuaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo, LayerMask layerMask)
+    public bool CylinderCast(Double3 origin, double radius, double height, Quaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo, LayerMask layerMask)
     {
-        var cylinder = new CylinderShape(radius, height);
+        var cylinder = new CylinderShape(height, radius);
         return ShapeCast(cylinder, orientation, origin, direction, maxDistance, out hitInfo, layerMask);
     }
 
@@ -558,7 +558,7 @@ public class PhysicsWorld
     /// <param name="maxDistance">Maximum distance to cast.</param>
     /// <param name="hits">List to populate with all hits found.</param>
     /// <returns>Number of hits found.</returns>
-    public int CylinderCastAll(Double3 origin, double radius, double height, JQuaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits)
+    public int CylinderCastAll(Double3 origin, double radius, double height, Quaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits)
     {
         return CylinderCastAll(origin, radius, height, orientation, direction, maxDistance, hits, LayerMask.Everything);
     }
@@ -566,7 +566,7 @@ public class PhysicsWorld
     /// <summary>
     /// Casts a cylinder along a direction with layer filtering and returns all hits.
     /// </summary>
-    public int CylinderCastAll(Double3 origin, double radius, double height, JQuaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits, LayerMask layerMask)
+    public int CylinderCastAll(Double3 origin, double radius, double height, Quaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits, LayerMask layerMask)
     {
         var cylinder = new CylinderShape(radius, height);
         return ShapeCastAll(cylinder, orientation, origin, direction, maxDistance, hits, layerMask);
@@ -583,7 +583,7 @@ public class PhysicsWorld
     /// <param name="maxDistance">Maximum distance to cast.</param>
     /// <param name="hitInfo">Information about what was hit.</param>
     /// <returns>True if the cone hit something.</returns>
-    public bool ConeCast(Double3 origin, double radius, double height, JQuaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo)
+    public bool ConeCast(Double3 origin, double radius, double height, Quaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo)
     {
         return ConeCast(origin, radius, height, orientation, direction, maxDistance, out hitInfo, LayerMask.Everything);
     }
@@ -591,7 +591,7 @@ public class PhysicsWorld
     /// <summary>
     /// Casts a cone along a direction with layer filtering and returns the closest hit.
     /// </summary>
-    public bool ConeCast(Double3 origin, double radius, double height, JQuaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo, LayerMask layerMask)
+    public bool ConeCast(Double3 origin, double radius, double height, Quaternion orientation, Double3 direction, double maxDistance, out ShapeCastHit hitInfo, LayerMask layerMask)
     {
         var cone = new ConeShape(radius, height);
         return ShapeCast(cone, orientation, origin, direction, maxDistance, out hitInfo, layerMask);
@@ -608,7 +608,7 @@ public class PhysicsWorld
     /// <param name="maxDistance">Maximum distance to cast.</param>
     /// <param name="hits">List to populate with all hits found.</param>
     /// <returns>Number of hits found.</returns>
-    public int ConeCastAll(Double3 origin, double radius, double height, JQuaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits)
+    public int ConeCastAll(Double3 origin, double radius, double height, Quaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits)
     {
         return ConeCastAll(origin, radius, height, orientation, direction, maxDistance, hits, LayerMask.Everything);
     }
@@ -616,7 +616,7 @@ public class PhysicsWorld
     /// <summary>
     /// Casts a cone along a direction with layer filtering and returns all hits.
     /// </summary>
-    public int ConeCastAll(Double3 origin, double radius, double height, JQuaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits, LayerMask layerMask)
+    public int ConeCastAll(Double3 origin, double radius, double height, Quaternion orientation, Double3 direction, double maxDistance, List<ShapeCastHit> hits, LayerMask layerMask)
     {
         var cone = new ConeShape(radius, height);
         return ShapeCastAll(cone, orientation, origin, direction, maxDistance, hits, layerMask);
@@ -635,7 +635,7 @@ public class PhysicsWorld
     /// <param name="hits">List to populate with all overlapping colliders.</param>
     /// <param name="layerMask">Layer mask for filtering.</param>
     /// <returns>Number of overlapping colliders found.</returns>
-    public int Overlap(RigidBodyShape shape, JQuaternion orientation, Double3 position, List<ShapeCastHit> hits, LayerMask layerMask)
+    public int Overlap(RigidBodyShape shape, Quaternion orientation, Double3 position, List<ShapeCastHit> hits, LayerMask layerMask)
     {
         var jPosition = new JVector(position.X, position.Y, position.Z);
         hits.Clear();
@@ -644,7 +644,7 @@ public class PhysicsWorld
         var potentialShapes = new List<IDynamicTreeProxy>();
 
         // Create a bounding box for the shape
-        shape.CalculateBoundingBox(orientation, jPosition, out var shapeBounds);
+        shape.CalculateBoundingBox(new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), jPosition, out var shapeBounds);
         World.DynamicTree.Query(potentialShapes, in shapeBounds);
 
         foreach (var proxy in potentialShapes)
@@ -660,7 +660,7 @@ public class PhysicsWorld
             // Perform overlap test using sweep with zero distance
             bool overlaps = NarrowPhase.Sweep(
                 shape, targetShape,
-                orientation, targetBody.Data.Orientation,
+                new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), targetBody.Data.Orientation,
                 jPosition, targetBody.Data.Position,
                 JVector.Zero, JVector.Zero,
                 out JVector pointA, out JVector pointB, out JVector normal, out double lambda);
@@ -688,7 +688,7 @@ public class PhysicsWorld
     /// <summary>
     /// Generic overlap query with default layer mask.
     /// </summary>
-    public int Overlap(RigidBodyShape shape, JQuaternion orientation, Double3 position, List<ShapeCastHit> hits)
+    public int Overlap(RigidBodyShape shape, Quaternion orientation, Double3 position, List<ShapeCastHit> hits)
     {
         return Overlap(shape, orientation, position, hits, LayerMask.Everything);
     }
@@ -711,7 +711,7 @@ public class PhysicsWorld
     public int OverlapSphere(Double3 position, double radius, List<ShapeCastHit> hits, LayerMask layerMask)
     {
         var sphere = new SphereShape(radius);
-        return Overlap(sphere, JQuaternion.Identity, position, hits, layerMask);
+        return Overlap(sphere, Quaternion.Identity, position, hits, layerMask);
     }
 
     /// <summary>
@@ -741,7 +741,7 @@ public class PhysicsWorld
         var capsule = new CapsuleShape(radius, capsuleLength);
 
         // Calculate orientation to align capsule with the segment
-        JQuaternion capsuleOrientation = CalculateCapsuleOrientation(capsuleAxis, capsuleLength);
+        Quaternion capsuleOrientation = CalculateCapsuleOrientation(capsuleAxis, capsuleLength);
 
         return Overlap(capsule, capsuleOrientation, capsuleCenter, hits, layerMask);
     }
@@ -754,7 +754,7 @@ public class PhysicsWorld
     /// <param name="orientation">Orientation of the box.</param>
     /// <param name="hits">List to populate with all overlapping colliders.</param>
     /// <returns>Number of overlapping colliders found.</returns>
-    public int OverlapBox(Double3 position, Double3 size, JQuaternion orientation, List<ShapeCastHit> hits)
+    public int OverlapBox(Double3 position, Double3 size, Quaternion orientation, List<ShapeCastHit> hits)
     {
         return OverlapBox(position, size, orientation, hits, LayerMask.Everything);
     }
@@ -762,7 +762,7 @@ public class PhysicsWorld
     /// <summary>
     /// Tests if a box overlaps with any colliders with layer filtering.
     /// </summary>
-    public int OverlapBox(Double3 position, Double3 size, JQuaternion orientation, List<ShapeCastHit> hits, LayerMask layerMask)
+    public int OverlapBox(Double3 position, Double3 size, Quaternion orientation, List<ShapeCastHit> hits, LayerMask layerMask)
     {
         var box = new BoxShape(size.X, size.Y, size.Z);
         return Overlap(box, orientation, position, hits, layerMask);
@@ -777,7 +777,7 @@ public class PhysicsWorld
     /// <param name="orientation">Orientation of the cylinder.</param>
     /// <param name="hits">List to populate with all overlapping colliders.</param>
     /// <returns>Number of overlapping colliders found.</returns>
-    public int OverlapCylinder(Double3 position, double radius, double height, JQuaternion orientation, List<ShapeCastHit> hits)
+    public int OverlapCylinder(Double3 position, double radius, double height, Quaternion orientation, List<ShapeCastHit> hits)
     {
         return OverlapCylinder(position, radius, height, orientation, hits, LayerMask.Everything);
     }
@@ -785,7 +785,7 @@ public class PhysicsWorld
     /// <summary>
     /// Tests if a cylinder overlaps with any colliders with layer filtering.
     /// </summary>
-    public int OverlapCylinder(Double3 position, double radius, double height, JQuaternion orientation, List<ShapeCastHit> hits, LayerMask layerMask)
+    public int OverlapCylinder(Double3 position, double radius, double height, Quaternion orientation, List<ShapeCastHit> hits, LayerMask layerMask)
     {
         var cylinder = new CylinderShape(radius, height);
         return Overlap(cylinder, orientation, position, hits, layerMask);
@@ -800,7 +800,7 @@ public class PhysicsWorld
     /// <param name="orientation">Orientation of the cone.</param>
     /// <param name="hits">List to populate with all overlapping colliders.</param>
     /// <returns>Number of overlapping colliders found.</returns>
-    public int OverlapCone(Double3 position, double radius, double height, JQuaternion orientation, List<ShapeCastHit> hits)
+    public int OverlapCone(Double3 position, double radius, double height, Quaternion orientation, List<ShapeCastHit> hits)
     {
         return OverlapCone(position, radius, height, orientation, hits, LayerMask.Everything);
     }
@@ -808,10 +808,120 @@ public class PhysicsWorld
     /// <summary>
     /// Tests if a cone overlaps with any colliders with layer filtering.
     /// </summary>
-    public int OverlapCone(Double3 position, double radius, double height, JQuaternion orientation, List<ShapeCastHit> hits, LayerMask layerMask)
+    public int OverlapCone(Double3 position, double radius, double height, Quaternion orientation, List<ShapeCastHit> hits, LayerMask layerMask)
     {
         var cone = new ConeShape(radius, height);
         return Overlap(cone, orientation, position, hits, layerMask);
+    }
+
+    #endregion
+
+    #region Check Queries
+
+    /// <summary>
+    /// Checks if a sphere overlaps with any colliders.
+    /// </summary>
+    /// <param name="position">Center position of the sphere.</param>
+    /// <param name="radius">Radius of the sphere.</param>
+    /// <returns>True if the sphere overlaps with any collider.</returns>
+    public bool CheckSphere(Double3 position, double radius)
+    {
+        return CheckSphere(position, radius, LayerMask.Everything);
+    }
+
+    /// <summary>
+    /// Checks if a sphere overlaps with any colliders with layer filtering.
+    /// </summary>
+    public bool CheckSphere(Double3 position, double radius, LayerMask layerMask)
+    {
+        var hits = new List<ShapeCastHit>();
+        return OverlapSphere(position, radius, hits, layerMask) > 0;
+    }
+
+    /// <summary>
+    /// Checks if a capsule overlaps with any colliders.
+    /// </summary>
+    /// <param name="point1">Start point of the capsule's line segment.</param>
+    /// <param name="point2">End point of the capsule's line segment.</param>
+    /// <param name="radius">Radius of the capsule.</param>
+    /// <returns>True if the capsule overlaps with any collider.</returns>
+    public bool CheckCapsule(Double3 point1, Double3 point2, double radius)
+    {
+        return CheckCapsule(point1, point2, radius, LayerMask.Everything);
+    }
+
+    /// <summary>
+    /// Checks if a capsule overlaps with any colliders with layer filtering.
+    /// </summary>
+    public bool CheckCapsule(Double3 point1, Double3 point2, double radius, LayerMask layerMask)
+    {
+        var hits = new List<ShapeCastHit>();
+        return OverlapCapsule(point1, point2, radius, hits, layerMask) > 0;
+    }
+
+    /// <summary>
+    /// Checks if a box overlaps with any colliders.
+    /// </summary>
+    /// <param name="position">Center position of the box.</param>
+    /// <param name="size">Size of the box (width, height, depth).</param>
+    /// <param name="orientation">Orientation of the box.</param>
+    /// <returns>True if the box overlaps with any collider.</returns>
+    public bool CheckBox(Double3 position, Double3 size, Quaternion orientation)
+    {
+        return CheckBox(position, size, orientation, LayerMask.Everything);
+    }
+
+    /// <summary>
+    /// Checks if a box overlaps with any colliders with layer filtering.
+    /// </summary>
+    public bool CheckBox(Double3 position, Double3 size, Quaternion orientation, LayerMask layerMask)
+    {
+        var hits = new List<ShapeCastHit>();
+        return OverlapBox(position, size, orientation, hits, layerMask) > 0;
+    }
+
+    /// <summary>
+    /// Checks if a cylinder overlaps with any colliders.
+    /// </summary>
+    /// <param name="position">Center position of the cylinder.</param>
+    /// <param name="radius">Radius of the cylinder.</param>
+    /// <param name="height">Height of the cylinder.</param>
+    /// <param name="orientation">Orientation of the cylinder.</param>
+    /// <returns>True if the cylinder overlaps with any collider.</returns>
+    public bool CheckCylinder(Double3 position, double radius, double height, Quaternion orientation)
+    {
+        return CheckCylinder(position, radius, height, orientation, LayerMask.Everything);
+    }
+
+    /// <summary>
+    /// Checks if a cylinder overlaps with any colliders with layer filtering.
+    /// </summary>
+    public bool CheckCylinder(Double3 position, double radius, double height, Quaternion orientation, LayerMask layerMask)
+    {
+        var hits = new List<ShapeCastHit>();
+        return OverlapCylinder(position, radius, height, orientation, hits, layerMask) > 0;
+    }
+
+    /// <summary>
+    /// Checks if a cone overlaps with any colliders.
+    /// </summary>
+    /// <param name="position">Center position of the cone.</param>
+    /// <param name="radius">Base radius of the cone.</param>
+    /// <param name="height">Height of the cone.</param>
+    /// <param name="orientation">Orientation of the cone.</param>
+    /// <returns>True if the cone overlaps with any collider.</returns>
+    public bool CheckCone(Double3 position, double radius, double height, Quaternion orientation)
+    {
+        return CheckCone(position, radius, height, orientation, LayerMask.Everything);
+    }
+
+    /// <summary>
+    /// Checks if a cone overlaps with any colliders with layer filtering.
+    /// </summary>
+    public bool CheckCone(Double3 position, double radius, double height, Quaternion orientation, LayerMask layerMask)
+    {
+        var hits = new List<ShapeCastHit>();
+        return OverlapCone(position, radius, height, orientation, hits, layerMask) > 0;
     }
 
     #endregion
