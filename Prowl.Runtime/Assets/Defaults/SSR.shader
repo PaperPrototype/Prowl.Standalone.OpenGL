@@ -5,6 +5,7 @@ Pass "SSR"
     Tags { "RenderOrder" = "Opaque" }
 
     // Rasterizer culling mode
+    Blend Alpha
     ZTest Off
     ZWrite Off
     Cull Off
@@ -53,9 +54,10 @@ Pass "SSR"
         void main()
         {
             // Start with the original color
-			vec3 color = texture(_MainTex, TexCoords).xyz;
-			OutputColor = vec4(color, 1.0);
-            
+			vec4 base = texture(_MainTex, TexCoords);
+			vec3 color = base.rgb;
+			OutputColor = base;
+
             // Get surface data
             vec4 surfaceData = texture(_CameraSurfaceTexture, TexCoords); // R: Roughness, G: Metallicness
             float smoothness = 1.0 - surfaceData.r;
@@ -66,17 +68,17 @@ Pass "SSR"
 			if(smoothness > 0.01)
 			{
                 vec3 normal = normalize(texture(_CameraNormalsTexture, TexCoords).xyz);
-				
+
 				vec3 screenPos = getScreenPos(TexCoords, _CameraDepthTexture);
 				vec3 viewPos = getViewFromScreenPos(screenPos);
 
 				bool isMetal = metallic > 0.9;
 
 				// Get fresnel
-				vec3 F0 = vec3(0.04); 
+				vec3 F0 = vec3(0.04);
 				F0 = mix(F0, color, metallic);
 				vec3 fresnel = FresnelSchlick(max(dot(normal, normalize(-viewPos)), 0.0), F0);
-				
+
 				float dither = fract(sin(dot(TexCoords + vec2(_Time.y, _Time.y), vec2(12.9898,78.233))) * 43758.5453123);
 
 				vec3 SSRCoord = calculateSSR(viewPos, screenPos, normalize(normal), dither);

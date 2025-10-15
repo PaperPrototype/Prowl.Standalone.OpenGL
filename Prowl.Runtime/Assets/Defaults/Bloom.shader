@@ -4,6 +4,7 @@ Pass "Threshold"
 {
     Tags { "RenderOrder" = "Opaque" }
 
+    Blend Alpha
     ZTest Off
     ZWrite Off
     Cull Off
@@ -37,17 +38,18 @@ Pass "Threshold"
         
         void main()
         {
-            vec3 color = texture(_MainTex, TexCoords).rgb;
-            
+            vec4 base = texture(_MainTex, TexCoords);
+            vec3 color = base.rgb;
+
             // Calculate luminance
             float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
-            
+
             // Apply threshold
             float contribution = max(0.0, luminance - _Threshold);
             contribution /= max(luminance, 0.00001); // Avoid division by zero
-            
+
             // Output is zero below threshold, and preserves color above threshold
-            FragColor = vec4(color * contribution, 1.0);
+            FragColor = vec4(color * contribution, base.a);
         }
     }
     
@@ -56,6 +58,7 @@ Pass "Threshold"
 
 Pass "KawaseBlur"
 {
+    Blend Alpha
     ZTest Off
     ZWrite Off
     Cull Off
@@ -91,18 +94,18 @@ Pass "KawaseBlur"
         void main()
         {
             vec2 texelSize = 1.0 / vec2(textureSize(_MainTex, 0));
-            
+
             // Calculate Kawase blur offset
             float offset = _Offset;
-            
+
             // Kawase blur (5-tap)
             vec4 color = texture(_MainTex, TexCoords);
             color += texture(_MainTex, TexCoords + vec2(offset, offset) * texelSize);
             color += texture(_MainTex, TexCoords + vec2(-offset, offset) * texelSize);
             color += texture(_MainTex, TexCoords + vec2(offset, -offset) * texelSize);
             color += texture(_MainTex, TexCoords + vec2(-offset, -offset) * texelSize);
-            
-            // Average
+
+            // Average (preserving alpha)
             FragColor = color / 5.0;
         }
     }
@@ -112,6 +115,7 @@ Pass "KawaseBlur"
 
 Pass "Composite"
 {
+    Blend Alpha
     ZTest Off
     ZWrite Off
     Cull Off
@@ -146,13 +150,13 @@ Pass "Composite"
         
         void main()
         {
-            vec3 originalColor = texture(_MainTex, TexCoords).rgb;
+            vec4 originalColor = texture(_MainTex, TexCoords);
             vec3 bloomColor = texture(_BloomTex, TexCoords).rgb;
-            
+
             // Add bloom to original
-            vec3 finalColor = originalColor + bloomColor * _Intensity;
-            
-            FragColor = vec4(finalColor, 1.0);
+            vec3 finalColor = originalColor.rgb + bloomColor * _Intensity;
+
+            FragColor = vec4(finalColor, originalColor.a);
         }
     }
     

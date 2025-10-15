@@ -9,6 +9,7 @@ Pass "BokehDoF"
     Tags { "RenderOrder" = "Opaque" }
 
     // Rasterizer culling mode
+    Blend Alpha
     Cull None
     ZTest Off
     ZWrite Off
@@ -53,46 +54,46 @@ Pass "BokehDoF"
             return abs(coc) * _BlurRadius;
         }
         
-        vec3 depthOfField(vec2 texCoord, float focusPoint, float focusScale)
+        vec4 depthOfField(vec2 texCoord, float focusPoint, float focusScale)
         {
-            vec3 color = texture(_MainTex, texCoord).rgb;
+            vec4 color = texture(_MainTex, texCoord);
             float centerDepth = texture(_CameraDepthTexture, texCoord).x;
             float centerSize = getBlurSize(centerDepth, focusPoint, focusScale);
             float tot = 1.0;
-            
+
             vec2 texelSize = vec2(1.0, 1.0) / _Resolution * 1.5;
-            
+
             float quality = 1.0 - _Quality;
             float radius = quality;
-            
+
             // Golden angle spiral sampling
             const float GOLDEN_ANGLE = 2.39996323;
-            
+
             for (float ang = 0.0; radius < _BlurRadius; ang += GOLDEN_ANGLE)
             {
                 vec2 tc = texCoord + vec2(cos(ang), sin(ang)) * texelSize * radius;
-                
+
                 // Get sample depth and calculate its blur size
                 float sampleDepth = texture(_CameraDepthTexture, tc).x;
                 float sampleSize = getBlurSize(sampleDepth, focusPoint, focusScale);
-                
-                vec3 sampleColor = texture(_MainTex, tc).rgb;
-                
+
+                vec4 sampleColor = texture(_MainTex, tc);
+
                 // Depth-aware blending to reduce bleeding from background to foreground
                 if (sampleDepth > centerDepth)
                 {
                     sampleSize = clamp(sampleSize, 0.0, centerSize * 2.0);
                 }
-                
+
                 // Smooth blending based on blur size
                 float m = smoothstep(radius - 0.5, radius + 0.5, sampleSize);
                 color += mix(color/tot, sampleColor, m);
                 tot += 1.0;
-                
+
                 // Increase radius for next sample - this creates an adaptive sampling pattern
                 radius += quality / radius;
             }
-            
+
             return color / tot;
         }
 
@@ -104,12 +105,12 @@ Pass "BokehDoF"
         #else
             float focusPoint = _ManualFocusPoint;
         #endif
-            
+
             // Apply depth of field effect
-            vec3 finalColor = depthOfField(TexCoords, focusPoint, _FocusStrength);
-            
-            // Output final color
-            OutputColor = vec4(finalColor, 1.0);
+            vec4 finalColor = depthOfField(TexCoords, focusPoint, _FocusStrength);
+
+            // Output final color with alpha
+            OutputColor = finalColor;
         }
     }
 
@@ -120,6 +121,7 @@ Pass "BokehDoF"
 Pass "DoFCombine"
 {
     Tags { "RenderOrder" = "Opaque" }
+    Blend Alpha
     Cull None
     ZTest Off
     ZWrite Off
@@ -169,27 +171,26 @@ Pass "DoFCombine"
         #else
             float focusPoint = _ManualFocusPoint;
         #endif
-            
+
             // Get original color and depth
-            vec3 originalColor = texture(_MainTex, TexCoords).rgb;
+            vec4 originalColor = texture(_MainTex, TexCoords);
             float depth = texture(_CameraDepthTexture, TexCoords).x;
-            
+
             // Calculate current pixel's CoC
             float cocSize = getBlurSize(depth, focusPoint, _FocusStrength);
-            
+
             // Get downsampled DoF result
             vec4 dofResult = texture(_DownsampledDoF, TexCoords);
-            vec3 blurredColor = dofResult.rgb;
-            
+
             // Use CoC to blend between original and blurred image
             // Small CoC = sharp original image
             // Large CoC = blurred image
             float blendFactor = smoothstep(0.0, 0.2, cocSize / _BlurRadius);
-            
+
             // Combine
-            vec3 finalColor = mix(originalColor, blurredColor, blendFactor);
-            
-            OutputColor = vec4(finalColor, 1.0);
+            vec4 finalColor = mix(originalColor, dofResult, blendFactor);
+
+            OutputColor = finalColor;
         }
     }
 
