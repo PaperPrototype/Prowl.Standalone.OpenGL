@@ -18,8 +18,14 @@ public struct ShapeCastHit
 
     /// <summary>
     /// The fraction/lambda along the sweep direction where the hit occurred (0 = start, 1 = end of sweep).
+    /// Note: This is not a distance, but a normalized value between 0 and 1.
     /// </summary>
     public double fraction;
+
+    /// <summary>
+    /// The amount of penetration at the hit point. Only valid for overlap casts.
+    /// </summary>
+    public double penetration;
 
     /// <summary>
     /// The normal of the surface the shape hit.

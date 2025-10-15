@@ -679,7 +679,8 @@ public class PhysicsWorld
                 var hit = new ShapeCastHit
                 {
                     hit = true,
-                    fraction = penetration,
+                    fraction = 0,
+                    penetration = penetration,
                     normal = -(new Double3(normal.X, normal.Y, normal.Z)),
                     point = new Double3(pointA.X, pointA.Y, pointA.Z),
                     hitPoint = new Double3(pointB.X, pointB.Y, pointB.Z),
