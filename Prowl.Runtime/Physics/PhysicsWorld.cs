@@ -668,19 +668,18 @@ public class PhysicsWorld
             var targetBody = targetShape.RigidBody;
 
             // Perform overlap test using sweep with zero distance
-            bool overlaps = NarrowPhase.Sweep(
+            bool overlaps = NarrowPhase.MprEpa(
                 shape, targetShape,
                 new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), targetBody.Data.Orientation,
                 jPosition, targetBody.Data.Position,
-                JVector.Zero, JVector.Zero,
-                out JVector pointA, out JVector pointB, out JVector normal, out double lambda);
+                out JVector pointA, out JVector pointB, out JVector normal, out double penetration);
 
-            if (overlaps)
+            if (overlaps && penetration > 0)
             {
                 var hit = new ShapeCastHit
                 {
                     hit = true,
-                    fraction = 0,
+                    fraction = penetration,
                     normal = -(new Double3(normal.X, normal.Y, normal.Z)),
                     point = new Double3(pointA.X, pointA.Y, pointA.Z),
                     hitPoint = new Double3(pointB.X, pointB.Y, pointB.Z),
