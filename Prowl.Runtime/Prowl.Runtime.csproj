@@ -23,7 +23,7 @@
     <!-- <PackageReference Include="Jitter2" Version="2.2.0" /> -->
     <PackageReference Include="Jitter2.Double" Version="2.7.2" />
     <PackageReference Include="AssimpNet" Version="5.0.0-beta1" />
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.6.0" />
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.8.2" />
     <PackageReference Include="Prowl.Echo" Version="1.7.0" />
     <PackageReference Include="Prowl.Paper" Version="0.6.1" />
     <PackageReference Include="Prowl.Vector" Version="2.0.0-preview.80" />
