@@ -26,6 +26,8 @@ public sealed class ShapeCastDemoGame : Game
 
     public override void Initialize()
     {
+        DrawGizmos = true;
+
         scene = new Scene();
 
         // Create directional light
@@ -76,6 +78,8 @@ public sealed class ShapeCastDemoGame : Game
 
         // Create player character
         CreatePlayer();
+
+        scene.Activate();
     }
 
     private void CreateFloor()
@@ -186,21 +190,8 @@ public sealed class ShapeCastDemoGame : Game
         scene.Add(playerGO);
     }
 
-    public override void FixedUpdate()
+    public override void BeginUpdate()
     {
-        scene.FixedUpdate();
-    }
-
-    public override void Render()
-    {
-        scene.RenderScene();
-    }
-
-    public override void Update()
-    {
-        scene.Update();
-        scene.DrawGizmos();
-
         // Camera follows player from behind
         if (playerGO.IsValid())
         {

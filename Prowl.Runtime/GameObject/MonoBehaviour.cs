@@ -288,7 +288,7 @@ public abstract class MonoBehaviour : EngineObject
     /// Called for drawing and handling interaction with Runtime/Ingame UI
     /// </summary>
     /// <param name="paper"></param>
-    public virtual void OnGUI(Paper paper) { }
+    public virtual void OnGui(Paper paper) { }
 
     /// <summary>
     /// Called when the MonoBehaviour will be destroyed.

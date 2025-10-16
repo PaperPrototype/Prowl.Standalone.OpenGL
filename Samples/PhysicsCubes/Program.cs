@@ -89,6 +89,8 @@ public sealed class PhysicsDemo : Game
 
         // Demo 5: Powered motor demo
         CreateMotorDemo(scene, new Double3(4, 3, -5), new Color(1.0f, 0.7f, 0.2f, 1.0f));
+
+        scene.Activate();
     }
 
     private void CreateChainDemo(Scene scene, Double3 startPos, Color color)
@@ -338,19 +340,8 @@ public sealed class PhysicsDemo : Game
         Debug.Log($"Shot cube #{shootCounter} with mass {selectedCubeMass}");
     }
 
-    public override void FixedUpdate()
+    public override void EndUpdate()
     {
-        scene.FixedUpdate();
-    }
-
-    public override void Render()
-    {
-        scene.RenderScene();
-    }
-
-    public override void Update()
-    {
-        scene.Update();
         //scene.DrawGizmos();
 
         // Camera movement

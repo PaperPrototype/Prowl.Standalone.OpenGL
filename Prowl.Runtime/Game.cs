@@ -8,6 +8,7 @@ using Echo.Logging;
 
 using Prowl.PaperUI;
 using Prowl.Runtime.GUI;
+using Prowl.Runtime.Resources;
 using Prowl.Vector;
 
 namespace Prowl.Runtime;
@@ -33,9 +34,10 @@ public abstract class Game
 
     public Paper PaperInstance => _paper;
 
+    public bool DrawGizmos { get; set; }
+
     public void Run(string title, int width, int height)
     {
-
         Window.InitWindow(title, width, height, Silk.NET.Windowing.WindowState.Normal, false);
 
         Window.Load += () =>
@@ -45,11 +47,8 @@ public abstract class Game
             _paperRenderer = new PaperRenderer();
             _paperRenderer.Initialize(width, height);
             _paper = new Paper(_paperRenderer, width, height, new Prowl.Quill.FontAtlasSettings());
-            //Paper.Initialize(_paperRenderer, width, height);
 
             Initialize();
-
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
         };
 
         Window.Update += (delta) =>
@@ -62,38 +61,59 @@ public abstract class Game
 
             Input.UpdateActions(delta);
 
+            BeginUpdate();
+
+            var scenesCopy = Scene.s_activeScenes.ToArray();
+
             // Fixed update loop
             fixedTimeAccumulator += delta;
             int count = 0;
             while (fixedTimeAccumulator >= Time.FixedDeltaTime && count++ < 10)
             {
-                FixedUpdate();
+                foreach (var scene in scenesCopy)
+                    scene.FixedUpdate();
 
                 fixedTimeAccumulator -= Time.FixedDeltaTime;
             }
 
-            Update();
+            foreach (var scene in scenesCopy)
+                scene.Update();
+
+            if (DrawGizmos)
+            {
+                foreach (var scene in scenesCopy)
+                    scene.DrawGizmos();
+            }
+
+            EndUpdate();
 
             Console.Title = $"{title} - {Window.InternalWindow.FramebufferSize.X}x{Window.InternalWindow.FramebufferSize.Y} - FPS: {1.0 / Time.DeltaTime}";
         };
 
         Window.Render += (delta) =>
         {
+            var scenesCopy = Scene.s_activeScenes.ToArray();
 
             Graphics.StartFrame();
 
-            Render();
+            BeginRender();
 
-            PostRender();
+            foreach (var scene in scenesCopy)
+                scene.Render();
+
+            EndRender();
 
             Graphics.Device.UnbindFramebuffer();
             Graphics.Device.Viewport(0, 0, (uint)Window.InternalWindow.FramebufferSize.X, (uint)Window.InternalWindow.FramebufferSize.Y);
 
             _paper.BeginFrame(delta);
 
-            OnGUI(_paper);
+            BeginGui(_paper);
 
-            PostGUI(_paper);
+            foreach (var scene in scenesCopy)
+                scene.OnGui(_paper);
+
+            EndGui(_paper);
 
             _paper.EndFrame();
 
@@ -124,13 +144,14 @@ public abstract class Game
     }
 
     public virtual void Initialize() { }
-    public virtual void FixedUpdate() { }
-    public virtual void Update() { }
-    public virtual void PostUpdate() { }
-    public virtual void Render() { }
-    public virtual void PostRender() { }
-    public virtual void OnGUI(Paper paper) { }
-    public virtual void PostGUI(Paper paper) { }
+
+    public virtual void BeginUpdate() { }
+    public virtual void EndUpdate() { }
+    public virtual void BeginRender() { }
+    public virtual void EndRender() { }
+    public virtual void BeginGui(Paper paper) { }
+    public virtual void EndGui(Paper paper) { }
+
     public virtual void Resize(int width, int height) { }
     public virtual void Closing() { }
 
@@ -216,12 +237,6 @@ public abstract class Game
             _paper.SetKeyState(paperKey, true);
         else if (Input.GetKeyUp(silkKey))
             _paper.SetKeyState(paperKey, false);
-    }
-
-    static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-    {
-        // Log the exception, display it, etc
-        Console.WriteLine((e.ExceptionObject as Exception).Message);
     }
 
     public static void Quit()

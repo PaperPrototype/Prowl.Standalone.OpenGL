@@ -14,6 +14,8 @@ namespace Prowl.Runtime.Resources;
 
 public class Scene : EngineObject, ISerializationCallbackReceiver
 {
+    internal static List<Scene> s_activeScenes = [];
+
     [SerializeField]
     private GameObject[] serializeObj = null;
 
@@ -106,11 +108,27 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     /// <summary> Returns whether this Scene is completely empty. </summary>
     public bool IsEmpty => !AllObjects.Any();
 
+    public bool IsActive => s_activeScenes.Contains(this);
+
     /// <summary>
     /// Creates a new, empty scene which does not contain any <see cref="GameObject">GameObjects</see>.
     /// </summary>
     public Scene()
     {
+    }
+
+    public void Activate()
+    {
+        if(IsActive) throw new Exception("Scene is already active!");
+
+        s_activeScenes.Add(this);
+    }
+
+    public void Deactivate()
+    {
+        if(!IsActive) throw new Exception("Scene is not active!");
+
+        s_activeScenes.Remove(this);
     }
 
     /// <summary>
@@ -310,7 +328,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     /// Updates all active GameObjects and their components in this scene.
     /// Calls PreUpdate, Update, and LateUpdate.
     /// </summary>
-    public void Update()
+    internal void Update()
     {
         // Clear render tracking at the start of each update
         ClearRenderTracking();
@@ -330,7 +348,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     /// Executes physics update on all active GameObjects and their components.
     /// Calls Physics.Update and FixedUpdate.
     /// </summary>
-    public void FixedUpdate()
+    internal void FixedUpdate()
     {
         Physics.Update();
 
@@ -340,7 +358,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
         Flush();
     }
 
-    public void DrawGizmos()
+    internal void DrawGizmos()
     {
         List<GameObject> activeGOs = [.. ActiveObjects];
         ForeachComponent(activeGOs, (x) =>
@@ -355,12 +373,12 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     /// Executes GUI update on all active GameObjects and their components.
     /// Calls OnGUI.
     /// </summary>
-    public void OnGUI(Paper paper)
+    internal void OnGui(Paper paper)
     {
         List<GameObject> activeGOs = [.. ActiveObjects];
         ForeachComponent(activeGOs, (x) =>
         {
-            x.OnGUI(paper);
+            x.OnGui(paper);
         });
 
         Flush();
@@ -371,7 +389,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     /// </summary>
     /// <param name="target">Optional render target to render into</param>
     /// <returns>True if any cameras were rendered, false otherwise</returns>
-    public bool RenderScene(RenderTexture? target = null)
+    internal bool Render(RenderTexture? target = null)
     {
         var Cameras = ActiveObjects.SelectMany(x => x.GetComponentsInChildren<Camera>()).ToList();
 

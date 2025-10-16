@@ -69,22 +69,12 @@ public sealed class VoxelGame : Game
         scene.Add(worldGO);
 
         world.GenerateWorld();
+
+        scene.Activate();
     }
 
-    public override void FixedUpdate()
+    public override void BeginUpdate()
     {
-        scene.FixedUpdate();
-    }
-
-    public override void Render()
-    {
-        scene.RenderScene();
-    }
-
-    public override void Update()
-    {
-        scene.Update();
-
         // WASD movement
         Double2 movement = Double2.Zero;
         if (Input.GetKey(KeyCode.W)) movement += Double2.UnitY;

@@ -96,6 +96,8 @@ public sealed class MyGame : Game
 
 
         Input.SetCursorVisible(false);
+
+        scene.Activate();
     }
 
 
@@ -232,19 +234,8 @@ public sealed class MyGame : Game
         cameraMap.Enable();
     }
 
-    public override void FixedUpdate()
+    public override void BeginUpdate()
     {
-        scene.FixedUpdate();
-    }
-
-    public override void Render()
-    {
-        scene.RenderScene();
-    }
-
-    public override void Update()
-    {
-        scene.Update();
         time += (float)Time.DeltaTime;
 
         // Animate helix rotation
