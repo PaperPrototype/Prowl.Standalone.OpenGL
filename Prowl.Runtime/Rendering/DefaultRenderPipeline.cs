@@ -802,10 +802,10 @@ namespace Prowl.Runtime.Rendering
 
                             pointLight.GetShadowMatrixForFace(face, out Double4x4 view, out Double4x4 proj, out Double3 forward, out Double3 up);
                             Double3 right = Double3.Cross(forward, up);
-
-                            Frustrum frustum = Frustrum.FromMatrix(proj * view);
                             if (CAMERA_RELATIVE)
                                 view.Translation *= new Double4(0, 0, 0, 1); // set all to 0 except W
+
+                            Frustrum frustum = Frustrum.FromMatrix(proj * view);
 
                             HashSet<int> culledRenderableIndices = [];// CullRenderables(renderables, frustum);
                             AssignCameraMatrices(view, proj);
@@ -836,9 +836,10 @@ namespace Prowl.Runtime.Rendering
                         else
                             light.GetShadowMatrix(out view, out proj);
 
-                        Frustrum frustum = Frustrum.FromMatrix(proj * view);
                         if (CAMERA_RELATIVE)
                             view.Translation *= new Double4(0, 0, 0, 1); // set all to 0 except W
+
+                        Frustrum frustum = Frustrum.FromMatrix(proj * view);
 
                         HashSet<int> culledRenderableIndices = [];// CullRenderables(renderables, frustum);
                         AssignCameraMatrices(view, proj);
@@ -1094,7 +1095,7 @@ namespace Prowl.Runtime.Rendering
                         TrackModelMatrix(instanceId, model);
 
                     if (CAMERA_RELATIVE)
-                        model.Translation -= new Double4(viewer.Position, model.Translation.W);
+                        model.Translation -= new Double4(viewer.Position, 0.0);
 
                     // Set per-object uniforms (these change every draw call)
                     PropertyState.SetGlobalMatrix("prowl_ObjectToWorld", model);
