@@ -34,8 +34,6 @@ public abstract class MonoBehaviour : EngineObject
     public HideFlags HideFlags;
 
     [SerializeIgnore]
-    private bool _executeAlways = false;
-    [SerializeIgnore]
     private bool _hasStarted = false;
 
     /// <summary>
@@ -54,10 +52,6 @@ public abstract class MonoBehaviour : EngineObject
     /// </summary>
     public Transform Transform => _go.Transform;
 
-    /// <summary>
-    /// Gets or sets whether this MonoBehaviour should execute in edit mode.
-    /// </summary>
-    public bool ExecuteAlways { get => _executeAlways; internal set => _executeAlways = value; }
     /// <summary>
     /// Gets whether the Start method has been called.
     /// </summary>
