@@ -32,7 +32,7 @@ public sealed class AudioSource : MonoBehaviour
             _source?.Stop();
     }
 
-    public override void Start()
+    public override void OnEnable()
     {
         _source = AudioSystem.Engine.CreateAudioSource();
         _source.PositionKind = AudioPositionKind.ListenerRelative;
@@ -46,7 +46,11 @@ public sealed class AudioSource : MonoBehaviour
         _source.MaxDistance = MaxDistance;
         if (Clip != null)
             _buffer = AudioSystem.GetAudioBuffer(Clip);
-        if (PlayOnStart)
+    }
+
+    public override void Start()
+    {
+        if (PlayOnStart) // OnEnable should always be called Before start() So _source should not ever be null here.
             Play();
     }
 
@@ -83,10 +87,10 @@ public sealed class AudioSource : MonoBehaviour
         }
     }
 
-    public override void OnDisable() => _source.Stop();
-
-    public override void OnDestroy()
+    public override void OnDisable()
     {
+        _source.Stop();
         _source.Dispose();
+        _source = null;
     }
 }
