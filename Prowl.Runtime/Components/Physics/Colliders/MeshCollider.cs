@@ -48,7 +48,7 @@ public sealed class MeshCollider : Collider
 
     public override void OnEnable()
     {
-        if(mesh == null)
+        if (mesh == null)
         {
             MeshRenderer? renderer2 = GetComponent<MeshRenderer>();
             if (renderer2 != null)

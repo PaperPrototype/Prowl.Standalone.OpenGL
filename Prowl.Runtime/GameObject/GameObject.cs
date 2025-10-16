@@ -7,8 +7,8 @@ using System.Linq;
 using System.Reflection;
 
 using Prowl.Echo;
-using Prowl.Vector;
 using Prowl.Runtime.Resources;
+using Prowl.Vector;
 
 namespace Prowl.Runtime;
 
@@ -374,7 +374,7 @@ public class GameObject : EngineObject, ISerializable
     {
         if (parent == null) return null;
 
-        for(int i=0; i<parent.children.Count; i++)
+        for (int i = 0; i < parent.children.Count; i++)
             if (parent.children[i] == this)
                 return i;
 

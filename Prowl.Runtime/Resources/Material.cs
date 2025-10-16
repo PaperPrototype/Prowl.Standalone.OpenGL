@@ -1,10 +1,13 @@
-﻿using System;
+﻿// This file is part of the Prowl Game Engine
+// Licensed under the MIT License. See the LICENSE file in the project root for details.
+
+using System;
 using System.Collections.Generic;
 
 using Prowl.Echo;
-using Prowl.Vector;
 using Prowl.Runtime.Rendering;
 using Prowl.Runtime.Rendering.Shaders;
+using Prowl.Vector;
 
 namespace Prowl.Runtime.Resources
 {
@@ -31,7 +34,8 @@ namespace Prowl.Runtime.Resources
         [SerializeField]
         private Shader _shader;
 
-        public Shader Shader {
+        public Shader Shader
+        {
             get => _shader;
             set => SetShader(value);
         }
@@ -58,7 +62,7 @@ namespace Prowl.Runtime.Resources
             _localKeywords = keywords ?? new();
 
             Shader = shader;
-            if(properties != null)
+            if (properties != null)
                 _properties.ApplyOverride(properties);
         }
 
@@ -130,14 +134,14 @@ namespace Prowl.Runtime.Resources
                 return;
 
             _shader = shader;
-            foreach(var prop in shader.Properties)
+            foreach (var prop in shader.Properties)
                 UpdatePropertyState(prop);
         }
 
 
         public void OnBeforeSerialize() { }
 
-        public void OnAfterDeserialize() {}
+        public void OnAfterDeserialize() { }
     }
 
 }

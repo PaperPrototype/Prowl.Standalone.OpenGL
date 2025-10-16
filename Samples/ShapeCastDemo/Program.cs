@@ -2,10 +2,9 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for details.
 
 using Prowl.Runtime;
-using Prowl.Vector;
 using Prowl.Runtime.Rendering;
 using Prowl.Runtime.Resources;
-using Silk.NET.Input;
+using Prowl.Vector;
 
 namespace ShapeCastDemo;
 
@@ -317,7 +316,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if(velocity.Y < 0)
+            if (velocity.Y < 0)
                 velocity.Y = 0;
 
             // Handle jump when grounded (can't jump while crouching)

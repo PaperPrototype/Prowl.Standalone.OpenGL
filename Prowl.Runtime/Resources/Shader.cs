@@ -1,7 +1,11 @@
-﻿using Prowl.Runtime.Rendering.Shaders;
-using Prowl.Echo;
-using System.Collections.Generic;
+﻿// This file is part of the Prowl Game Engine
+// Licensed under the MIT License. See the LICENSE file in the project root for details.
+
 using System;
+using System.Collections.Generic;
+
+using Prowl.Echo;
+using Prowl.Runtime.Rendering.Shaders;
 
 namespace Prowl.Runtime.Resources
 {
@@ -105,7 +109,8 @@ namespace Prowl.Runtime.Resources
 
             string shaderCode = System.IO.File.ReadAllText(filePath);
 
-            if (!AssetImporting.ShaderParser.ParseShader(filePath, shaderCode, path => {
+            if (!AssetImporting.ShaderParser.ParseShader(filePath, shaderCode, path =>
+            {
                 // Include resolver for #include directives
                 string? absolutePath = System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePath)!, path));
                 if (System.IO.File.Exists(absolutePath))
@@ -149,7 +154,8 @@ namespace Prowl.Runtime.Resources
             string resourcePath = $"Assets/Defaults/{fileName}";
             string shaderCode = EmbeddedResources.ReadAllText(resourcePath);
 
-            if (!AssetImporting.ShaderParser.ParseShader(resourcePath, shaderCode, path => {
+            if (!AssetImporting.ShaderParser.ParseShader(resourcePath, shaderCode, path =>
+            {
                 // Include resolver for embedded resources
                 try
                 {

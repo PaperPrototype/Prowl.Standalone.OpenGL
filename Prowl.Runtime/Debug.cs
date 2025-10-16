@@ -8,8 +8,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-using Prowl.Vector;
 using Prowl.Runtime.Resources;
+using Prowl.Vector;
 
 namespace Prowl.Runtime;
 
@@ -740,7 +740,7 @@ public class GizmoBuilder
         {
             _solid ??= new()
             {
-                MeshTopology = GraphicsBackend.Primitives.Topology.Triangles, 
+                MeshTopology = GraphicsBackend.Primitives.Topology.Triangles,
                 IndexFormat = IndexFormat.UInt16,
             };
 

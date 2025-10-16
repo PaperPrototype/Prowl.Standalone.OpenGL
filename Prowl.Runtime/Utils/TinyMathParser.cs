@@ -103,6 +103,6 @@ public static class TinyMathParser
         "*" => l * r,
         "/" => l / r,
         "^" => Math.Pow(l, r),
-        _   => throw new ArgumentException($"Invalid operator: {op}"),
+        _ => throw new ArgumentException($"Invalid operator: {op}"),
     };
 }

@@ -1,15 +1,20 @@
-﻿using Prowl.Runtime.Resources;
+﻿// This file is part of the Prowl Game Engine
+// Licensed under the MIT License. See the LICENSE file in the project root for details.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using Prowl.Runtime.GraphicsBackend;
 using Prowl.Runtime.GraphicsBackend.Primitives;
 using Prowl.Runtime.Rendering.Shaders;
+using Prowl.Runtime.Resources;
+using Prowl.Vector;
+using Prowl.Vector.Geometry;
+
 using Material = Prowl.Runtime.Resources.Material;
 using Mesh = Prowl.Runtime.Resources.Mesh;
 using Shader = Prowl.Runtime.Resources.Shader;
-using System.Collections.Generic;
-using System;
-using System.Linq;
-using Prowl.Vector;
-using Prowl.Vector.Geometry;
 
 // Room for Optomizations:
 // 1. Uniform Buffer for all Global shared data being rendered in a frame like Camera matrices, Time, etc
@@ -267,7 +272,7 @@ namespace Prowl.Runtime.Rendering
             if (s_skyDome == null)
             {
                 Model skyDomeModel = Model.LoadDefault(DefaultModel.SkyDome);
-                if(skyDomeModel == null)
+                if (skyDomeModel == null)
                     throw new Exception("SkyDome model not found. Please ensure the model is included in the project.");
                 s_skyDome = skyDomeModel.Meshes[0].Mesh;
             }
@@ -566,7 +571,7 @@ namespace Prowl.Runtime.Rendering
 
 
             //if (data.DisplayGizmo)
-                RenderGizmos(css);
+            RenderGizmos(css);
 
             // 12. Blit the Result to the camera's Target whether thats the Screen or a RenderTexture
 
@@ -1068,7 +1073,7 @@ namespace Prowl.Runtime.Rendering
         private static void DrawRenderables(IReadOnlyList<IRenderable> renderables, string tag, string tagValue, ViewerData viewer, HashSet<int> culledRenderableIndices, bool updatePreviousMatrices)
         {
             bool hasRenderOrder = !string.IsNullOrWhiteSpace(tag);
-            for(int renderIndex=0; renderIndex < renderables.Count; renderIndex++)
+            for (int renderIndex = 0; renderIndex < renderables.Count; renderIndex++)
             {
                 if (culledRenderableIndices?.Contains(renderIndex) ?? false)
                     continue;

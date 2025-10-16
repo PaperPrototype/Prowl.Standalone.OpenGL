@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 using Prowl.Echo;
 using Prowl.Runtime.Rendering;

@@ -215,14 +215,14 @@ public sealed class AnimationClip : EngineObject, ISerializable
             var key0 = RotX.Keys[idx0];
             var key1 = RotX.Keys[idx1];
 
-            Quaternion q0 = new (
+            Quaternion q0 = new(
                 RotX.Keys[idx0].Value,
                 RotY.Keys[idx0].Value,
                 RotZ.Keys[idx0].Value,
                 RotW.Keys[idx0].Value
             );
 
-            Quaternion q1 = new (
+            Quaternion q1 = new(
                 RotX.Keys[idx1].Value,
                 RotY.Keys[idx1].Value,
                 RotZ.Keys[idx1].Value,

@@ -71,7 +71,7 @@ public class Transform
                 newVale = MakeSafe(Quaternion.NormalizeSafe(Quaternion.Inverse(parent.rotation) * value));
             else
                 newVale = MakeSafe(Quaternion.NormalizeSafe(value));
-            if(localRotation != newVale)
+            if (localRotation != newVale)
             {
                 localRotation = newVale;
             }

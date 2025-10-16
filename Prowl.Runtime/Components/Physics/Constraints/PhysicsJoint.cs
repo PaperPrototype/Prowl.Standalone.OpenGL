@@ -3,8 +3,6 @@
 
 using System;
 
-using Jitter2;
-using Jitter2.Dynamics;
 using Jitter2.Dynamics.Constraints;
 
 namespace Prowl.Runtime;

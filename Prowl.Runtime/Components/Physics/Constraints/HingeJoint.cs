@@ -4,7 +4,6 @@
 using Jitter2;
 using Jitter2.Dynamics;
 using Jitter2.Dynamics.Constraints;
-using Jitter2.LinearMath;
 
 using Prowl.Echo;
 using Prowl.Vector;

@@ -9,9 +9,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using Prowl.Runtime.GraphicsBackend.Primitives;
-using Prowl.Vector;
 using Prowl.Runtime.Rendering.Shaders;
 using Prowl.Runtime.Utils;
+using Prowl.Vector;
 
 using Shader = Prowl.Runtime.Resources.Shader;
 using Texture2D = Prowl.Runtime.Resources.Texture2D;
@@ -397,7 +397,8 @@ public static class ShaderParser
 
             ExpectToken("property", tokenizer, ShaderToken.CloseParen);
 
-            ShaderProperty property = type switch {
+            ShaderProperty property = type switch
+            {
                 ShaderPropertyType.Float => 0,
                 ShaderPropertyType.Vector2 => Double2.Zero,
                 ShaderPropertyType.Vector3 => Double3.Zero,
@@ -732,7 +733,8 @@ public static class ShaderParser
 
     private static Texture2D Texture2DParse(string texture)
     {
-        return texture switch {
+        return texture switch
+        {
             "white" => Texture2D.White,
             "gray" or "grey" => Texture2D.Gray,
             "grid" => Texture2D.Grid,

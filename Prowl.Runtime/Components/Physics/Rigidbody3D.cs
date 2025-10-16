@@ -23,18 +23,18 @@ public sealed class Rigidbody3D : MonoBehaviour
         //public JVector TranslationConstraint { get; set; }
     }
 
-   [SerializeField] private bool isStatic;
-   [SerializeField] private bool isSpeculative;
-   [SerializeField] private bool useGravity = true;
-   [SerializeField] private bool enableGyroscopicForces = false;
-   [SerializeField] private double mass = 1;
-   [SerializeField] private double linearDamping = 0.0;
-   [SerializeField] private double angularDamping = 0.0;
-   [SerializeField] private double friction = 0.2;
-   [SerializeField] private double restitution = 0;
-   [SerializeField] private double deactivationTime = 1.0;
-   [SerializeField] private double linearSleepThreshold = 0.1;
-   [SerializeField] private double angularSleepThreshold = 0.1;
+    [SerializeField] private bool isStatic;
+    [SerializeField] private bool isSpeculative;
+    [SerializeField] private bool useGravity = true;
+    [SerializeField] private bool enableGyroscopicForces = false;
+    [SerializeField] private double mass = 1;
+    [SerializeField] private double linearDamping = 0.0;
+    [SerializeField] private double angularDamping = 0.0;
+    [SerializeField] private double friction = 0.2;
+    [SerializeField] private double restitution = 0;
+    [SerializeField] private double deactivationTime = 1.0;
+    [SerializeField] private double linearSleepThreshold = 0.1;
+    [SerializeField] private double angularSleepThreshold = 0.1;
 
     /// <summary>
     /// Gets or sets a value indicating whether this Rigidbody3D is static.

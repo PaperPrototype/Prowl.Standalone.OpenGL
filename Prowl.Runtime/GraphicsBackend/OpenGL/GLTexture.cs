@@ -1,7 +1,11 @@
-﻿using Prowl.Runtime.GraphicsBackend;
-using Prowl.Runtime.GraphicsBackend.Primitives;
-using Silk.NET.OpenGL;
+﻿// This file is part of the Prowl Game Engine
+// Licensed under the MIT License. See the LICENSE file in the project root for details.
+
 using System;
+
+using Prowl.Runtime.GraphicsBackend.Primitives;
+
+using Silk.NET.OpenGL;
 
 namespace Prowl.Runtime.GraphicsBackend.OpenGL
 {
@@ -25,7 +29,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
         {
             Handle = GLDevice.GL.GenTexture();
             Type = type;
-            Target = type switch {
+            Target = type switch
+            {
                 TextureType.Texture2D => TextureTarget.Texture2D,
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
             };
@@ -51,7 +56,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
         public void SetWrapS(TextureWrap wrap)
         {
             Bind(false);
-            var wrapMode = wrap switch {
+            var wrapMode = wrap switch
+            {
                 TextureWrap.Repeat => GLEnum.Repeat,
                 TextureWrap.ClampToEdge => GLEnum.ClampToEdge,
                 TextureWrap.MirroredRepeat => GLEnum.MirroredRepeat,
@@ -64,7 +70,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
         public void SetWrapT(TextureWrap wrap)
         {
             Bind(false);
-            var wrapMode = wrap switch {
+            var wrapMode = wrap switch
+            {
                 TextureWrap.Repeat => GLEnum.Repeat,
                 TextureWrap.ClampToEdge => GLEnum.ClampToEdge,
                 TextureWrap.MirroredRepeat => GLEnum.MirroredRepeat,
@@ -77,7 +84,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
         public void SetWrapR(TextureWrap wrap)
         {
             Bind(false);
-            var wrapMode = wrap switch {
+            var wrapMode = wrap switch
+            {
                 TextureWrap.Repeat => GLEnum.Repeat,
                 TextureWrap.ClampToEdge => GLEnum.ClampToEdge,
                 TextureWrap.MirroredRepeat => GLEnum.MirroredRepeat,
@@ -90,7 +98,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
         public void SetTextureFilters(TextureMin min, TextureMag mag)
         {
             Bind(false);
-            var minFilter = min switch {
+            var minFilter = min switch
+            {
                 TextureMin.Nearest => GLEnum.Nearest,
                 TextureMin.Linear => GLEnum.Linear,
                 TextureMin.NearestMipmapNearest => GLEnum.NearestMipmapNearest,
@@ -99,7 +108,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
                 TextureMin.LinearMipmapLinear => GLEnum.LinearMipmapLinear,
                 _ => throw new ArgumentException("Invalid texture min filter", nameof(min)),
             };
-            var magFilter = mag switch {
+            var magFilter = mag switch
+            {
                 TextureMag.Nearest => GLEnum.Nearest,
                 TextureMag.Linear => GLEnum.Linear,
                 _ => throw new ArgumentException("Invalid texture mag filter", nameof(mag)),
@@ -168,7 +178,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
         public static void GetTextureFormatEnums(TextureImageFormat imageFormat, out InternalFormat pixelInternalFormat, out PixelType pixelType, out PixelFormat pixelFormat)
         {
 
-            pixelType = imageFormat switch {
+            pixelType = imageFormat switch
+            {
                 TextureImageFormat.Color4b => PixelType.UnsignedByte,
                 TextureImageFormat.Float => PixelType.Float,
                 TextureImageFormat.Float2 => PixelType.Float,
@@ -197,7 +208,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
                 _ => throw new ArgumentException("Image format is not a valid TextureImageFormat value", nameof(imageFormat)),
             };
 
-            pixelInternalFormat = imageFormat switch {
+            pixelInternalFormat = imageFormat switch
+            {
                 TextureImageFormat.Color4b => InternalFormat.Rgba8,
                 TextureImageFormat.Float => InternalFormat.R32f,
                 TextureImageFormat.Float2 => InternalFormat.RG32f,
@@ -226,7 +238,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
                 _ => throw new ArgumentException("Image format is not a valid TextureImageFormat value", nameof(imageFormat)),
             };
 
-            pixelFormat = imageFormat switch {
+            pixelFormat = imageFormat switch
+            {
                 TextureImageFormat.Color4b => PixelFormat.Rgba,
                 TextureImageFormat.Short => PixelFormat.Red,
                 TextureImageFormat.Short2 => PixelFormat.RG,

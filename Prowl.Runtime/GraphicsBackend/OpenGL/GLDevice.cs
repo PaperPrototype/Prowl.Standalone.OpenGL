@@ -1,4 +1,7 @@
-﻿using System;
+﻿// This file is part of the Prowl Game Engine
+// Licensed under the MIT License. See the LICENSE file in the project root for details.
+
+using System;
 using System.Collections.Generic;
 
 using Prowl.Runtime.GraphicsBackend.Primitives;
@@ -148,7 +151,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
 
         public override RasterizerState GetState()
         {
-            return new RasterizerState {
+            return new RasterizerState
+            {
                 depthTest = depthTest,
                 depthWrite = depthWrite,
                 depthMode = depthMode,
@@ -254,7 +258,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
         public override void UnbindFramebuffer() => GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         public override void BindFramebuffer(GraphicsFrameBuffer frameBuffer, FBOTarget readFramebuffer)
         {
-            var target = readFramebuffer switch {
+            var target = readFramebuffer switch
+            {
                 FBOTarget.Read => FramebufferTarget.ReadFramebuffer,
                 FBOTarget.Draw => FramebufferTarget.DrawFramebuffer,
                 FBOTarget.Framebuffer => FramebufferTarget.Framebuffer,
@@ -275,7 +280,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
             if (mask.HasFlag(ClearFlags.Stencil))
                 clearBufferMask |= ClearBufferMask.StencilBufferBit;
 
-            BlitFramebufferFilter nearest = filter switch {
+            BlitFramebufferFilter nearest = filter switch
+            {
                 BlitFilter.Nearest => BlitFramebufferFilter.Nearest,
                 BlitFilter.Linear => BlitFramebufferFilter.Linear,
                 _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null),
@@ -449,7 +455,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
 
         private static PrimitiveType TopologyToGL(Topology triangles)
         {
-            return triangles switch {
+            return triangles switch
+            {
                 Topology.Points => PrimitiveType.Points,
                 Topology.Lines => PrimitiveType.Lines,
                 Topology.LineLoop => PrimitiveType.LineLoop,
@@ -463,7 +470,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
 
         private DepthFunction DepthModeToGL(RasterizerState.DepthMode depthMode)
         {
-            return depthMode switch {
+            return depthMode switch
+            {
                 RasterizerState.DepthMode.Never => DepthFunction.Never,
                 RasterizerState.DepthMode.Less => DepthFunction.Less,
                 RasterizerState.DepthMode.Equal => DepthFunction.Equal,
@@ -478,7 +486,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
 
         private BlendingFactor BlendingToGL(RasterizerState.Blending blending)
         {
-            return blending switch {
+            return blending switch
+            {
                 RasterizerState.Blending.Zero => BlendingFactor.Zero,
                 RasterizerState.Blending.One => BlendingFactor.One,
                 RasterizerState.Blending.SrcColor => BlendingFactor.SrcColor,
@@ -500,7 +509,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
 
         private BlendEquationModeEXT BlendModeToGL(RasterizerState.BlendMode blendMode)
         {
-            return blendMode switch {
+            return blendMode switch
+            {
                 RasterizerState.BlendMode.Add => BlendEquationModeEXT.FuncAdd,
                 RasterizerState.BlendMode.Subtract => BlendEquationModeEXT.FuncSubtract,
                 RasterizerState.BlendMode.ReverseSubtract => BlendEquationModeEXT.FuncReverseSubtract,
@@ -512,7 +522,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
 
         private TriangleFace CullFaceToGL(RasterizerState.PolyFace cullFace)
         {
-            return cullFace switch {
+            return cullFace switch
+            {
                 RasterizerState.PolyFace.Front => TriangleFace.Front,
                 RasterizerState.PolyFace.Back => TriangleFace.Back,
                 RasterizerState.PolyFace.FrontAndBack => TriangleFace.FrontAndBack,
@@ -522,7 +533,8 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
 
         private FrontFaceDirection WindingToGL(RasterizerState.WindingOrder winding)
         {
-            return winding switch {
+            return winding switch
+            {
                 RasterizerState.WindingOrder.CW => FrontFaceDirection.CW,
                 RasterizerState.WindingOrder.CCW => FrontFaceDirection.Ccw,
                 _ => throw new ArgumentOutOfRangeException(nameof(winding), winding, null),

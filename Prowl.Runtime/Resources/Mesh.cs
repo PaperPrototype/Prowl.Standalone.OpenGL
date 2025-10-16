@@ -1,4 +1,7 @@
-﻿using System;
+﻿// This file is part of the Prowl Game Engine
+// Licensed under the MIT License. See the LICENSE file in the project root for details.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -30,9 +33,11 @@ namespace Prowl.Runtime.Resources
         public AABB bounds { get; internal set; }
 
         /// <summary> The format of the indices for this mesh </summary>
-        public IndexFormat IndexFormat {
+        public IndexFormat IndexFormat
+        {
             get => indexFormat;
-            set {
+            set
+            {
                 if (isWritable == false) return;
                 changed = true;
                 indexFormat = value;
@@ -41,9 +46,11 @@ namespace Prowl.Runtime.Resources
         }
 
         /// <summary> The mesh's primitive type </summary>
-        public Topology MeshTopology {
+        public Topology MeshTopology
+        {
             get => meshTopology;
-            set {
+            set
+            {
                 if (isWritable == false) return;
                 changed = true;
                 meshTopology = value;
@@ -65,9 +72,11 @@ namespace Prowl.Runtime.Resources
         /// Getting depends on isReadable.
         /// Note: When setting, if the vertex count is different than previous, it'll reset all other vertex data fields.
         /// </summary>
-        public Float3[] Vertices {
+        public Float3[] Vertices
+        {
             get => vertices ?? new Float3[0];
-            set {
+            set
+            {
                 if (isWritable == false)
                     return;
                 var needsReset = vertices == null || vertices.Length != value.Length;
@@ -89,47 +98,56 @@ namespace Prowl.Runtime.Resources
             }
         }
 
-        public Float3[] Normals {
+        public Float3[] Normals
+        {
             get => ReadVertexData(normals ?? new Float3[0]);
             set => WriteVertexData(ref normals, CopyArray(value), value.Length);
         }
 
-        public Float3[] Tangents {
+        public Float3[] Tangents
+        {
             get => ReadVertexData(tangents ?? new Float3[0]);
             set => WriteVertexData(ref tangents, CopyArray(value), value.Length);
         }
 
-        public Color[] Colors {
+        public Color[] Colors
+        {
             get => ReadVertexData(colors ?? new Color[0]);
             set => WriteVertexData(ref colors, CopyArray(value), value.Length);
         }
 
-        public Color32[] Colors32 {
+        public Color32[] Colors32
+        {
             get => ReadVertexData(colors32 ?? new Color32[0]);
             set => WriteVertexData(ref colors32, CopyArray(value), value.Length);
         }
 
-        public Float2[] UV {
+        public Float2[] UV
+        {
             get => ReadVertexData(uv ?? new Float2[0]);
             set => WriteVertexData(ref uv, CopyArray(value), value.Length);
         }
 
-        public Float2[] UV2 {
+        public Float2[] UV2
+        {
             get => ReadVertexData(uv2 ?? new Float2[0]);
             set => WriteVertexData(ref uv2, CopyArray(value), value.Length);
         }
 
-        public uint[] Indices {
+        public uint[] Indices
+        {
             get => ReadVertexData(indices ?? new uint[0]);
             set => WriteVertexData(ref indices, CopyArray(value), value.Length, false);
         }
 
-        public Float4[] BoneIndices {
+        public Float4[] BoneIndices
+        {
             get => ReadVertexData(boneIndices ?? new Float4[0]);
             set => WriteVertexData(ref boneIndices, CopyArray(value), value.Length);
         }
 
-        public Float4[] BoneWeights {
+        public Float4[] BoneWeights
+        {
             get => ReadVertexData(boneWeights ?? new Float4[0]);
             set => WriteVertexData(ref boneWeights, CopyArray(value), value.Length);
         }

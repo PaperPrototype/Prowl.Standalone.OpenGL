@@ -215,11 +215,11 @@ public sealed class WheelCollider : MonoBehaviour
         // side-slip friction and drive force. Work out wheel- and floor-relative coordinate frame
         Double3 groundUp = groundNormal;
         Double3 groundLeft = Double3.Cross(groundNormal, wheelFwd);
-        
+
         if (Double3.LengthSquared(groundLeft) > 0.0) groundLeft = Double3.Normalize(groundLeft);
-        
+
         Double3 groundFwd = Double3.Cross(groundLeft, groundUp);
-        
+
         Double3 wheelCenterVel = Body.LinearVelocity + Double3.Cross(Body.AngularVelocity, (Body.Transform.rotation * this.Transform.localPosition));
 
         // rimVel=(wxr)*v
@@ -236,10 +236,10 @@ public sealed class WheelCollider : MonoBehaviour
         double noslipVel = 0.2;
         double slipVel = 0.4;
         double slipFactor = 0.7;
-        
+
         double smallVel = 3.0;
         double friction = SideFriction;
-        
+
         double sideVel = Double3.Dot(wheelPointVel, groundLeft);
 
         if (sideVel > slipVel || sideVel < -slipVel)
@@ -250,13 +250,13 @@ public sealed class WheelCollider : MonoBehaviour
         {
             friction *= 1.0 - (1.0 - slipFactor) * (Math.Abs(sideVel) - noslipVel) / (slipVel - noslipVel);
         }
-        
+
         if (sideVel < 0.0)
             friction *= -1.0;
-        
+
         if (Math.Abs(sideVel) < smallVel)
             friction *= Math.Abs(sideVel) / smallVel;
-        
+
         double sideForce = -friction * totalForceMag;
 
         extraForce = sideForce * groundLeft;

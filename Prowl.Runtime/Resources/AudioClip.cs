@@ -57,10 +57,10 @@ public sealed class AudioClip : EngineObject
 
     public static BufferAudioFormat MapFormat(int numChannels, int bitsPerSample) => bitsPerSample switch
     {
-        8  => numChannels == 1 ? BufferAudioFormat.Mono8 : BufferAudioFormat.Stereo8,
+        8 => numChannels == 1 ? BufferAudioFormat.Mono8 : BufferAudioFormat.Stereo8,
         16 => numChannels == 1 ? BufferAudioFormat.Mono16 : BufferAudioFormat.Stereo16,
         32 => numChannels == 1 ? BufferAudioFormat.MonoF : BufferAudioFormat.StereoF,
-        _  => throw new NotSupportedException("The specified sound format is not supported."),
+        _ => throw new NotSupportedException("The specified sound format is not supported."),
     };
 
     private static byte[] Convert24BitTo16Bit(byte[] data)
@@ -100,6 +100,6 @@ public sealed class AudioClip : EngineObject
     private static int GetBitsPerSample(BufferAudioFormat format)
     {
         return format == BufferAudioFormat.Mono8 || format == BufferAudioFormat.Stereo8 ? 8 :
-            format == BufferAudioFormat.Mono16 || format == BufferAudioFormat.Stereo16  ? 16 : 32;
+            format == BufferAudioFormat.Mono16 || format == BufferAudioFormat.Stereo16 ? 16 : 32;
     }
 }

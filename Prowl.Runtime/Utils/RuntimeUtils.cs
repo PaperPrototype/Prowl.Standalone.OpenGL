@@ -11,7 +11,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-using Prowl.Runtime.Utils;
 using Prowl.Echo;
 
 namespace Prowl.Runtime;
@@ -50,7 +49,7 @@ public static class RuntimeUtils
         s_deepCopyByAssignmentCache.Clear();
         s_executionOrderCache.Clear();
     }
-	
+
     public static bool IsARM() =>
         RuntimeInformation.OSArchitecture == Architecture.Arm ||
         RuntimeInformation.OSArchitecture == Architecture.Arm64;

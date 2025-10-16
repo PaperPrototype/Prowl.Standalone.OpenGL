@@ -1,13 +1,11 @@
 // This file is part of the Prowl Game Engine
 // Licensed under the MIT License. See the LICENSE file in the project root for details.
 
-using System.Linq;
 using Prowl.Runtime;
-using Prowl.Vector;
-using Prowl.Vector.Geometry;
 using Prowl.Runtime.Rendering;
 using Prowl.Runtime.Resources;
-using Silk.NET.Input;
+using Prowl.Vector;
+using Prowl.Vector.Geometry;
 
 namespace VoxelEngine;
 
@@ -49,7 +47,7 @@ public sealed class VoxelGame : Game
         camera.Depth = -1;
         camera.HDR = true;
 
-        spot = new GameObject("Spot Light");    
+        spot = new GameObject("Spot Light");
         var sl = spot.AddComponent<PointLight>();
         sl.range = 50f;
         sl.intensity = 256f;

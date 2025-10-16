@@ -20,9 +20,9 @@
 //
 
 using Prowl.Runtime;
-using Prowl.Vector;
 using Prowl.Runtime.Rendering;
 using Prowl.Runtime.Resources;
+using Prowl.Vector;
 
 using MouseButton = Prowl.Runtime.MouseButton;
 

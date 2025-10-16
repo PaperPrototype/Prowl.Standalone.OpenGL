@@ -1,4 +1,6 @@
-﻿using Prowl.Runtime.GraphicsBackend;
+﻿// This file is part of the Prowl Game Engine
+// Licensed under the MIT License. See the LICENSE file in the project root for details.
+
 using Silk.NET.OpenGL;
 
 using static Prowl.Runtime.GraphicsBackend.VertexFormat;

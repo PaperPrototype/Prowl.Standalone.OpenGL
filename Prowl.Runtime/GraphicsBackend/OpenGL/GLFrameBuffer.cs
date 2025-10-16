@@ -1,6 +1,9 @@
-﻿using Prowl.Runtime;
-using Silk.NET.OpenGL;
+﻿// This file is part of the Prowl Game Engine
+// Licensed under the MIT License. See the LICENSE file in the project root for details.
+
 using System;
+
+using Silk.NET.OpenGL;
 
 namespace Prowl.Runtime.GraphicsBackend.OpenGL
 {
@@ -37,7 +40,7 @@ namespace Prowl.Runtime.GraphicsBackend.OpenGL
             if (Handle <= 0)
                 throw new Exception($"[FrameBuffer] Failed to generate new FrameBuffer.");
 
-            NumOfAttachments = (uint)numTextures; 
+            NumOfAttachments = (uint)numTextures;
             Width = width;
             Height = height;
 

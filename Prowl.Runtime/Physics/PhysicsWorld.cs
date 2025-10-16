@@ -262,7 +262,7 @@ public class PhysicsWorld
 
             if (hit && lambda >= 0 && lambda <= 1.0)
             {
-                if(normal.LengthSquared() <= 0)
+                if (normal.LengthSquared() <= 0)
                 {
                     _ = NarrowPhase.MprEpa(
                         shape, targetShape,

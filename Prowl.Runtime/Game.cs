@@ -2,15 +2,11 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for details.
 
 using System;
-using System.Collections.Generic;
 
 using Echo.Logging;
 
-using Prowl.Echo;
 using Prowl.PaperUI;
-using Prowl.Runtime.Audio;
 using Prowl.Runtime.GUI;
-using Prowl.Runtime.Resources;
 using Prowl.Vector;
 
 namespace Prowl.Runtime;
@@ -41,7 +37,8 @@ public abstract class Game
 
         Window.InitWindow(title, width, height, Silk.NET.Windowing.WindowState.Normal, false);
 
-        Window.Load += () => {
+        Window.Load += () =>
+        {
             Graphics.Initialize();
 
             _paperRenderer = new PaperRenderer();
@@ -79,7 +76,8 @@ public abstract class Game
             Console.Title = $"{title} - {Window.InternalWindow.FramebufferSize.X}x{Window.InternalWindow.FramebufferSize.Y} - FPS: {1.0 / Time.deltaTime}";
         };
 
-        Window.Render += (delta) => {
+        Window.Render += (delta) =>
+        {
 
             Graphics.StartFrame();
 
@@ -103,13 +101,15 @@ public abstract class Game
             Debug.ClearGizmos();
         };
 
-        Window.Resize += (size) => {
+        Window.Resize += (size) =>
+        {
             _paper.SetResolution(size.X, size.Y);
             _paperRenderer.UpdateProjection(size.X, size.Y);
             Resize(size.X, size.Y);
         };
 
-        Window.Closing += () => {
+        Window.Closing += () =>
+        {
             Closing();
 
             Graphics.Dispose();
@@ -138,18 +138,18 @@ public abstract class Game
         // Handle mouse position and movement
         Int2 mousePos = Input.MousePosition;
         _paper.SetPointerState(PaperMouseBtn.Unknown, mousePos.X, mousePos.Y, false, true);
-    
+
         // Handle mouse buttons
         if (Input.GetMouseButtonDown(0))
             _paper.SetPointerState(PaperMouseBtn.Left, mousePos.X, mousePos.Y, true, false);
         if (Input.GetMouseButtonUp(0))
             _paper.SetPointerState(PaperMouseBtn.Left, mousePos.X, mousePos.Y, false, false);
-    
+
         if (Input.GetMouseButtonDown(1))
             _paper.SetPointerState(PaperMouseBtn.Right, mousePos.X, mousePos.Y, true, false);
         if (Input.GetMouseButtonUp(1))
             _paper.SetPointerState(PaperMouseBtn.Right, mousePos.X, mousePos.Y, false, false);
-    
+
         if (Input.GetMouseButtonDown(2))
             _paper.SetPointerState(PaperMouseBtn.Middle, mousePos.X, mousePos.Y, true, false);
         if (Input.GetMouseButtonUp(2))
@@ -159,7 +159,7 @@ public abstract class Game
         double wheelDelta = Input.MouseWheelDelta;
         if (wheelDelta != 0)
             _paper.SetPointerWheel(wheelDelta);
-    
+
         // Handle keyboard input
         char? c = Input.GetPressedChar();
         while (c != null)
@@ -167,7 +167,7 @@ public abstract class Game
             _paper.AddInputCharacter((c.Value).ToString());
             c = Input.GetPressedChar();
         }
-    
+
         // Handle key states for keys
         // Fortunately Papers key enums have almost all the same names
         // So we only need to map a few keys manually, the rest we can use reflection
@@ -175,7 +175,7 @@ public abstract class Game
             if (k != KeyCode.Unknown)
                 if (Enum.TryParse(k.ToString(), out PaperKey paperKey))
                     HandleKey(k, paperKey);
-    
+
         // Handle the few keys that are not the same
         HandleKey(KeyCode.Equal, PaperKey.Equals);
         HandleKey(KeyCode.BackSlash, PaperKey.Backslash);
@@ -207,7 +207,7 @@ public abstract class Game
         HandleKey(KeyCode.SuperLeft, PaperKey.LeftSuper);
         HandleKey(KeyCode.SuperRight, PaperKey.RightSuper);
     }
-    
+
     void HandleKey(KeyCode silkKey, PaperKey paperKey)
     {
         if (Input.GetKeyDown(silkKey))

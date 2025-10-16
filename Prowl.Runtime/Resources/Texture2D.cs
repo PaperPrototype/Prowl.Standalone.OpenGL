@@ -1,8 +1,13 @@
-﻿using Prowl.Runtime.GraphicsBackend.Primitives;
-using ImageMagick;
-using Prowl.Echo;
+﻿// This file is part of the Prowl Game Engine
+// Licensed under the MIT License. See the LICENSE file in the project root for details.
+
 using System;
 using System.IO;
+
+using ImageMagick;
+
+using Prowl.Echo;
+using Prowl.Runtime.GraphicsBackend.Primitives;
 
 namespace Prowl.Runtime.Resources
 {

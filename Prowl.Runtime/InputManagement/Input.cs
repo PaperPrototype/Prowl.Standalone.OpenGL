@@ -7,8 +7,6 @@ using System.Linq;
 
 using Prowl.Vector;
 
-using Silk.NET.Input;
-
 namespace Prowl.Runtime;
 
 /// <summary>
@@ -30,25 +28,29 @@ public static class Input
     #region Low-Level Direct Input API (Backward Compatible)
 
     // Clipboard
-    public static string Clipboard {
+    public static string Clipboard
+    {
         get => Current.Clipboard;
         set => Current.Clipboard = value;
     }
 
     // Events
-    public static event Action<KeyCode, bool> OnKeyEvent {
+    public static event Action<KeyCode, bool> OnKeyEvent
+    {
         add => Current.OnKeyEvent += value;
         remove => Current.OnKeyEvent -= value;
     }
 
-    public static event Action<MouseButton, double, double, bool, bool> OnMouseEvent {
+    public static event Action<MouseButton, double, double, bool, bool> OnMouseEvent
+    {
         add => Current.OnMouseEvent += value;
         remove => Current.OnMouseEvent -= value;
     }
 
     // Mouse
     public static Int2 PrevMousePosition => Current.PrevMousePosition;
-    public static Int2 MousePosition {
+    public static Int2 MousePosition
+    {
         get => Current.MousePosition;
         set => Current.MousePosition = value;
     }

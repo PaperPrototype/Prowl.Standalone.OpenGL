@@ -51,7 +51,7 @@ public struct RaycastHit
     internal void SetFromJitterResult(DynamicTree.RayCastResult result, Double3 origin, Double3 direction)
     {
         shape = result.Entity as RigidBodyShape;
-        if(shape == null)
+        if (shape == null)
         {
             hit = false;
             return;

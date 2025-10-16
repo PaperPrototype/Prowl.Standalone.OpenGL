@@ -1,4 +1,7 @@
-﻿using System;
+﻿// This file is part of the Prowl Game Engine
+// Licensed under the MIT License. See the LICENSE file in the project root for details.
+
+using System;
 
 namespace Prowl.Runtime.Rendering.Shaders
 {
@@ -114,7 +117,8 @@ namespace Prowl.Runtime.Rendering.Shaders
         ///     DestinationAlphaFactor = BlendFactor.Zero
         ///     AlphaFunction = BlendFunction.Add
         /// </summary>
-        public static readonly BlendDescription OverrideBlend = new() {
+        public static readonly BlendDescription OverrideBlend = new()
+        {
             BlendEnabled = true,
             SourceColorFactor = BlendFactor.One,
             DestinationColorFactor = BlendFactor.Zero,
@@ -136,7 +140,8 @@ namespace Prowl.Runtime.Rendering.Shaders
         ///     DestinationAlphaFactor = BlendFactor.InverseSourceAlpha
         ///     AlphaFunction = BlendFunction.Add
         /// </summary>
-        public static readonly BlendDescription AlphaBlend = new() {
+        public static readonly BlendDescription AlphaBlend = new()
+        {
             BlendEnabled = true,
             SourceColorFactor = BlendFactor.SrcAlpha,
             DestinationColorFactor = BlendFactor.OneMinusSrcAlpha,
@@ -158,7 +163,8 @@ namespace Prowl.Runtime.Rendering.Shaders
         ///     DestinationAlphaFactor = BlendFactor.One
         ///     AlphaFunction = BlendFunction.Add
         /// </summary>
-        public static readonly BlendDescription AdditiveBlend = new() {
+        public static readonly BlendDescription AdditiveBlend = new()
+        {
             BlendEnabled = true,
             SourceColorFactor = BlendFactor.SrcAlpha,
             DestinationColorFactor = BlendFactor.One,
@@ -180,7 +186,8 @@ namespace Prowl.Runtime.Rendering.Shaders
         ///     DestinationAlphaFactor = BlendFactor.Zero
         ///     AlphaFunction = BlendFunction.Add
         /// </summary>
-        public static readonly BlendDescription Disabled = new() {
+        public static readonly BlendDescription Disabled = new()
+        {
             BlendEnabled = false,
             SourceColorFactor = BlendFactor.One,
             DestinationColorFactor = BlendFactor.Zero,
