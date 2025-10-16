@@ -18,9 +18,9 @@ public class SpotLight : Light
 
     public Resolution shadowResolution = Resolution._512;
 
-    public float range = 10f;
-    public float innerAngle = 30f; // Inner cone angle in degrees
-    public float outerAngle = 45f; // Outer cone angle in degrees
+    public double range = 10f;
+    public double innerAngle = 30f; // Inner cone angle in degrees
+    public double outerAngle = 45f; // Outer cone angle in degrees
 
     public override void Update()
     {
@@ -39,7 +39,7 @@ public class SpotLight : Light
     {
         Double3 forward = Transform.forward;
         // Use perspective projection for spot light shadows
-        float fov = outerAngle * 2.0f; // Full cone angle
+        double fov = outerAngle * 2.0f; // Full cone angle
         projection = Double4x4.CreatePerspectiveFov(fov * Maths.Deg2Rad, 1.0f, 0.1f, range);
         view = Double4x4.CreateLookTo(Transform.position, forward, Transform.up);
     }

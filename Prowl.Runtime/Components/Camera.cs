@@ -58,24 +58,24 @@ public class Camera : MonoBehaviour
     public enum ProjectionType { Perspective, Orthographic }
     public ProjectionType projectionType = ProjectionType.Perspective;
 
-    public float FieldOfView = 60f;
-    public float OrthographicSize = 0.5f;
-    public float NearClipPlane = 0.01f;
-    public float FarClipPlane = 1000f;
+    public double FieldOfView = 60f;
+    public double OrthographicSize = 0.5f;
+    public double NearClipPlane = 0.01f;
+    public double FarClipPlane = 1000f;
     //public Rect Viewrect = new(0, 0, 1, 1); // Not Implemented
     public int Depth = -1;
 
     public RenderPipeline? Pipeline;
     public RenderTexture? Target;
     public bool HDR = false;
-    public float RenderScale = 1.0f;
+    public double RenderScale = 1.0f;
 
     public bool IsOrthographic => projectionType == ProjectionType.Orthographic;
 
     [SerializeIgnore]
     public DepthTextureMode DepthTextureMode = DepthTextureMode.None;
 
-    private float _aspect;
+    private double _aspect;
     private bool _customAspect;
     private Double4x4 _projectionMatrix;
     private bool _customProjectionMatrix;
@@ -88,7 +88,7 @@ public class Camera : MonoBehaviour
     public uint PixelWidth { get; private set; }
     public uint PixelHeight { get; private set; }
 
-    public float Aspect
+    public double Aspect
     {
         get => _aspect;
         set
@@ -147,12 +147,12 @@ public class Camera : MonoBehaviour
         int width = camTarget?.Width ?? Window.InternalWindow.FramebufferSize.X;
         int height = camTarget?.Height ?? Window.InternalWindow.FramebufferSize.Y;
 
-        float renderScale = Math.Clamp(RenderScale, 0.1f, 2.0f);
+        double renderScale = Math.Clamp(RenderScale, 0.1f, 2.0f);
         PixelWidth = (uint)Math.Max(1, (int)(width * renderScale));
         PixelHeight = (uint)Math.Max(1, (int)(height * renderScale));
 
         if (!_customAspect)
-            _aspect = PixelWidth / (float)PixelHeight;
+            _aspect = PixelWidth / (double)PixelHeight;
 
         if (!_customProjectionMatrix)
         {
@@ -167,7 +167,7 @@ public class Camera : MonoBehaviour
 
     public void ResetAspect()
     {
-        _aspect = PixelWidth / (float)PixelHeight;
+        _aspect = PixelWidth / (double)PixelHeight;
         _customAspect = false;
     }
 
@@ -196,7 +196,7 @@ public class Camera : MonoBehaviour
 
         // Calculate the inverse view-projection matrix
         double aspect = screenSize.X / screenSize.Y;
-        Double4x4 viewProjectionMatrix = GetProjectionMatrix((float)aspect) * GetViewMatrix();
+        Double4x4 viewProjectionMatrix = GetProjectionMatrix(aspect) * GetViewMatrix();
         var inverseViewProjectionMatrix = viewProjectionMatrix.Invert();
 
         // Unproject the near and far points to world space
@@ -221,7 +221,7 @@ public class Camera : MonoBehaviour
         return Double4x4.CreateLookTo(position, Transform.forward, Transform.up);
     }
 
-    private Double4x4 GetProjectionMatrix(float aspect)
+    private Double4x4 GetProjectionMatrix(double aspect)
     {
         Double4x4 proj;
 

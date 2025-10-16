@@ -314,9 +314,9 @@ namespace Prowl.Runtime.Rendering
             s_isDirty = true;
         }
 
-        public static void SetSunIntensity(float value)
+        public static void SetSunIntensity(double value)
         {
-            s_data.prowl_SunIntensity = value;
+            s_data.prowl_SunIntensity = (float)value;
             s_isDirty = true;
         }
 
@@ -326,9 +326,9 @@ namespace Prowl.Runtime.Rendering
             s_isDirty = true;
         }
 
-        public static void SetSunShadowBias(float value)
+        public static void SetSunShadowBias(double value)
         {
-            s_data.prowl_SunShadowBias = value;
+            s_data.prowl_SunShadowBias = (float)value;
             s_isDirty = true;
         }
 
@@ -351,9 +351,9 @@ namespace Prowl.Runtime.Rendering
         }
 
         // Point Lights - packed setters
-        public static void SetPointLightData(int index, Double3 position, Double3 color, float intensity, float range,
-            float shadowBias, float shadowNormalBias, float shadowStrength, float shadowQuality,
-            float atlasX, float atlasY, float atlasWidth)
+        public static void SetPointLightData(int index, Double3 position, Double3 color, double intensity, double range,
+            double shadowBias, double shadowNormalBias, double shadowStrength, double shadowQuality,
+            double atlasX, double atlasY, double atlasWidth)
         {
             if (index < 0 || index >= 4) return;
 
@@ -368,19 +368,19 @@ namespace Prowl.Runtime.Rendering
             s_data.prowl_4PointLightColorB[index] = (float)color.Z;
 
             // Parameters
-            s_data.prowl_4PointLightIntensity[index] = intensity;
-            s_data.prowl_4PointLightRange[index] = range;
+            s_data.prowl_4PointLightIntensity[index] = (float)intensity;
+            s_data.prowl_4PointLightRange[index] = (float)range;
 
             // Shadow parameters
-            s_data.prowl_4PointLightShadowBias[index] = shadowBias;
-            s_data.prowl_4PointLightShadowNormalBias[index] = shadowNormalBias;
-            s_data.prowl_4PointLightShadowStrength[index] = shadowStrength;
-            s_data.prowl_4PointLightShadowQuality[index] = shadowQuality;
+            s_data.prowl_4PointLightShadowBias[index] = (float)shadowBias;
+            s_data.prowl_4PointLightShadowNormalBias[index] = (float)shadowNormalBias;
+            s_data.prowl_4PointLightShadowStrength[index] = (float)shadowStrength;
+            s_data.prowl_4PointLightShadowQuality[index] = (float)shadowQuality;
 
             // Atlas parameters
-            s_data.prowl_4PointLightAtlasX[index] = atlasX;
-            s_data.prowl_4PointLightAtlasY[index] = atlasY;
-            s_data.prowl_4PointLightAtlasWidth[index] = atlasWidth;
+            s_data.prowl_4PointLightAtlasX[index] = (float)atlasX;
+            s_data.prowl_4PointLightAtlasY[index] = (float)atlasY;
+            s_data.prowl_4PointLightAtlasWidth[index] = (float)atlasWidth;
 
             s_isDirty = true;
         }
@@ -393,9 +393,9 @@ namespace Prowl.Runtime.Rendering
 
         // Spot Lights - packed setters
         public static void SetSpotLightData(int index, Double3 position, Double3 direction, Double3 color,
-            float intensity, float range, float innerAngle, float outerAngle,
-            float shadowBias, float shadowNormalBias, float shadowStrength, float shadowQuality,
-            float atlasX, float atlasY, float atlasWidth, Double4x4 shadowMatrix)
+            double intensity, double range, double innerAngle, double outerAngle,
+            double shadowBias, double shadowNormalBias, double shadowStrength, double shadowQuality,
+            double atlasX, double atlasY, double atlasWidth, Double4x4 shadowMatrix)
         {
             if (index < 0 || index >= 4) return;
 
@@ -415,21 +415,21 @@ namespace Prowl.Runtime.Rendering
             s_data.prowl_4SpotLightColorB[index] = (float)color.Z;
 
             // Parameters
-            s_data.prowl_4SpotLightIntensity[index] = intensity;
-            s_data.prowl_4SpotLightRange[index] = range;
-            s_data.prowl_4SpotLightInnerAngle[index] = innerAngle;
-            s_data.prowl_4SpotLightOuterAngle[index] = outerAngle;
+            s_data.prowl_4SpotLightIntensity[index] = (float)intensity;
+            s_data.prowl_4SpotLightRange[index] = (float)range;
+            s_data.prowl_4SpotLightInnerAngle[index] = (float)innerAngle;
+            s_data.prowl_4SpotLightOuterAngle[index] = (float)outerAngle;
 
             // Shadow parameters
-            s_data.prowl_4SpotLightShadowBias[index] = shadowBias;
-            s_data.prowl_4SpotLightShadowNormalBias[index] = shadowNormalBias;
-            s_data.prowl_4SpotLightShadowStrength[index] = shadowStrength;
-            s_data.prowl_4SpotLightShadowQuality[index] = shadowQuality;
+            s_data.prowl_4SpotLightShadowBias[index] = (float)shadowBias;
+            s_data.prowl_4SpotLightShadowNormalBias[index] = (float)shadowNormalBias;
+            s_data.prowl_4SpotLightShadowStrength[index] = (float)shadowStrength;
+            s_data.prowl_4SpotLightShadowQuality[index] = (float)shadowQuality;
 
             // Atlas parameters
-            s_data.prowl_4SpotLightAtlasX[index] = atlasX;
-            s_data.prowl_4SpotLightAtlasY[index] = atlasY;
-            s_data.prowl_4SpotLightAtlasWidth[index] = atlasWidth;
+            s_data.prowl_4SpotLightAtlasX[index] = (float)atlasX;
+            s_data.prowl_4SpotLightAtlasY[index] = (float)atlasY;
+            s_data.prowl_4SpotLightAtlasWidth[index] = (float)atlasWidth;
 
             // Shadow matrix
             switch (index)

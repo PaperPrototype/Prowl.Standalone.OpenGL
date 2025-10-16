@@ -19,7 +19,7 @@ public class PointLight : Light
 
     public Resolution shadowResolution = Resolution._512;
 
-    public float range = 10f;
+    public double range = 10f;
 
     public override void Update()
     {
@@ -100,7 +100,7 @@ public class PointLight : Light
                 shadowBias,
                 shadowNormalBias,
                 shadowStrength,
-                (float)shadowQuality,
+                (double)shadowQuality,
                 atlasX,
                 atlasY,
                 atlasWidth
@@ -117,7 +117,7 @@ public class PointLight : Light
                 shadowBias,
                 shadowNormalBias,
                 0, // shadowStrength = 0
-                (float)shadowQuality,
+                (double)shadowQuality,
                 -1, // atlasX = -1
                 -1, // atlasY = -1
                 0   // atlasWidth = 0

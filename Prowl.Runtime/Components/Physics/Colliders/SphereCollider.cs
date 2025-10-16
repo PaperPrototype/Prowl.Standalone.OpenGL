@@ -10,9 +10,9 @@ namespace Prowl.Runtime;
 
 public sealed class SphereCollider : Collider
 {
-    [SerializeField] private float radius = 0.5f;
+    [SerializeField] private double radius = 0.5f;
 
-    public float Radius
+    public double Radius
     {
         get => radius;
         set

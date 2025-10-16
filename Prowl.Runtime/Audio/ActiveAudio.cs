@@ -13,9 +13,9 @@ public enum AudioPositionKind { AbsoluteWorld, ListenerRelative }
 
 public abstract class ActiveAudio : IDisposable
 {
-    public abstract float Gain { get; set; }
-    public abstract float Pitch { get; set; }
-    public abstract float MaxDistance { get; set; }
+    public abstract double Gain { get; set; }
+    public abstract double Pitch { get; set; }
+    public abstract double MaxDistance { get; set; }
     public abstract bool Looping { get; set; }
     public abstract Double3 Position { get; set; }
     public abstract Double3 Direction { get; set; }
@@ -23,6 +23,6 @@ public abstract class ActiveAudio : IDisposable
     public abstract void Dispose();
     public abstract void Play(AudioBuffer buffer);
     public abstract void Stop();
-    public abstract float PlaybackPosition { get; set; }
+    public abstract double PlaybackPosition { get; set; }
     public abstract bool IsPlaying { get; }
 }

@@ -10,10 +10,10 @@ namespace Prowl.Runtime;
 
 public sealed class CylinderCollider : Collider
 {
-    [SerializeField] private float radius = 0.5f;
-    [SerializeField] private float height = 2;
+    [SerializeField] private double radius = 0.5f;
+    [SerializeField] private double height = 2;
 
-    public float Radius
+    public double Radius
     {
         get => radius;
         set
@@ -23,7 +23,7 @@ public sealed class CylinderCollider : Collider
         }
     }
 
-    public float Height
+    public double Height
     {
         get => height;
         set

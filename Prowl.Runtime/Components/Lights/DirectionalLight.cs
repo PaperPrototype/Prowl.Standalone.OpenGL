@@ -18,7 +18,7 @@ public class DirectionalLight : Light
 
     public Resolution shadowResolution = Resolution._1024;
 
-    public float shadowDistance = 50f;
+    public double shadowDistance = 50f;
 
     public override void Update()
     {
@@ -86,7 +86,7 @@ public class DirectionalLight : Light
         GlobalUniforms.SetSunIntensity(intensity);
         GlobalUniforms.SetSunShadowBias(shadowBias);
         GlobalUniforms.SetSunShadowMatrix(proj * view);
-        GlobalUniforms.SetSunShadowParams(new Double4(shadowNormalBias, shadowStrength, shadowDistance, (float)shadowQuality));
+        GlobalUniforms.SetSunShadowParams(new Double4(shadowNormalBias, shadowStrength, shadowDistance, (double)shadowQuality));
         GlobalUniforms.SetSunAtlasParams(new Double4(atlasX, atlasY, atlasWidth, 0));
     }
 }

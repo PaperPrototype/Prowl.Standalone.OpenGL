@@ -16,7 +16,7 @@ public sealed class AudioClip : EngineObject
 
     public int Channels => GetChannelCount(Format);
     public int BitsPerSample => GetBitsPerSample(Format);
-    public float Duration => (float)SampleCount / SampleRate;
+    public double Duration => (double)SampleCount / SampleRate;
     public int SampleCount => Data.Length / Channels;
 
     public static AudioClip Create(string name, byte[] data, short numChannels, short bitsPerSample, int sampleRate)

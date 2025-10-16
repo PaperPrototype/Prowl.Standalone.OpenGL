@@ -42,9 +42,9 @@ namespace Prowl.Runtime.Resources
             }
             public FogMode Mode = FogMode.ExponentialSquared;
             public Double4 Color = new(0.5, 0.5, 0.5, 1.0);
-            public float Start = 20;
-            public float End = 100;
-            public float Density = 0.01f;
+            public double Start = 20;
+            public double End = 100;
+            public double Density = 0.01f;
 
             public bool IsFogLinear => Mode == FogMode.Linear;
 

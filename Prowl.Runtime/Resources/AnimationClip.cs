@@ -49,10 +49,10 @@ public sealed class AnimationClip : EngineObject, ISerializable
         {
             // Store the previous quaternion value
             Quaternion prev = new Quaternion(
-                (float)bone.RotX.Keys[0].Value,
-                (float)bone.RotY.Keys[0].Value,
-                (float)bone.RotZ.Keys[0].Value,
-                (float)bone.RotW.Keys[0].Value
+                bone.RotX.Keys[0].Value,
+                bone.RotY.Keys[0].Value,
+                bone.RotZ.Keys[0].Value,
+                bone.RotW.Keys[0].Value
             );
 
             // Iterate through each keyframe starting from the second keyframe
@@ -60,10 +60,10 @@ public sealed class AnimationClip : EngineObject, ISerializable
             {
                 // Get the current quaternion value
                 Quaternion cur = new Quaternion(
-                    (float)bone.RotX.Keys[i].Value,
-                    (float)bone.RotY.Keys[i].Value,
-                    (float)bone.RotZ.Keys[i].Value,
-                    (float)bone.RotW.Keys[i].Value
+                    bone.RotX.Keys[i].Value,
+                    bone.RotY.Keys[i].Value,
+                    bone.RotZ.Keys[i].Value,
+                    bone.RotW.Keys[i].Value
                 );
 
                 // Ensure quaternion continuity between the previous and current quaternions
@@ -173,10 +173,10 @@ public sealed class AnimationClip : EngineObject, ISerializable
             if (RotX.Keys.Count == 1)
             {
                 return NormalizeQuaternion(new Quaternion(
-                    (float)RotX.Keys[0].Value,
-                    (float)RotY.Keys[0].Value,
-                    (float)RotZ.Keys[0].Value,
-                    (float)RotW.Keys[0].Value
+                    RotX.Keys[0].Value,
+                    RotY.Keys[0].Value,
+                    RotZ.Keys[0].Value,
+                    RotW.Keys[0].Value
                 ));
             }
 
@@ -216,23 +216,23 @@ public sealed class AnimationClip : EngineObject, ISerializable
             var key1 = RotX.Keys[idx1];
 
             Quaternion q0 = new (
-                (float)RotX.Keys[idx0].Value,
-                (float)RotY.Keys[idx0].Value,
-                (float)RotZ.Keys[idx0].Value,
-                (float)RotW.Keys[idx0].Value
+                RotX.Keys[idx0].Value,
+                RotY.Keys[idx0].Value,
+                RotZ.Keys[idx0].Value,
+                RotW.Keys[idx0].Value
             );
 
             Quaternion q1 = new (
-                (float)RotX.Keys[idx1].Value,
-                (float)RotY.Keys[idx1].Value,
-                (float)RotZ.Keys[idx1].Value,
-                (float)RotW.Keys[idx1].Value
+                RotX.Keys[idx1].Value,
+                RotY.Keys[idx1].Value,
+                RotZ.Keys[idx1].Value,
+                RotW.Keys[idx1].Value
             );
 
-            float t = 0;
+            double t = 0;
             if (key1.Position != key0.Position)
             {
-                t = (float)((time - key0.Position) / (key1.Position - key0.Position));
+                t = ((time - key0.Position) / (key1.Position - key0.Position));
                 t = Math.Clamp(t, 0f, 1f);
             }
 
@@ -247,12 +247,12 @@ public sealed class AnimationClip : EngineObject, ISerializable
         /// </summary>
         private static Quaternion NormalizeQuaternion(Quaternion q)
         {
-            float length = (float)Math.Sqrt(q.X * q.X + q.Y * q.Y + q.Z * q.Z + q.W * q.W);
+            double length = Math.Sqrt(q.X * q.X + q.Y * q.Y + q.Z * q.Z + q.W * q.W);
 
             if (length < 0.0001f)
                 return Quaternion.Identity;
 
-            float invLength = 1.0f / length;
+            double invLength = 1.0f / length;
             return new Quaternion(
                 q.X * invLength,
                 q.Y * invLength,

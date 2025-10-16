@@ -90,7 +90,7 @@ public abstract class Game
             Graphics.Device.UnbindFramebuffer();
             Graphics.Device.Viewport(0, 0, (uint)Window.InternalWindow.FramebufferSize.X, (uint)Window.InternalWindow.FramebufferSize.Y);
 
-            _paper.BeginFrame((float)delta);
+            _paper.BeginFrame(delta);
 
             OnGUI(_paper);
 
@@ -154,9 +154,9 @@ public abstract class Game
             _paper.SetPointerState(PaperMouseBtn.Middle, mousePos.X, mousePos.Y, true, false);
         if (Input.GetMouseButtonUp(2))
             _paper.SetPointerState(PaperMouseBtn.Middle, mousePos.X, mousePos.Y, false, false);
-    
+
         // Handle mouse wheel
-        float wheelDelta = Input.MouseWheelDelta;
+        double wheelDelta = Input.MouseWheelDelta;
         if (wheelDelta != 0)
             _paper.SetPointerWheel(wheelDelta);
     

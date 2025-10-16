@@ -19,10 +19,10 @@ public abstract class Light : MonoBehaviour, IRenderableLight
 {
 
     public Color color = Color.White;
-    public float intensity = 8.0f;
-    public float shadowStrength = 1.0f;
-    public float shadowBias = 0.05f;
-    public float shadowNormalBias = 1f;
+    public double intensity = 8.0f;
+    public double shadowStrength = 1.0f;
+    public double shadowBias = 0.05f;
+    public double shadowNormalBias = 1f;
     public bool castShadows = true;
     public ShadowQuality shadowQuality = ShadowQuality.Hard;
 

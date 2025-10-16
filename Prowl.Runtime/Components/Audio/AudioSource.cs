@@ -10,15 +10,15 @@ public sealed class AudioSource : MonoBehaviour
     public AudioClip Clip;
     public bool PlayOnStart = true;
     public bool Looping = false;
-    public float Volume = 1f;
-    public float MaxDistance = 32f;
+    public double Volume = 1f;
+    public double MaxDistance = 32f;
 
     private ActiveAudio _source;
     private AudioBuffer _buffer;
     private uint _lastVersion;
     private bool _looping = false;
-    private float _gain = 1f;
-    private float _maxDistance = 32f;
+    private double _gain = 1f;
+    private double _maxDistance = 32f;
 
     public void Play()
     {

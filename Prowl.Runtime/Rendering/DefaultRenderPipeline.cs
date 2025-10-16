@@ -420,11 +420,11 @@ namespace Prowl.Runtime.Rendering
             public Double3 cameraForward = camera.Transform.forward;
             public LayerMask cullingMask = camera.CullingMask;
             public CameraClearFlags clearFlags = camera.ClearFlags;
-            public float nearClipPlane = camera.NearClipPlane;
-            public float farClipPlane = camera.FarClipPlane;
+            public double nearClipPlane = camera.NearClipPlane;
+            public double farClipPlane = camera.FarClipPlane;
             public uint pixelWidth = camera.PixelWidth;
             public uint pixelHeight = camera.PixelHeight;
-            public float aspect = camera.Aspect;
+            public double aspect = camera.Aspect;
             public Double4x4 originView = camera.OriginViewMatrix;
             public Double4x4 view = CAMERA_RELATIVE ? camera.OriginViewMatrix : camera.ViewMatrix;
             public Double4x4 viewInverse = (CAMERA_RELATIVE ? camera.OriginViewMatrix : camera.ViewMatrix).Invert();

@@ -337,7 +337,7 @@ namespace Prowl.Runtime.Rendering
         public static void SetGlobalVector(string name, Double2 value) => globalVectors2[name] = value;
         public static void SetGlobalVector(string name, Double3 value) => globalVectors3[name] = value;
         public static void SetGlobalVector(string name, Double4 value) => globalVectors4[name] = value;
-        public static void SetGlobalFloat(string name, float value) => globalFloats[name] = value;
+        public static void SetGlobalFloat(string name, double value) => globalFloats[name] = (float)value;
         public static void SetGlobalInt(string name, int value) => globalInts[name] = value;
         public static void SetGlobalMatrix(string name, Double4x4 value) => globalMatrices[name] = value;
         public static void SetGlobalMatrices(string name, Double4x4[] value) => globalMatrixArr[name] = value.Select(x => (Float4x4)x).Cast<System.Numerics.Matrix4x4>().ToArray();

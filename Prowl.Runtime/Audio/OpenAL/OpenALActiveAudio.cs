@@ -20,7 +20,7 @@ public class OpenALActiveAudio : ActiveAudio
 
     public uint ID { get; }
 
-    public override float Gain
+    public override double Gain
     {
         get
         {
@@ -29,11 +29,11 @@ public class OpenALActiveAudio : ActiveAudio
         }
         set
         {
-            OpenALEngine.al.SetSourceProperty(ID, SourceFloat.Gain, value);
+            OpenALEngine.al.SetSourceProperty(ID, SourceFloat.Gain, (float)value);
         }
     }
 
-    public override float Pitch
+    public override double Pitch
     {
         get
         {
@@ -45,11 +45,11 @@ public class OpenALActiveAudio : ActiveAudio
             if (value < 0.5 || value > 2.0f)
                 throw new ArgumentOutOfRangeException("Pitch must be between 0.5 and 2.0.");
 
-            OpenALEngine.al.SetSourceProperty(ID, SourceFloat.Pitch, value);
+            OpenALEngine.al.SetSourceProperty(ID, SourceFloat.Pitch, (float)value);
         }
     }
 
-    public override float MaxDistance
+    public override double MaxDistance
     {
         get
         {
@@ -58,7 +58,7 @@ public class OpenALActiveAudio : ActiveAudio
         }
         set
         {
-            OpenALEngine.al.SetSourceProperty(ID, SourceFloat.MaxDistance, value);
+            OpenALEngine.al.SetSourceProperty(ID, SourceFloat.MaxDistance, (float)value);
         }
     }
 
@@ -119,14 +119,14 @@ public class OpenALActiveAudio : ActiveAudio
     /// <summary>
     /// Gets or sets the playback position, as a value between 0.0f (beginning of clip), and 1.0f (end of clip).
     /// </summary>
-    public override float PlaybackPosition
+    public override double PlaybackPosition
     {
         get
         {
             OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.ByteOffset, out var playbackBytes);
             OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.Buffer, out var bufferID);
             OpenALEngine.al.GetBufferProperty((uint)bufferID, GetBufferInteger.Size, out var totalBufferBytes);
-            return (float)playbackBytes / totalBufferBytes;
+            return (double)(playbackBytes / totalBufferBytes);
         }
         set
         {

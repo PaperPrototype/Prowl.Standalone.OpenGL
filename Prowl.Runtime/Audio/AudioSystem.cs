@@ -119,24 +119,24 @@ public static class AudioSystem
         return PlaySound(buffer, 1.0f, 1.0f, Double3.Zero, AudioPositionKind.ListenerRelative, 32f);
     }
 
-    public static ActiveAudio PlaySound(AudioClip clip, float volume)
+    public static ActiveAudio PlaySound(AudioClip clip, double volume)
     {
         return PlaySound(clip, volume, 1f);
     }
 
-    public static ActiveAudio PlaySound(AudioClip clip, float volume, float pitch)
+    public static ActiveAudio PlaySound(AudioClip clip, double volume, double pitch)
     {
         AudioBuffer buffer = GetAudioBuffer(clip);
         return PlaySound(buffer, volume, pitch, Double3.Zero, AudioPositionKind.ListenerRelative, 32f);
     }
 
-    public static ActiveAudio PlaySound(AudioClip clip, float volume, float pitch, Double3 position, AudioPositionKind positionKind)
+    public static ActiveAudio PlaySound(AudioClip clip, double volume, double pitch, Double3 position, AudioPositionKind positionKind)
     {
         AudioBuffer buffer = GetAudioBuffer(clip);
         return PlaySound(buffer, volume, pitch, position, positionKind, 32f);
     }
 
-    public static ActiveAudio PlaySound(AudioBuffer buffer, float volume, float pitch, Double3 position, AudioPositionKind positionKind, float maxDistance)
+    public static ActiveAudio PlaySound(AudioBuffer buffer, double volume, double pitch, Double3 position, AudioPositionKind positionKind, float maxDistance)
     {
         ActiveAudio source = GetOrCreateSource();
         source.Gain = volume;

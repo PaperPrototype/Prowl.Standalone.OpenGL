@@ -127,7 +127,7 @@ public sealed class WheelCollider : MonoBehaviour
         Double3 worldAxis = Body.Transform.up;
 
         Double3 forward = Body.Transform.forward;
-        Double3 wheelFwd = Quaternion.AxisAngle((Float3)worldAxis, (float)SteerAngle) * (Float3)forward;
+        Double3 wheelFwd = Quaternion.AxisAngle(worldAxis, SteerAngle) * forward;
 
         Double3 wheelLeft = Double3.Cross(worldAxis, wheelFwd);
         wheelLeft = Double3.Normalize(wheelLeft);
@@ -220,7 +220,7 @@ public sealed class WheelCollider : MonoBehaviour
         
         Double3 groundFwd = Double3.Cross(groundLeft, groundUp);
         
-        Double3 wheelCenterVel = Body.LinearVelocity + Double3.Cross(Body.AngularVelocity, (Body.Transform.rotation * (Float3)this.Transform.localPosition));
+        Double3 wheelCenterVel = Body.LinearVelocity + Double3.Cross(Body.AngularVelocity, (Body.Transform.rotation * this.Transform.localPosition));
 
         // rimVel=(wxr)*v
         Double3 rimVel = _angularVelocity * Double3.Cross(wheelLeft, groundPos - worldPos);
@@ -299,7 +299,7 @@ public sealed class WheelCollider : MonoBehaviour
 
     public override void DrawGizmos()
     {
-        Double3 wheelFwd = Quaternion.AxisAngle((Float3)Body.Transform.up, (float)SteerAngle) * (Float3)Body.Transform.forward;
+        Double3 wheelFwd = Quaternion.AxisAngle(Body.Transform.up, SteerAngle) * Body.Transform.forward;
         Double3 wheelLeft = Double3.Cross(Body.Transform.up, wheelFwd);
         wheelLeft = Double3.Normalize(wheelLeft);
 
@@ -307,7 +307,7 @@ public sealed class WheelCollider : MonoBehaviour
         Debug.DrawWireCircle(WorldPosition, wheelLeft, Radius, Color.Green, 32);
 
         // Draw Wheel Rotation With a Line
-        Double3 wheelEnd = WorldPosition + ((Quaternion.AxisAngle((Float3)wheelLeft, (float)WheelRotation) * (Float3)wheelFwd) * Radius);
+        Double3 wheelEnd = WorldPosition + ((Quaternion.AxisAngle(wheelLeft, WheelRotation) * wheelFwd) * Radius);
         Debug.DrawLine(WorldPosition, wheelEnd, Color.Green);
 
         // Draw Raycasts

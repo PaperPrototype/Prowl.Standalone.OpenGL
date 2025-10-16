@@ -125,14 +125,14 @@ namespace Prowl.Runtime.AssetImporting
             model.RootNode = BuildModelNode(scene.RootNode, scale);
 
             var rootTransform = scene.RootNode.Transform;
-            Float4x4 rootMatrix = new Float4x4(
+            Double4x4 rootMatrix = new Double4x4(
                 rootTransform.A1, rootTransform.A2, rootTransform.A3, rootTransform.A4,
                 rootTransform.B1, rootTransform.B2, rootTransform.B3, rootTransform.B4,
                 rootTransform.C1, rootTransform.C2, rootTransform.C3, rootTransform.C4,
                 rootTransform.D1, rootTransform.D2, rootTransform.D3, rootTransform.D4
             );
 
-            rootMatrix.Translation *= (float)scale;
+            rootMatrix.Translation *= scale;
 
             model.GlobalInverseTransform = rootMatrix.Invert();
 

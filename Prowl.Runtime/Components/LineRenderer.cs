@@ -14,14 +14,14 @@ namespace Prowl.Runtime;
 public class LineRenderer : MonoBehaviour, IRenderable
 {
     public Material Material;
-    public float StartWidth = 0.1f;
-    public float EndWidth = 0.1f;
+    public double StartWidth = 0.1f;
+    public double EndWidth = 0.1f;
     public List<Double3> Points = new();
     public bool Loop = false;
     public Color StartColor = Color.White;
     public Color EndColor = Color.White;
     public TextureWrapMode TextureMode = TextureWrapMode.Stretch;
-    public float TextureTiling = 1.0f; // Controls UV tiling for Tile mode
+    public double TextureTiling = 1.0f; // Controls UV tiling for Tile mode
     public bool RecalculateNormals = false;
 
     private Mesh? _cachedMesh;
@@ -32,13 +32,13 @@ public class LineRenderer : MonoBehaviour, IRenderable
 
     // Cached state for change detection
     private List<Double3> _lastPoints;
-    private float _lastStartWidth;
-    private float _lastEndWidth;
+    private double _lastStartWidth;
+    private double _lastEndWidth;
     private bool _lastLoop;
     private Color _lastStartColor;
     private Color _lastEndColor;
     private TextureWrapMode _lastTextureMode;
-    private float _lastTextureTiling;
+    private double _lastTextureTiling;
 
     public override void OnEnable()
     {
@@ -282,7 +282,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
 
             // Interpolate width along the line
             float t = i / (float)(worldPoints.Count - 1);
-            float width = Maths.Lerp(StartWidth, EndWidth, t);
+            float width = (float)Maths.Lerp(StartWidth, EndWidth, t);
             float halfWidth = width * 0.5f;
 
             // Create offset vertices
@@ -348,7 +348,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
         {
             TextureWrapMode.Stretch => t, // 0 to 1 stretched across entire line
 
-            TextureWrapMode.Tile => totalLength > 0 ? (accumulatedLength / totalLength) * TextureTiling : t, // Repeat based on world distance
+            TextureWrapMode.Tile => totalLength > 0 ? (accumulatedLength / totalLength) * (float)TextureTiling : t, // Repeat based on world distance
 
             TextureWrapMode.RepeatPerSegment => index, // Each segment gets 0 to 1
 

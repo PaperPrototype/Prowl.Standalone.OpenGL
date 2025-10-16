@@ -280,7 +280,7 @@ public sealed class Rigidbody3D : MonoBehaviour
         if (_body == null || _body.Handle.IsZero) return;
 
         Transform.position = new Double3(_body.Position.X, _body.Position.Y, _body.Position.Z);
-        Transform.rotation = new Quaternion((float)_body.Orientation.X, (float)_body.Orientation.Y, (float)_body.Orientation.Z, (float)_body.Orientation.W);
+        Transform.rotation = new Quaternion(_body.Orientation.X, _body.Orientation.Y, _body.Orientation.Z, _body.Orientation.W);
     }
 
     public override void DrawGizmos()

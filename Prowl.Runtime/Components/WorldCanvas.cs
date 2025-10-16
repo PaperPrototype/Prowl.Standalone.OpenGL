@@ -160,7 +160,7 @@ public class WorldCanvas : MonoBehaviour, IRenderable
             }
 
             // Handle mouse wheel
-            float wheelDelta = Input.MouseWheelDelta;
+            double wheelDelta = Input.MouseWheelDelta;
             if (wheelDelta != 0)
             {
                 _paper.SetPointerWheel(wheelDelta);
