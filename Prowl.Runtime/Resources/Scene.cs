@@ -122,11 +122,37 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
         if(IsActive) throw new Exception("Scene is already active!");
 
         s_activeScenes.Add(this);
+
+        // Trigger OnEnable for all enabled components in the scene
+        foreach (GameObject go in AllObjects)
+        {
+            if (go.EnabledInHierarchy)
+            {
+                foreach (MonoBehaviour component in go.GetComponents<MonoBehaviour>())
+                {
+                    if (component.Enabled)
+                        component.OnEnable();
+                }
+            }
+        }
     }
 
     public void Deactivate()
     {
         if(!IsActive) throw new Exception("Scene is not active!");
+
+        // Trigger OnDisable for all enabled components in the scene
+        foreach (GameObject go in AllObjects)
+        {
+            if (go.EnabledInHierarchy)
+            {
+                foreach (MonoBehaviour component in go.GetComponents<MonoBehaviour>())
+                {
+                    if (component.Enabled && component.EnabledInHierarchy)
+                        component.OnDisable();
+                }
+            }
+        }
 
         s_activeScenes.Remove(this);
     }
@@ -190,8 +216,8 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
                 component.OnAddedToScene();
             }
 
-            // Call OnEnable for enabled components
-            if (obj.EnabledInHierarchy)
+            // Call OnEnable for enabled components, but only if the scene is active
+            if (IsActive && obj.EnabledInHierarchy)
             {
                 foreach (MonoBehaviour component in obj.GetComponents<MonoBehaviour>())
                 {

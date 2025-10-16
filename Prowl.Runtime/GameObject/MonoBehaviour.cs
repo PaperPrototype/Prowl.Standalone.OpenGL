@@ -197,7 +197,7 @@ public abstract class MonoBehaviour : EngineObject
 
     /// <summary>
     /// Updates the enabled state based on changes in the hierarchy.
-    /// OnEnable/OnDisable are only called if the GameObject is in a Scene.
+    /// OnEnable/OnDisable are only called if the GameObject is in an active Scene.
     /// </summary>
     internal void HierarchyStateChanged()
     {
@@ -206,8 +206,9 @@ public abstract class MonoBehaviour : EngineObject
         {
             _enabledInHierarchy = newState;
 
-            // Only call OnEnable/OnDisable if we're in a Scene
-            if (_go.Scene.IsValid())
+            // Only call OnEnable/OnDisable if we're in an active Scene
+            Scene? scene = _go.Scene;
+            if (scene.IsValid() && scene.IsActive)
             {
                 if (newState)
                     OnEnable();
@@ -291,11 +292,6 @@ public abstract class MonoBehaviour : EngineObject
     public virtual void OnGui(Paper paper) { }
 
     /// <summary>
-    /// Called when the MonoBehaviour will be destroyed.
-    /// </summary>
-    public virtual void OnDestroy() { }
-
-    /// <summary>
     /// Internal method to handle the Start lifecycle event.
     /// </summary>
     internal void InternalStart()
@@ -305,6 +301,10 @@ public abstract class MonoBehaviour : EngineObject
         Start();
     }
 
+    /// <summary>
+    /// Called when the MonoBehaviour will be destroyed.
+    /// This is an override of EngineObject.OnDispose() and is also exposed as a virtual lifecycle method.
+    /// </summary>
     public override void OnDispose()
     {
         if (GameObject.IsValid())

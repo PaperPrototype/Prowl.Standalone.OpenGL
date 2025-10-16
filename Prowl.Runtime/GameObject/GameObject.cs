@@ -512,7 +512,7 @@ public class GameObject : EngineObject, ISerializable
             foreach (MonoBehaviour c in componentList)
             {
                 if (c.HasStarted) // OnDestroy is only called if the component has previously been active
-                    c.OnDestroy();
+                    c.OnDispose();
 
                 _components.Remove(c);
             }
@@ -534,7 +534,7 @@ public class GameObject : EngineObject, ISerializable
         _componentCache.Remove(typeof(T), component);
 
         if (component.EnabledInHierarchy) component.OnDisable();
-        if (component.HasStarted) component.OnDestroy(); // OnDestroy is only called if the component has previously been active
+        if (component.HasStarted) component.OnDispose(); // OnDestroy is only called if the component has previously been active
     }
 
     /// <summary>
@@ -549,7 +549,7 @@ public class GameObject : EngineObject, ISerializable
         _componentCache.Remove(component.GetType(), component);
 
         if (component.EnabledInHierarchy) component.OnDisable();
-        if (component.HasStarted) component.OnDestroy(); // OnDestroy is only called if the component has previously been active
+        if (component.HasStarted) component.OnDispose(); // OnDestroy is only called if the component has previously been active
     }
 
     /// <summary>
@@ -865,8 +865,14 @@ public class GameObject : EngineObject, ISerializable
         {
             MonoBehaviour component = _components[i];
             if (component.IsDisposed) continue;
-            if (component.EnabledInHierarchy) component.OnDisable();
-            if (component.HasStarted) component.OnDestroy(); // OnDestroy is only called if the component has previously been active
+
+            // Only call OnDisable if the component is enabled in hierarchy AND the scene is active
+            // This prevents calling OnDisable twice when disposing after scene deactivation
+            Scene? scene = Scene;
+            if (component.EnabledInHierarchy && scene.IsValid() && scene.IsActive)
+                component.OnDisable();
+
+            if (component.HasStarted) component.OnDispose(); // OnDispose is only called if the component has previously been active
             component.Dispose();
         }
         _components.Clear();
