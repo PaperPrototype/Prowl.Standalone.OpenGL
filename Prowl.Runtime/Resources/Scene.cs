@@ -89,19 +89,19 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     public int Count => _allObj.Count;
 
     /// <summary> Enumerates all registered objects. </summary>
-    public IEnumerable<GameObject> AllObjects => _allObj.Where(o => !o.IsDestroyed);
+    public IEnumerable<GameObject> AllObjects => _allObj.Where(o => !o.IsDisposed);
 
     /// <summary> Enumerates all registered objects that are currently active and saveable. </summary>
-    public IEnumerable<GameObject> SaveableObjects => _allObj.Where(o => !o.IsDestroyed && !o.HideFlags.HasFlag(HideFlags.DontSave) && !o.HideFlags.HasFlag(HideFlags.HideAndDontSave));
+    public IEnumerable<GameObject> SaveableObjects => _allObj.Where(o => !o.IsDisposed && !o.HideFlags.HasFlag(HideFlags.DontSave) && !o.HideFlags.HasFlag(HideFlags.HideAndDontSave));
 
     /// <summary> Enumerates all registered objects that are currently active. </summary>
-    public IEnumerable<GameObject> ActiveObjects => _allObj.Where(o => !o.IsDestroyed && o.EnabledInHierarchy);
+    public IEnumerable<GameObject> ActiveObjects => _allObj.Where(o => !o.IsDisposed && o.EnabledInHierarchy);
 
     /// <summary> Enumerates all root GameObjects, i.e. all GameObjects without a parent object. </summary>
-    public IEnumerable<GameObject> RootObjects => _allObj.Where(o => !o.IsDestroyed && o.Transform.Parent == null);
+    public IEnumerable<GameObject> RootObjects => _allObj.Where(o => !o.IsDisposed && o.Transform.Parent == null);
 
     /// <summary> Enumerates all <see cref="RootObjects"/> that are currently active. </summary>
-    public IEnumerable<GameObject> ActiveRootObjects => _allObj.Where(o => !o.IsDestroyed && o.Transform.Parent == null && o.EnabledInHierarchy);
+    public IEnumerable<GameObject> ActiveRootObjects => _allObj.Where(o => !o.IsDisposed && o.Transform.Parent == null && o.EnabledInHierarchy);
 
     /// <summary> Returns whether this Scene is completely empty. </summary>
     public bool IsEmpty => !AllObjects.Any();
@@ -143,7 +143,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     /// </summary>
     public void Add(GameObject obj)
     {
-        if (obj.Scene != null && obj.Scene != this) obj.Scene.Remove(obj);
+        if (obj.Scene.IsValid() && obj.Scene != this) obj.Scene.Remove(obj);
         AddObject(obj);
     }
 
@@ -153,7 +153,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     public void Remove(GameObject obj)
     {
         if (obj.Scene != this) return;
-        if (obj.Parent != null && obj.Parent.Scene == this)
+        if (obj.Parent.IsValid() && obj.Parent.Scene == this)
         {
             obj.SetParent(null);
         }
@@ -271,11 +271,11 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
         List<GameObject> removed = [];
         foreach (GameObject obj in _allObj)
         {
-            if (obj.IsDestroyed)
+            if (obj.IsDisposed)
                 removed.Add(obj);
         }
 
-        _allObj.RemoveWhere(obj => obj.IsDestroyed);
+        _allObj.RemoveWhere(obj => obj.IsDisposed);
 
         foreach (GameObject obj in removed)
             obj.Scene = null;
@@ -385,7 +385,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
             RenderPipeline pipeline = cam.Pipeline ?? DefaultRenderPipeline.Default;
 
             // If we have a target and the Camera doesnt, draw into the target
-            if (target != null && cam.Target == null)
+            if (target.IsValid() && cam.Target.IsNotValid())
             {
                 cam.Target = target;
                 pipeline.Render(cam, new());

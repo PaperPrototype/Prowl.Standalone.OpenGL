@@ -14,17 +14,17 @@ public class LayerFilter : IBroadPhaseFilter
 {
     private readonly struct Pair : IEquatable<Pair>
     {
-        private readonly Rigidbody3D shapeA, shapeB;
+        private readonly Rigidbody3D _a, _b;
 
         public Pair(Rigidbody3D shapeA, Rigidbody3D shapeB)
         {
-            this.shapeA = shapeA;
-            this.shapeB = shapeB;
+            this._a = shapeA;
+            this._b = shapeB;
         }
 
         public bool Equals(Pair other)
         {
-            return shapeA.Equals(other.shapeA) && shapeB.Equals(other.shapeB);
+            return _a.Equals(other._a) && _b.Equals(other._b);
         }
 
         public override bool Equals(object? obj)
@@ -34,7 +34,7 @@ public class LayerFilter : IBroadPhaseFilter
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(shapeA, shapeB);
+            return HashCode.Combine(_a, _b);
         }
     }
 
@@ -42,7 +42,7 @@ public class LayerFilter : IBroadPhaseFilter
 
     internal static void IgnoreCollisionBetween(Rigidbody3D bodyA, Rigidbody3D bodyB)
     {
-        if (bodyA == null || bodyB == null) return;
+        if (bodyA.IsNotValid() || bodyB.IsNotValid()) return;
         if (bodyA == bodyB) return;
 
         if (bodyB.InstanceID < bodyA.InstanceID) (bodyA, bodyB) = (bodyB, bodyA);
@@ -51,7 +51,7 @@ public class LayerFilter : IBroadPhaseFilter
 
     internal static void EnableCollisionBetween(Rigidbody3D bodyA, Rigidbody3D bodyB)
     {
-        if (bodyA == null || bodyB == null) return;
+        if (bodyA.IsNotValid() || bodyB.IsNotValid()) return;
         if (bodyA == bodyB) return;
         if (bodyB.InstanceID < bodyA.InstanceID) (bodyA, bodyB) = (bodyB, bodyA);
         _ignore.Remove(new Pair(bodyA, bodyB));

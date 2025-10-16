@@ -140,7 +140,7 @@ public class Camera : MonoBehaviour
         // Since Scene Updating is guranteed to execute before rendering, we can setup camera data for this frame here
         RenderTexture? camTarget = null;
 
-        if (Target != null)
+        if (Target.IsValid())
             camTarget = Target;
 
         int width = camTarget?.Width ?? Window.InternalWindow.FramebufferSize.X;

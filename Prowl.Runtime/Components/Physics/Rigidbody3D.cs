@@ -265,7 +265,7 @@ public sealed class Rigidbody3D : MonoBehaviour
 
     public override void OnValidate()
     {
-        if (GameObject?.Scene == null) return;
+        if (GameObject?.Scene?.IsNotValid() ?? true) return;
 
         if (_body == null || _body.Handle.IsZero)
             _body = GameObject.Scene.Physics.World.CreateRigidBody();
@@ -292,8 +292,6 @@ public sealed class Rigidbody3D : MonoBehaviour
 
     public override void OnEnable()
     {
-        if (GameObject?.Scene == null) return;
-
         if (_body == null || _body.Handle.IsZero)
         {
             CreateBody(GameObject.Scene.Physics.World);
@@ -302,7 +300,6 @@ public sealed class Rigidbody3D : MonoBehaviour
 
     public override void OnDisable()
     {
-        if (GameObject?.Scene == null) return;
         if (_body != null && !_body.Handle.IsZero) GameObject.Scene.Physics.World?.Remove(_body);
     }
 

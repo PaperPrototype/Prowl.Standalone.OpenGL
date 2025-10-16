@@ -51,11 +51,11 @@ public class LineRenderer : MonoBehaviour, IRenderable
 
     public override void Update()
     {
-        if (Material != null && Points != null && Points.Count >= 2)
+        if (Material.IsValid() && Points != null && Points.Count >= 2)
         {
             // Check if we need to regenerate
             bool needsUpdate = _isDirty ||
-                               _cachedMesh == null ||
+                               _cachedMesh.IsNotValid() ||
                                StartWidth != _lastStartWidth ||
                                EndWidth != _lastEndWidth ||
                                Loop != _lastLoop ||
@@ -175,7 +175,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
     public void GetRenderingData(ViewerData viewer, out PropertyState properties, out Mesh drawData, out Double4x4 model)
     {
         // Create mesh only once
-        if (_cachedMesh == null)
+        if (_cachedMesh.IsNotValid())
         {
             _cachedMesh = new Mesh();
         }
@@ -197,7 +197,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
 
     public void GetCullingData(out bool isRenderable, out AABB bounds)
     {
-        isRenderable = Points != null && Points.Count >= 2 && Material != null;
+        isRenderable = Points != null && Points.Count >= 2 && Material.IsValid();
         bounds = _bounds;
     }
 

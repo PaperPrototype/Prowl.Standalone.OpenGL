@@ -109,7 +109,7 @@ public sealed class ShaderPass
 
             // Use the Invalid shader as fallback
             var fallbackShader = Resources.Shader.LoadDefault(Resources.DefaultShader.Invalid);
-            if (fallbackShader != null)
+            if (fallbackShader.IsValid())
             {
                 if (!fallbackShader.GetPass(0).TryGetVariantProgram(null, out variant))
                     throw new Exception($"Failed to compile shader pass of {Name}. Fallback shader also failed to compile.");

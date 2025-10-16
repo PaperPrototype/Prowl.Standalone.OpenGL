@@ -38,7 +38,7 @@ public class ModelRenderer : MonoBehaviour
 
     public override void OnEnable()
     {
-        if (Model != null)
+        if (Model.IsValid())
         {
             // Build node transform cache
             BuildNodeTransformCache(Model.RootNode, Double4x4.Identity);
@@ -55,7 +55,7 @@ public class ModelRenderer : MonoBehaviour
     public override void Update()
     {
         // Update animation
-        if (_isPlaying && CurrentAnimation != null)
+        if (_isPlaying && CurrentAnimation.IsValid())
         {
             _animationTime += Time.DeltaTimeF * AnimationSpeed;
 
@@ -77,7 +77,7 @@ public class ModelRenderer : MonoBehaviour
         }
 
         // Render the model
-        if (Model != null)
+        if (Model.IsValid())
         {
             RenderModelNode(Model.RootNode, Transform.LocalToWorldMatrix);
         }
@@ -85,10 +85,10 @@ public class ModelRenderer : MonoBehaviour
 
     public void Play(AnimationClip animation = null)
     {
-        if (animation != null)
+        if (animation.IsValid())
             CurrentAnimation = animation;
 
-        if (CurrentAnimation != null)
+        if (CurrentAnimation.IsValid())
         {
             _animationTime = 0.0;
             _isPlaying = true;
@@ -108,7 +108,7 @@ public class ModelRenderer : MonoBehaviour
 
     public void Resume()
     {
-        if (CurrentAnimation != null)
+        if (CurrentAnimation.IsValid())
             _isPlaying = true;
     }
 
@@ -232,7 +232,7 @@ public class ModelRenderer : MonoBehaviour
         {
             ModelMesh modelMesh = Model.Meshes[meshIndex];
 
-            if (modelMesh.Material != null)
+            if (modelMesh.Material.IsValid())
             {
                 PropertyState properties = new();
                 properties.SetInt("_ObjectID", InstanceID);
@@ -270,7 +270,7 @@ public class ModelRenderer : MonoBehaviour
     {
         distance = double.MaxValue;
 
-        if (Model == null)
+        if (Model.IsNotValid())
             return false;
 
         return RaycastModelNode(Model.RootNode, Transform.LocalToWorldMatrix, ray, ref distance);
@@ -297,7 +297,7 @@ public class ModelRenderer : MonoBehaviour
         {
             ModelMesh modelMesh = Model.Meshes[meshIndex];
 
-            if (modelMesh.Mesh == null)
+            if (modelMesh.Mesh.IsNotValid())
                 continue;
 
             Mesh mesh = modelMesh.Mesh;

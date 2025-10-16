@@ -214,7 +214,7 @@ public partial class PropertyState
         foreach (KeyValuePair<string, Texture2D> item in mpb._textures)
         {
             Texture2D tex = item.Value;
-            if (tex != null)
+            if (tex.IsValid())
             {
                 // Always set textures - slot assignment must be consistent
                 Graphics.Device.SetUniformTexture(shader, item.Key, texSlot, tex.Handle);
@@ -310,7 +310,7 @@ public partial class PropertyState
         foreach (KeyValuePair<string, Texture2D> item in s_globalTextures)
         {
             Texture2D tex = item.Value;
-            if (tex != null)
+            if (tex.IsValid())
             {
                 // Always set textures - slot assignment must be consistent
                 Graphics.Device.SetUniformTexture(shader, item.Key, texSlot, tex.Handle);

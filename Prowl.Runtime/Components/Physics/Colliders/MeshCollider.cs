@@ -28,10 +28,10 @@ public sealed class MeshCollider : Collider
 
     public override RigidBodyShape[] CreateShapes()
     {
-        if (mesh == null)
+        if (mesh.IsNotValid())
         {
             OnEnable(); // Trigger OnEnable to grab the mesh from a renderer
-            if (mesh == null)
+            if (mesh.IsNotValid())
                 Debug.LogError("Mesh is null");
             return null;
         }
@@ -48,10 +48,10 @@ public sealed class MeshCollider : Collider
 
     public override void OnEnable()
     {
-        if (mesh == null)
+        if (mesh.IsNotValid())
         {
             MeshRenderer? renderer2 = GetComponent<MeshRenderer>();
-            if (renderer2 != null)
+            if (renderer2.IsValid())
             {
                 mesh = renderer2.Mesh;
             }

@@ -198,7 +198,7 @@ public sealed class RenderTexture : EngineObject, ISerializable
         }
 
         foreach (RenderTexture renderTexture in disposableTextures)
-            renderTexture.Destroy();
+            renderTexture.Dispose();
     }
 
     #endregion

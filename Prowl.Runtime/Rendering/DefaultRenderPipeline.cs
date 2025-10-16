@@ -82,9 +82,9 @@ public sealed class KawaseBloomEffect : ImageEffect
         // Create ping-pong buffers if they don't exist
         for (int i = 0; i < 2; i++)
         {
-            if (_pingPongBuffers[i] == null || _pingPongBuffers[i].Width != width || _pingPongBuffers[i].Height != height)
+            if (_pingPongBuffers[i].IsNotValid() || _pingPongBuffers[i].Width != width || _pingPongBuffers[i].Height != height)
             {
-                _pingPongBuffers[i]?.Destroy();
+                _pingPongBuffers[i]?.Dispose();
                 _pingPongBuffers[i] = new RenderTexture(width, height, false, [destination.MainTexture.ImageFormat]);
             }
         }
@@ -145,10 +145,10 @@ public sealed class BokehDepthOfFieldEffect : ImageEffect
         int height = (int)(source.Height * DownsampleFactor);
 
         // Create or update downsampled render texture if needed
-        if (_downsampledRT == null || _downsampledRT.Width != width || _downsampledRT.Height != height)
+        if (_downsampledRT.IsNotValid() || _downsampledRT.Width != width || _downsampledRT.Height != height)
         {
-            if (_downsampledRT != null)
-                _downsampledRT.Destroy();
+            if (_downsampledRT.IsValid())
+                _downsampledRT.Dispose();
 
             _downsampledRT = new RenderTexture(width, height, false, [source.MainTexture.ImageFormat]);
         }
@@ -260,7 +260,7 @@ public class DefaultRenderPipeline : RenderPipeline
         s_skybox ??= new Material(Shader.LoadDefault(DefaultShader.ProceduralSkybox));
         s_gizmo ??= new Material(Shader.LoadDefault(DefaultShader.Gizmos));
 
-        if (s_skyDome == null)
+        if (s_skyDome.IsNotValid())
         {
             Model skyDomeModel = Model.LoadDefault(DefaultModel.SkyDome) ?? throw new Exception("SkyDome model not found. Please ensure the model is included in the project.");
             s_skyDome = skyDomeModel.Meshes[0].Mesh;
@@ -606,7 +606,7 @@ public class DefaultRenderPipeline : RenderPipeline
 
         CreateLightBuffer(css.CameraPosition, css.CullingMask, lights, renderables);
 
-        if (s_shadowMap != null)
+        if (s_shadowMap.IsValid())
             PropertyState.SetGlobalTexture("_ShadowAtlas", s_shadowMap.InternalDepth);
         //PropertyState.SetGlobalBuffer("_Lights", LightBuffer, 0);
         //PropertyState.SetGlobalInt("_LightCount", LightCount);
@@ -682,7 +682,7 @@ public class DefaultRenderPipeline : RenderPipeline
         PartialSort(s_tempPointLights, s_tempPointCount, MAX_POINT_LIGHTS);
 
         // Process directional light first
-        if (closestDirectional != null)
+        if (closestDirectional.IsValid())
         {
             ProcessLight(closestDirectional, Math.Sqrt(closestDirDistSq), cameraPosition, renderables, ref numDirLights, ref spotLightIndex, ref pointLightIndex, MAX_SPOT_LIGHTS, MAX_POINT_LIGHTS);
         }
@@ -911,12 +911,12 @@ public class DefaultRenderPipeline : RenderPipeline
         Double4x4 vp = css.Projection * css.View;
         (Mesh? wire, Mesh? solid) = Debug.GetGizmoDrawData(CAMERA_RELATIVE, css.CameraPosition);
 
-        if (wire != null || solid != null)
+        if (wire.IsValid() || solid.IsValid())
         {
             // The vertices have already been transformed by the gizmo system to be camera relative (if needed) so we just need to draw them
             s_gizmo.SetMatrix("prowl_MatVP", vp);
-            if (wire != null) Graphics.DrawMeshNow(wire, s_gizmo);
-            if (solid != null) Graphics.DrawMeshNow(solid, s_gizmo);
+            if (wire.IsValid()) Graphics.DrawMeshNow(wire, s_gizmo);
+            if (solid.IsValid()) Graphics.DrawMeshNow(solid, s_gizmo);
         }
 
         //List<GizmoBuilder.IconDrawCall> icons = Debug.GetGizmoIcons();
@@ -1063,7 +1063,7 @@ public class DefaultRenderPipeline : RenderPipeline
             IRenderable renderable = renderables[renderIndex];
 
             Material material = renderable.GetMaterial();
-            if (material.Shader == null) continue;
+            if (material.Shader.IsNotValid()) continue;
 
             int passIndex = -1;
             foreach (ShaderPass pass in material.Shader.Passes)

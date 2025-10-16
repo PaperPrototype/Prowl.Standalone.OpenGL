@@ -537,7 +537,7 @@ public class Mesh : EngineObject, ISerializable
     private static Mesh fullScreenQuad;
     public static Mesh GetFullscreenQuad()
     {
-        if (fullScreenQuad != null) return fullScreenQuad;
+        if (fullScreenQuad.IsValid()) return fullScreenQuad;
         Mesh mesh = new();
         mesh.vertices = new Float3[4];
         mesh.vertices[0] = new Float3(-1, -1, 0);

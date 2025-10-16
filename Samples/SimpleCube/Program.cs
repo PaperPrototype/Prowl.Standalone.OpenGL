@@ -248,13 +248,13 @@ public sealed class MyGame : Game
         time += (float)Time.DeltaTime;
 
         // Animate helix rotation
-        if (helix != null)
+        if (helix.IsValid())
         {
             helix.GameObject.Transform.LocalEulerAngles = new Double3(0, time * 25, 0);
         }
 
         // Animate sine wave
-        if (sineWave != null)
+        if (sineWave.IsValid())
         {
             sineWave.Points.Clear();
             for (int i = 0; i <= 60; i++)
@@ -270,7 +270,7 @@ public sealed class MyGame : Game
         }
 
         // Animate orbital ring rotation
-        if (orbitalRing != null)
+        if (orbitalRing.IsValid())
         {
             orbitalRing.GameObject.Transform.LocalEulerAngles += new Double3(
                 10 * Time.DeltaTime,

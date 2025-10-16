@@ -50,7 +50,7 @@ public static class ShadowAtlas
 
     public static void TryInitialize()
     {
-        if (atlas != null) return;
+        if (atlas.IsValid()) return;
 
         bool supports8k = Graphics.MaxTextureSize >= 8192;
         size = supports8k ? 8192 : 4096;

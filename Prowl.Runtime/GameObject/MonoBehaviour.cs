@@ -125,7 +125,7 @@ public abstract class MonoBehaviour : EngineObject
     /// <inheritdoc cref="GameObject.GetComponentByIdentifier(Guid)"/>"
     public MonoBehaviour? GetComponentByIdentifier(Guid identifier) => GameObject.GetComponentByIdentifier(identifier);
     /// <inheritdoc cref="GameObject.TryGetComponent{T}(out T)"/>"
-    public bool TryGetComponent<T>(out T component) where T : MonoBehaviour => (component = GetComponent<T>()) != null;
+    public bool TryGetComponent<T>(out T component) where T : MonoBehaviour => (component = GetComponent<T>()).IsValid();
     /// <inheritdoc cref="GameObject.GetComponents{T}"/>"
     public IEnumerable<T> GetComponents<T>() where T : MonoBehaviour => GameObject.GetComponents<T>();
     /// <inheritdoc cref="GameObject.GetComponents(Type)"/>"
@@ -155,7 +155,7 @@ public abstract class MonoBehaviour : EngineObject
     /// <exception cref="Exception">Thrown if the Component is not found in its GameObject's Component list.</exception>
     public int? GetSiblingIndex()
     {
-        if (GameObject == null) return null;
+        if (GameObject.IsNotValid()) return null;
 
         for (int i = 0; i < GameObject._components.Count; i++)
             if (object.ReferenceEquals(GameObject._components[i], this))
@@ -170,7 +170,7 @@ public abstract class MonoBehaviour : EngineObject
     /// <param name="index">The new index of this Component.</param>
     public void SetSiblingIndex(int index)
     {
-        if (GameObject == null) return;
+        if (GameObject.IsNotValid()) return;
 
         // Remove this object from current position
         GameObject._components.Remove(this);
@@ -207,7 +207,7 @@ public abstract class MonoBehaviour : EngineObject
             _enabledInHierarchy = newState;
 
             // Only call OnEnable/OnDisable if we're in a Scene
-            if (_go.Scene != null)
+            if (_go.Scene.IsValid())
             {
                 if (newState)
                     OnEnable();
@@ -307,7 +307,7 @@ public abstract class MonoBehaviour : EngineObject
 
     public override void OnDispose()
     {
-        if (GameObject != null)
+        if (GameObject.IsValid())
             GameObject.RemoveComponent(this);
     }
 

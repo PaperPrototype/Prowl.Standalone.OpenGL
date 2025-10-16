@@ -17,7 +17,7 @@ public sealed class Material : EngineObject, ISerializationCallbackReceiver
 
     public static Material GetDefaultMaterial()
     {
-        if (s_defaultMaterial == null)
+        if (s_defaultMaterial.IsNotValid())
         {
             s_defaultMaterial = CreateDefaultMaterial();
             s_defaultMaterial.SetColor("_MainColor", Color.White);

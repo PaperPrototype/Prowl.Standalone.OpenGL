@@ -130,7 +130,7 @@ public class PointOnPlaneConstraint : PhysicsConstraint
     {
         JVector worldNormal = LocalDirToWorld(planeNormal, Body1.Transform);
         JVector worldAnchor1 = LocalToWorld(anchor1, Body1.Transform);
-        JVector worldAnchor2 = connectedBody != null
+        JVector worldAnchor2 = connectedBody.IsValid()
             ? LocalToWorld(anchor2, connectedBody.Transform)
             : new JVector(anchor2.X, anchor2.Y, anchor2.Z);
 

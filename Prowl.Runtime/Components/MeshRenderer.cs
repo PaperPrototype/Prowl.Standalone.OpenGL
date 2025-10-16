@@ -18,7 +18,7 @@ public class MeshRenderer : MonoBehaviour, IRenderable
 
     public override void Update()
     {
-        if (Mesh != null && Material != null)
+        if (Mesh.IsValid() && Material.IsValid())
         {
             _properties.Clear();
             _properties.SetInt("_ObjectID", InstanceID);

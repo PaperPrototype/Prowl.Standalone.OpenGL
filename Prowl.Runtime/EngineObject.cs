@@ -1,6 +1,7 @@
 ﻿// This file is part of the Prowl Game Engine
 // Licensed under the MIT License. See the LICENSE file in the project root for details.
 
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -8,7 +9,7 @@ using Prowl.Echo;
 
 namespace Prowl.Runtime;
 
-public abstract class EngineObject
+public abstract class EngineObject : IDisposable
 {
     private static int s_nextID = 1;
 
@@ -20,8 +21,7 @@ public abstract class EngineObject
 
     public string Name;
 
-    [SerializeIgnore]
-    public bool IsDestroyed = false;
+    public bool IsDisposed { get; private set; }
 
     public EngineObject() : this(null) { }
 
@@ -38,12 +38,21 @@ public abstract class EngineObject
 
     public virtual void OnValidate() { }
 
-    public void Destroy()
+    public void Dispose()
     {
-        if (IsDestroyed) return;
-        IsDestroyed = true;
+        if (IsDisposed) return;
+        IsDisposed = true;
+
         OnDispose();
     }
+
+
+    public static bool operator ==(EngineObject left, EngineObject right)
+    {
+        return ReferenceEquals(left, right);
+    }
+    public static bool operator !=(EngineObject left, EngineObject right) => !(left == right);
+    public override bool Equals(object? obj) => this == (obj as EngineObject);
 
     public virtual void OnDispose() { }
 
@@ -65,5 +74,8 @@ public abstract class EngineObject
 public static class EngineObjectExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool Null(this EngineObject obj) => obj == null || obj.IsDestroyed;
+    public static bool IsNotValid(this EngineObject obj) => obj is null || obj.IsDisposed;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsValid(this EngineObject obj) => obj is not null && !obj.IsDisposed;
 }

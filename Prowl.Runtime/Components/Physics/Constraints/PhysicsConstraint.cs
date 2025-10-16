@@ -56,7 +56,6 @@ public abstract class PhysicsConstraint : MonoBehaviour
 
     public override void OnEnable()
     {
-        if (GameObject?.Scene == null) return;
         RecreateConstraint();
     }
 
@@ -67,7 +66,7 @@ public abstract class PhysicsConstraint : MonoBehaviour
 
     public override void OnValidate()
     {
-        if (GameObject?.Scene == null) return;
+        if (GameObject?.Scene?.IsNotValid() ?? true) return;
         RecreateConstraint();
     }
 
@@ -108,7 +107,7 @@ public abstract class PhysicsConstraint : MonoBehaviour
         DestroyConstraint();
 
         Rigidbody3D body1 = Body1;
-        if (body1 == null || body1._body == null || body1._body.Handle.IsZero)
+        if (body1.IsNotValid() || body1._body == null || body1._body.Handle.IsZero)
             return;
 
         World world = GameObject.Scene.Physics.World;
@@ -116,7 +115,7 @@ public abstract class PhysicsConstraint : MonoBehaviour
 
         // If no connected body is specified, create a static body at the world origin
         RigidBody body2;
-        if (connectedBody == null || connectedBody._body == null || connectedBody._body.Handle.IsZero)
+        if (connectedBody.IsNotValid() || connectedBody._body == null || connectedBody._body.Handle.IsZero)
         {
             // Create a temporary static body for world-space constraints
             body2 = world.CreateRigidBody();

@@ -47,7 +47,7 @@ public sealed class WheelCollider : MonoBehaviour
     {
         get
         {
-            if (_attachedBody == null)
+            if (_attachedBody.IsNotValid())
                 _attachedBody = GameObject.GetComponentInParent<Rigidbody3D>(true, true) ?? throw new Exception("WheelCollider: No Rigidbody3D component found in parent GameObject.");
 
             return _attachedBody;
@@ -69,7 +69,7 @@ public sealed class WheelCollider : MonoBehaviour
         double timeStep = Time.FixedDeltaTime;
 
         // Check for no update
-        if (timeStep <= 0.0 || Body == null || Body.Enabled == false)
+        if (timeStep <= 0.0 || Body.IsNotValid() || Body.Enabled == false)
             return;
 
         double origAngVel = _angularVelocity;
@@ -116,7 +116,7 @@ public sealed class WheelCollider : MonoBehaviour
         _hasPreStepped = true;
 
         // Check for no update
-        if (Body == null || Body.Enabled == false)
+        if (Body.IsNotValid() || Body.Enabled == false)
             return;
 
         Double3 force = Double3.Zero;
@@ -162,7 +162,7 @@ public sealed class WheelCollider : MonoBehaviour
 
             _debugRayStart.Add(newOrigin);
             RaycastHit hitInfo = default;
-            bool result = GameObject.Scene != null && GameObject.Scene.Physics.Raycast(newOrigin, wheelRayDelta, out hitInfo, rayLen, LayerMask.Everything);
+            bool result = GameObject.Scene.IsValid() && GameObject.Scene.Physics.Raycast(newOrigin, wheelRayDelta, out hitInfo, rayLen, LayerMask.Everything);
 
             //Vector3 minBox = worldPos - new Vector3(Radius);
             //Vector3 maxBox = worldPos + new Vector3(Radius);
@@ -226,7 +226,7 @@ public sealed class WheelCollider : MonoBehaviour
         Double3 rimVel = _angularVelocity * Double3.Cross(wheelLeft, groundPos - worldPos);
         Double3 wheelPointVel = wheelCenterVel + rimVel;
 
-        if (worldBody == null) throw new Exception("world Body is null.");
+        if (worldBody.IsNotValid()) throw new Exception("world Body is null.");
 
         Double3 worldVel = worldBody.LinearVelocity + Double3.Cross(worldBody.AngularVelocity, groundPos - worldBody.Transform.Position);
 
@@ -319,7 +319,7 @@ public sealed class WheelCollider : MonoBehaviour
 
     public void AdjustWheelValues()
     {
-        if (Body == null)
+        if (Body.IsNotValid())
         {
             Debug.LogWarning("Cannot Auto-Assign wheel values when no parent rigidbody is present.");
             return;

@@ -72,7 +72,7 @@ public class PaperRenderer : ICanvasRenderer
     {
         // Load Paper UI shader
         var shader = Shader.LoadDefault(DefaultShader.UI);
-        if (shader == null)
+        if (shader.IsNotValid())
         {
             Debug.LogError("Failed to load UI shader. Make sure 'UI.shader' exists in Assets/Defaults folder.");
             return;

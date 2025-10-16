@@ -124,7 +124,7 @@ public class UniversalJoint : PhysicsJoint
     {
         JVector worldAnchor = LocalToWorld(anchor, Body1.Transform);
         JVector worldAxis1 = LocalDirToWorld(axis1, Body1.Transform);
-        JVector worldAxis2 = connectedBody != null
+        JVector worldAxis2 = connectedBody.IsValid()
             ? LocalDirToWorld(axis2, connectedBody.Transform)
             : new JVector(axis2.X, axis2.Y, axis2.Z);
 

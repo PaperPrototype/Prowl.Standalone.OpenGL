@@ -312,7 +312,7 @@ public sealed class PhysicsDemo : Game
         cube.Transform.Position = cameraGO.Transform.Position + cameraGO.Transform.Forward * 2.0;
 
         MeshRenderer cubeRenderer = cube.AddComponent<MeshRenderer>();
-        cubeShootMesh = cubeShootMesh == null ? Mesh.CreateCube(new Double3(0.5, 0.5, 0.5)) : cubeShootMesh;
+        cubeShootMesh = cubeShootMesh.IsNotValid() ? Mesh.CreateCube(new Double3(0.5, 0.5, 0.5)) : cubeShootMesh;
         cubeRenderer.Mesh = cubeShootMesh;
         cubeRenderer.Material = standardMaterial;
         cubeRenderer.MainColor = new Color(1.0f, 0.3f, 0.3f, 1.0f);
@@ -386,9 +386,9 @@ public sealed class PhysicsDemo : Game
             Initialize();
         }
 
-        if (Input.GetKeyDown(KeyCode.X) && lastShot != null)
+        if (Input.GetKeyDown(KeyCode.X) && lastShot.IsValid())
         {
-            lastShot.Destroy();
+            lastShot.Dispose();
         }
 
         // Weight selection with number keys

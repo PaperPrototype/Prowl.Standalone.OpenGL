@@ -121,7 +121,7 @@ public sealed class Shader : EngineObject, ISerializationCallbackReceiver
             throw new System.Exception($"Failed to parse shader: {filePath}");
         }
 
-        if (shader == null)
+        if (shader.IsNotValid())
             throw new System.Exception($"Shader parsing returned null: {filePath}");
 
         shader.AssetPath = filePath;
@@ -170,7 +170,7 @@ public sealed class Shader : EngineObject, ISerializationCallbackReceiver
             throw new System.Exception($"Failed to parse default shader: {shader}");
         }
 
-        if (result == null)
+        if (result.IsNotValid())
             throw new System.Exception($"Default shader parsing returned null: {shader}");
 
         result.AssetPath = $"$Default:{shader}";

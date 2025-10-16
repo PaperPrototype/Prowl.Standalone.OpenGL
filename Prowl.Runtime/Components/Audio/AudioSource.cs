@@ -22,13 +22,13 @@ public sealed class AudioSource : MonoBehaviour
 
     public void Play()
     {
-        if (Clip != null)
+        if (Clip.IsValid())
             _source.Play(_buffer);
     }
 
     public void Stop()
     {
-        if (Clip != null)
+        if (Clip.IsValid())
             _source?.Stop();
     }
 
@@ -44,7 +44,7 @@ public sealed class AudioSource : MonoBehaviour
         _source.Gain = Volume;
         _source.Looping = Looping;
         _source.MaxDistance = MaxDistance;
-        if (Clip != null)
+        if (Clip.IsValid())
             _buffer = AudioSystem.GetAudioBuffer(Clip);
     }
 
@@ -65,7 +65,7 @@ public sealed class AudioSource : MonoBehaviour
             //_lastVersion = GameObject.transform.version;
         }
 
-        if (Clip != null)
+        if (Clip.IsValid())
             _buffer = AudioSystem.GetAudioBuffer(Clip);
 
         if (_looping != Looping)

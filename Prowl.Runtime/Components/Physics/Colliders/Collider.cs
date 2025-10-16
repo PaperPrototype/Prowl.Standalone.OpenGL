@@ -30,7 +30,7 @@ public abstract class Collider : MonoBehaviour
         if (shapes == null)
             return null;
         Rigidbody3D rb = RigidBody;
-        if (rb == null) return shapes;
+        if (rb.IsNotValid()) return shapes;
 
         // Get the cumulative scale from this object up to (but not including) the rigidbody
         Double3 cumulativeScale = Double3.One;
@@ -91,7 +91,7 @@ public abstract class Collider : MonoBehaviour
     public override void OnEnable()
     {
         Rigidbody3D rb = RigidBody;
-        if (rb != null)
+        if (rb.IsValid())
         {
             // Refresh the Rigidbody, this will regenerate the body's shape and include this collider
             rb.OnValidate();
@@ -101,7 +101,7 @@ public abstract class Collider : MonoBehaviour
     public override void OnDisable()
     {
         Rigidbody3D rb = RigidBody;
-        if (rb != null)
+        if (rb.IsValid())
         {
             // Refresh the Rigidbody, this will regenerate the body's shape and remove this collider
             rb.OnValidate();
@@ -111,7 +111,7 @@ public abstract class Collider : MonoBehaviour
     public override void OnValidate()
     {
         Rigidbody3D rb = RigidBody;
-        if (rb != null)
+        if (rb.IsValid())
         {
             // Refresh the Rigidbody, this will regenerate the body's shape and include the changes made to this collider
             rb.OnValidate();

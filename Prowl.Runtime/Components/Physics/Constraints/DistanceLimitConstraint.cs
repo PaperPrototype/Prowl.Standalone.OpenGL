@@ -133,7 +133,7 @@ public class DistanceLimitConstraint : PhysicsConstraint
     protected override void CreateConstraint(World world, RigidBody body1, RigidBody body2)
     {
         JVector worldAnchor1 = LocalToWorld(anchor, Body1.Transform);
-        JVector worldAnchor2 = connectedBody != null
+        JVector worldAnchor2 = connectedBody.IsValid()
             ? LocalToWorld(connectedAnchor, connectedBody.Transform)
             : new JVector(connectedAnchor.X, connectedAnchor.Y, connectedAnchor.Z);
 
@@ -160,7 +160,7 @@ public class DistanceLimitConstraint : PhysicsConstraint
         if (constraint != null && !constraint.Handle.IsZero)
         {
             JVector worldAnchor1 = LocalToWorld(anchor, Body1.Transform);
-            JVector worldAnchor2 = connectedBody != null
+            JVector worldAnchor2 = connectedBody.IsValid()
                 ? LocalToWorld(connectedAnchor, connectedBody.Transform)
                 : new JVector(connectedAnchor.X, connectedAnchor.Y, connectedAnchor.Z);
 

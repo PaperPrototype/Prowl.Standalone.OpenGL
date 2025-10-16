@@ -127,9 +127,9 @@ public class GameObject : EngineObject, ISerializable
     /// <returns>True if this GameObject is a child or the same as the given parent, false otherwise.</returns>
     public static bool IsChildOrSameTransform(GameObject transform, GameObject inParent)
     {
-        if (inParent == null) return false;
+        if (inParent.IsNotValid()) return false;
         GameObject child = transform;
-        while (child != null)
+        while (child.IsValid())
         {
             if (child == inParent)
                 return true;
@@ -146,10 +146,10 @@ public class GameObject : EngineObject, ISerializable
     /// <returns>True if this GameObject is a child of the given parent, false otherwise.</returns>
     public bool IsChildOf(GameObject parent)
     {
-        if (parent == null) return false;
+        if (parent.IsNotValid()) return false;
 
         GameObject child = _parent;
-        while (child != null)
+        while (child.IsValid())
         {
             if (child == parent)
                 return true;
@@ -173,7 +173,7 @@ public class GameObject : EngineObject, ISerializable
         if (IsChildOrSameTransform(NewParent, this))
             return false;
 
-        Scene newScene = (NewParent != null) ? NewParent.Scene : Scene;
+        Scene newScene = (NewParent.IsValid()) ? NewParent.Scene : Scene;
 
         if (newScene != Scene)
         {
@@ -196,10 +196,10 @@ public class GameObject : EngineObject, ISerializable
         if (NewParent != _parent)
         {
             // If it already has an father, remove this from fathers children
-            if (_parent != null)
+            if (_parent.IsValid())
                 _parent.Children.Remove(this);
 
-            if (NewParent != null)
+            if (NewParent.IsValid())
                 NewParent.Children.Add(this);
 
             _parent = NewParent;
@@ -207,7 +207,7 @@ public class GameObject : EngineObject, ISerializable
 
         if (worldPositionStays)
         {
-            if (_parent != null)
+            if (_parent.IsValid())
             {
                 Transform.LocalPosition = _parent.Transform.InverseTransformPoint(worldPosition);
                 Transform.LocalRotation = Quaternion.NormalizeSafe(Quaternion.Inverse(_parent.Transform.Rotation) * worldRotation);
@@ -243,7 +243,7 @@ public class GameObject : EngineObject, ISerializable
     /// <summary> Recursive function to check if this GameObject is a parent of another GameObject </summary>
     public bool IsParentOf(GameObject go)
     {
-        if (go == null) return false;
+        if (go.IsNotValid()) return false;
         if (go.Parent?.InstanceID == InstanceID)
             return true;
 
@@ -334,7 +334,7 @@ public class GameObject : EngineObject, ISerializable
     public List<int> GetIndexPathOfChild(GameObject child)
     {
         List<int> path = [];
-        while (child.Parent != null && child != this)
+        while (child.Parent.IsValid() && child != this)
         {
             path.Add(child.Parent.Children.IndexOf(child));
             child = child.Parent;
@@ -360,7 +360,7 @@ public class GameObject : EngineObject, ISerializable
             if (deep)
             {
                 GameObject found = child.FindChildByIdentifier(identifier);
-                if (found != null)
+                if (found.IsValid())
                     return found;
             }
         }
@@ -374,7 +374,7 @@ public class GameObject : EngineObject, ISerializable
     /// <exception cref="Exception">Thrown if the GameObject is not found in its parent's children list.</exception>
     public int? GetSiblingIndex()
     {
-        if (Parent == null) return null;
+        if (Parent.IsNotValid()) return null;
 
         for (int i = 0; i < Parent.Children.Count; i++)
             if (Parent.Children[i] == this)
@@ -389,7 +389,7 @@ public class GameObject : EngineObject, ISerializable
     /// <param name="index">The new index of this GameObject.</param>
     public void SetSiblingIndex(int index)
     {
-        if (Parent == null) return;
+        if (Parent.IsNotValid()) return;
 
         // Remove this object from current position
         Parent.Children.Remove(this);
@@ -441,7 +441,7 @@ public class GameObject : EngineObject, ISerializable
                     continue;
 
                 // If there is already a component on the object
-                if (GetComponent(requiredComponentType) != null)
+                if (GetComponent(requiredComponentType).IsValid())
                     continue;
 
                 // Recursive call to attempt to add the new component
@@ -450,7 +450,7 @@ public class GameObject : EngineObject, ISerializable
         }
 
         var newComponent = Activator.CreateInstance(type) as MonoBehaviour;
-        if (newComponent == null) return null;
+        if (newComponent.IsNotValid()) return null;
 
         newComponent.AttachToGameObject(this);
         _components.Add(newComponent);
@@ -479,7 +479,7 @@ public class GameObject : EngineObject, ISerializable
                     continue;
 
                 // If there is already a component on the object
-                if (GetComponent(requiredComponentType) != null)
+                if (GetComponent(requiredComponentType).IsValid())
                     continue;
 
                 // Recursive call to attempt to add the new component
@@ -559,7 +559,7 @@ public class GameObject : EngineObject, ISerializable
     public void RemoveComponent(Guid component)
     {
         MonoBehaviour? comp = GetComponentByIdentifier(component);
-        if (comp != null)
+        if (comp.IsValid())
             RemoveComponent(comp);
     }
 
@@ -613,7 +613,7 @@ public class GameObject : EngineObject, ISerializable
     /// <typeparam name="T">The type of component to get.</typeparam>
     /// <param name="component">The output parameter to store the found component.</param>
     /// <returns>True if a component of type T was found, false otherwise.</returns>
-    public bool TryGetComponent<T>(out T? component) where T : MonoBehaviour => (component = GetComponent<T>()) != null;
+    public bool TryGetComponent<T>(out T? component) where T : MonoBehaviour => (component = GetComponent<T>()).IsValid();
 
     /// <summary>
     /// Gets all components of type T attached to the GameObject.
@@ -671,17 +671,17 @@ public class GameObject : EngineObject, ISerializable
         if (includeSelf && (EnabledInHierarchy || includeInactive))
         {
             component = GetComponent(componentType);
-            if (component != null)
+            if (component.IsValid())
                 return component;
         }
         // Now check all parents
         GameObject parent = this;
-        while ((parent = parent.Parent) != null)
+        while ((parent = parent.Parent).IsValid())
         {
             if (parent.EnabledInHierarchy || includeInactive)
             {
                 component = parent.GetComponent(componentType);
-                if (component != null)
+                if (component.IsValid())
                     return component;
             }
         }
@@ -712,7 +712,7 @@ public class GameObject : EngineObject, ISerializable
                 yield return component;
         // Now check all parents
         GameObject parent = this;
-        while ((parent = parent.Parent) != null)
+        while ((parent = parent.Parent).IsValid())
         {
             if (parent.EnabledInHierarchy || includeInactive)
                 foreach (MonoBehaviour component in parent.GetComponents(type))
@@ -744,7 +744,7 @@ public class GameObject : EngineObject, ISerializable
         if (includeSelf && (EnabledInHierarchy || includeInactive))
         {
             component = GetComponent(componentType);
-            if (component != null)
+            if (component.IsValid())
                 return component;
         }
         // Now check all children
@@ -755,7 +755,7 @@ public class GameObject : EngineObject, ISerializable
                 continue;
 
             component = child.GetComponentInChildren(componentType, true, includeInactive);
-            if (component != null)
+            if (component.IsValid())
                 return component;
         }
         return null;
@@ -766,7 +766,7 @@ public class GameObject : EngineObject, ISerializable
         if (includeSelf && (EnabledInHierarchy || includeInactive))
         {
             MonoBehaviour component = GetComponentByIdentifier(identifier);
-            if (component != null)
+            if (component.IsValid())
                 return component;
         }
 
@@ -777,7 +777,7 @@ public class GameObject : EngineObject, ISerializable
                 continue;
 
             MonoBehaviour component = child.GetComponentInChildrenByIdentifier(identifier, true, includeInactive);
-            if (component != null)
+            if (component.IsValid())
                 return component;
         }
         return null;
@@ -859,19 +859,19 @@ public class GameObject : EngineObject, ISerializable
     public override void OnDispose()
     {
         for (int i = Children.Count - 1; i >= 0; i--)
-            Children[i].Destroy();
+            Children[i].Dispose();
 
         for (int i = _components.Count - 1; i >= 0; i--)
         {
             MonoBehaviour component = _components[i];
-            if (component.IsDestroyed) continue;
+            if (component.IsDisposed) continue;
             if (component.EnabledInHierarchy) component.OnDisable();
             if (component.HasStarted) component.OnDestroy(); // OnDestroy is only called if the component has previously been active
-            component.Destroy();
+            component.Dispose();
         }
         _components.Clear();
 
-        if (_parent != null && !_parent.IsDestroyed)
+        if (_parent.IsValid() && !_parent.IsDisposed)
             SetParent(null);
     }
 
@@ -906,7 +906,7 @@ public class GameObject : EngineObject, ISerializable
     /// Checks if the parent of this GameObject is enabled.
     /// </summary>
     /// <returns>True if the parent is enabled or if there is no parent, false otherwise.</returns>
-    private bool IsParentEnabled() => Parent == null || Parent.EnabledInHierarchy;
+    private bool IsParentEnabled() => Parent.IsNotValid() || Parent.EnabledInHierarchy;
 
     /// <summary>
     /// Calls the specified method on every MonoBehaviour in this GameObject and its children.
@@ -1065,7 +1065,7 @@ public class GameObject : EngineObject, ISerializable
         foreach (EchoObject childTag in children.List)
         {
             GameObject? child = Serializer.Deserialize<GameObject>(childTag, ctx);
-            if (child == null) continue;
+            if (child.IsNotValid()) continue;
             child._parent = this;
             Children.Add(child);
         }
@@ -1099,7 +1099,7 @@ public class GameObject : EngineObject, ISerializable
             }
 
             MonoBehaviour? component = Serializer.Deserialize<MonoBehaviour>(compTag, ctx);
-            if (component == null) continue;
+            if (component.IsNotValid()) continue;
             _components.Add(component);
             _componentCache.Add(component.GetType(), component);
         }
@@ -1126,7 +1126,7 @@ public class GameObject : EngineObject, ISerializable
             {
                 // We have the type! Deserialize it and add it to the components
                 MonoBehaviour? component = Serializer.Deserialize<MonoBehaviour>(oldData);
-                if (component != null)
+                if (component.IsValid())
                 {
                     _components.Add(component);
                 }

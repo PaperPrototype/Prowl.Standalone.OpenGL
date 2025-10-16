@@ -76,7 +76,7 @@ public static class AudioSystem
 
     public static void RegisterListener(AudioListener audioListener)
     {
-        if (_listener != null)
+        if (_listener.IsValid())
         {
             Debug.LogWarning("Audio listener already registered, only the first in the scene will work as intended! Please destroy that one first before instantiating a new Listener.");
             return;

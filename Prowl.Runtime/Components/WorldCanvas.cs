@@ -61,7 +61,7 @@ public class WorldCanvas : MonoBehaviour, IRenderable
         _paper = new Paper(_paperRenderer, Width, Height, new Prowl.Quill.FontAtlasSettings());
 
         // Create a default material if none is provided
-        if (Material == null)
+        if (Material.IsNotValid())
         {
             Material = new Material(Shader.LoadDefault(DefaultShader.Unlit));
         }
@@ -72,7 +72,7 @@ public class WorldCanvas : MonoBehaviour, IRenderable
 
     private void CleanupCanvas()
     {
-        _renderTexture?.Destroy();
+        _renderTexture?.Dispose();
         _renderTexture = null;
 
         _paperRenderer?.Dispose();
@@ -84,14 +84,14 @@ public class WorldCanvas : MonoBehaviour, IRenderable
     public override void Update()
     {
         // Check if we need to recreate the canvas due to size changes
-        if (_renderTexture != null && (_renderTexture.Width != Width || _renderTexture.Height != Height))
+        if (_renderTexture.IsValid() && (_renderTexture.Width != Width || _renderTexture.Height != Height))
         {
             CleanupCanvas();
             InitializeCanvas();
         }
 
         // Handle input if target camera is assigned
-        if (TargetCamera != null && _paper != null)
+        if (TargetCamera.IsValid() && _paper != null)
         {
             UpdateInput();
         }
@@ -100,7 +100,7 @@ public class WorldCanvas : MonoBehaviour, IRenderable
         RenderUI();
 
         // Push this canvas as a renderable
-        if (_renderTexture != null && Material != null && _quadMesh != null)
+        if (_renderTexture.IsValid() && Material.IsValid() && _quadMesh.IsValid())
         {
             _properties.Clear();
             _properties.SetInt("_ObjectID", InstanceID);
@@ -111,7 +111,7 @@ public class WorldCanvas : MonoBehaviour, IRenderable
 
     private void UpdateInput()
     {
-        if (_paper == null || TargetCamera == null) return;
+        if (_paper == null || TargetCamera.IsNotValid()) return;
 
         // Get mouse position in screen space
         Int2 mousePos = Input.MousePosition;
@@ -218,7 +218,7 @@ public class WorldCanvas : MonoBehaviour, IRenderable
 
     private void RenderUI()
     {
-        if (_renderTexture == null || _paper == null) return;
+        if (_renderTexture.IsNotValid() || _paper == null) return;
 
         // Begin rendering to the render texture
         _renderTexture.Begin();
@@ -253,7 +253,7 @@ public class WorldCanvas : MonoBehaviour, IRenderable
 
     public void GetCullingData(out bool isRenderable, out AABB bounds)
     {
-        isRenderable = _renderTexture != null && Material != null;
+        isRenderable = _renderTexture.IsValid() && Material.IsValid();
 
         // Create bounds for the fullscreen quad (-1 to 1 in local space)
         Double3 min = new(-1, -1, 0);

@@ -67,10 +67,10 @@ public static class Graphics
     {
         get
         {
-            if (s_blitShader == null)
+            if (s_blitShader.IsNotValid())
                 s_blitShader = Shader.LoadDefault(DefaultShader.Blit);
 
-            if (s_blitMaterial == null)
+            if (s_blitMaterial.IsNotValid())
                 s_blitMaterial = new Material(s_blitShader);
 
             return s_blitMaterial;
@@ -92,7 +92,7 @@ public static class Graphics
     public static void Blit(RenderTexture target, Material? mat = null, int pass = 0, bool clearDepth = false, bool clearColor = false, Color color = default)
     {
         mat ??= BlitMaterial;
-        if (target != null)
+        if (target.IsValid())
         {
             Graphics.Device.BindFramebuffer(target.frameBuffer);
         }

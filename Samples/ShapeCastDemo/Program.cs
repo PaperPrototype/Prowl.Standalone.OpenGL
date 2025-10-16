@@ -202,7 +202,7 @@ public sealed class ShapeCastDemoGame : Game
         scene.DrawGizmos();
 
         // Camera follows player from behind
-        if (playerGO != null)
+        if (playerGO.IsValid())
         {
             Double3 targetPos = playerGO.Transform.Position + new Double3(0, 3, -8);
             cameraGO.Transform.Position = Maths.Lerp(cameraGO.Transform.Position, targetPos, 1.0 * Time.DeltaTime);
@@ -257,7 +257,7 @@ public class PlayerController : MonoBehaviour
 
     public override void Update()
     {
-        if (characterController == null) return;
+        if (characterController.IsNotValid()) return;
 
         moveInput = Double3.Zero;
         if (Input.GetKey(KeyCode.W)) moveInput += new Double3(0, 0, 1);
