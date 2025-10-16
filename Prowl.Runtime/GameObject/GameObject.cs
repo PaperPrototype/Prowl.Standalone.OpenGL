@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -346,6 +347,7 @@ public class GameObject : EngineObject, ISerializable
     /// Finds child a GameObject by its identifier.
     /// </summary>
     /// <param name="identifier"></param>
+    /// <param name="deep"></param>
     public GameObject FindChildByIdentifier(Guid identifier, bool deep = true)
     {
         if (_identifier == identifier)
@@ -1006,6 +1008,7 @@ public class GameObject : EngineObject, ISerializable
     /// <summary>
     /// Serializes the GameObject to a SerializedProperty.
     /// </summary>
+    /// <param name="compoundTag"></param>
     /// <param name="ctx">The serialization context.</param>
     /// <returns>A SerializedProperty containing the GameObject's data.</returns>
     public void Serialize(ref EchoObject compoundTag, SerializationContext ctx)

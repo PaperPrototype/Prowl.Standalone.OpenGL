@@ -42,9 +42,9 @@ public abstract class PhysicsConstraint : MonoBehaviour
     protected Rigidbody3D Body1 => GetComponentInParent<Rigidbody3D>();
 
     /// <summary>
-    /// Gets or sets whether this constraint is enabled.
+    /// Gets or sets whether this constraint is active.
     /// </summary>
-    public bool Enabled
+    public bool Active
     {
         get => GetConstraint()?.IsEnabled ?? false;
         set

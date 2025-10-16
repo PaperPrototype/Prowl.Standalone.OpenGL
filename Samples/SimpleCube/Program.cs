@@ -38,8 +38,8 @@ internal class Program
 
 public sealed class MyGame : Game
 {
-    private GameObject cameraGO;
-    private Scene scene;
+    private GameObject? cameraGO;
+    private Scene? scene;
 
     // Input Actions
     private InputActionMap cameraMap = null!;
@@ -51,9 +51,9 @@ public sealed class MyGame : Game
     private InputAction sprintAction = null!;
 
     // Line Renderer Examples
-    private LineRenderer helix;
-    private LineRenderer sineWave;
-    private LineRenderer orbitalRing;
+    private LineRenderer? helix;
+    private LineRenderer? sineWave;
+    private LineRenderer? orbitalRing;
     private float time = 0;
 
     public override void Initialize()

@@ -6,59 +6,58 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Prowl.Runtime.Resources
+namespace Prowl.Runtime.Resources;
+
+/// <summary>
+/// Helper class for loading embedded resources from the Prowl.Runtime assembly
+/// </summary>
+internal static class EmbeddedResources
 {
+    private static readonly Assembly RuntimeAssembly = Assembly.GetExecutingAssembly();
+
     /// <summary>
-    /// Helper class for loading embedded resources from the Prowl.Runtime assembly
+    /// Gets an embedded resource stream by path
     /// </summary>
-    internal static class EmbeddedResources
+    public static Stream GetStream(string resourcePath)
     {
-        private static readonly Assembly RuntimeAssembly = Assembly.GetExecutingAssembly();
+        if (!TryGetResourceName(resourcePath, out string? resourceName) || resourceName == null)
+            throw new FileNotFoundException($"Embedded resource '{resourcePath}' not found.");
 
-        /// <summary>
-        /// Gets an embedded resource stream by path
-        /// </summary>
-        public static Stream GetStream(string resourcePath)
-        {
-            if (!TryGetResourceName(resourcePath, out string? resourceName) || resourceName == null)
-                throw new FileNotFoundException($"Embedded resource '{resourcePath}' not found.");
+        return RuntimeAssembly.GetManifestResourceStream(resourceName)
+            ?? throw new FileNotFoundException($"Failed to load embedded resource '{resourceName}'.");
+    }
 
-            return RuntimeAssembly.GetManifestResourceStream(resourceName)
-                ?? throw new FileNotFoundException($"Failed to load embedded resource '{resourceName}'.");
-        }
+    /// <summary>
+    /// Reads an embedded resource as text
+    /// </summary>
+    public static string ReadAllText(string resourcePath)
+    {
+        using var stream = GetStream(resourcePath);
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
 
-        /// <summary>
-        /// Reads an embedded resource as text
-        /// </summary>
-        public static string ReadAllText(string resourcePath)
-        {
-            using var stream = GetStream(resourcePath);
-            using var reader = new StreamReader(stream);
-            return reader.ReadToEnd();
-        }
+    /// <summary>
+    /// Checks if an embedded resource exists
+    /// </summary>
+    public static bool Exists(string resourcePath)
+    {
+        return TryGetResourceName(resourcePath, out _);
+    }
 
-        /// <summary>
-        /// Checks if an embedded resource exists
-        /// </summary>
-        public static bool Exists(string resourcePath)
-        {
-            return TryGetResourceName(resourcePath, out _);
-        }
+    private static bool TryGetResourceName(string resourcePath, out string? resourceName)
+    {
+        resourceName = null;
 
-        private static bool TryGetResourceName(string resourcePath, out string? resourceName)
-        {
-            resourceName = null;
+        // Normalize path separators
+        resourcePath = resourcePath.Replace('\\', '/');
 
-            // Normalize path separators
-            resourcePath = resourcePath.Replace('\\', '/');
+        string[] resourceNames = RuntimeAssembly.GetManifestResourceNames();
 
-            string[] resourceNames = RuntimeAssembly.GetManifestResourceNames();
+        // Try exact match first
+        resourceName = resourceNames.FirstOrDefault(r => r.Replace('\\', '/').EndsWith(resourcePath, StringComparison.OrdinalIgnoreCase))
+                    ?? resourceNames.FirstOrDefault(r => r.EndsWith(Path.GetFileName(resourcePath), StringComparison.OrdinalIgnoreCase));
 
-            // Try exact match first
-            resourceName = resourceNames.FirstOrDefault(r => r.Replace('\\', '/').EndsWith(resourcePath, StringComparison.OrdinalIgnoreCase))
-                        ?? resourceNames.FirstOrDefault(r => r.EndsWith(Path.GetFileName(resourcePath), StringComparison.OrdinalIgnoreCase));
-
-            return resourceName != null;
-        }
+        return resourceName != null;
     }
 }

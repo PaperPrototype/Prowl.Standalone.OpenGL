@@ -18,11 +18,11 @@ internal class Program
 
 public sealed class ShapeCastDemoGame : Game
 {
-    private GameObject cameraGO;
-    private Scene scene;
-    private Material standardMaterial;
-    private GameObject playerGO;
-    private PlayerController playerController;
+    private GameObject? cameraGO;
+    private Scene? scene;
+    private Material? standardMaterial;
+    private GameObject? playerGO;
+    private PlayerController? playerController;
 
     public override void Initialize()
     {
@@ -243,7 +243,7 @@ public class PlayerController : MonoBehaviour
     public double StandingHeight = 1.8;
     public double CrouchHeight = 0.9;
 
-    private CharacterController characterController;
+    private CharacterController? characterController;
     private Double3 velocity = Double3.Zero;
     private Double3 moveInput = Double3.Zero;
     private bool jumpInput = false;

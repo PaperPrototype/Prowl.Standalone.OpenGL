@@ -126,7 +126,7 @@ public class OpenALActiveAudio : ActiveAudio
             OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.ByteOffset, out var playbackBytes);
             OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.Buffer, out var bufferID);
             OpenALEngine.al.GetBufferProperty((uint)bufferID, GetBufferInteger.Size, out var totalBufferBytes);
-            return (double)(playbackBytes / totalBufferBytes);
+            return playbackBytes / totalBufferBytes;
         }
         set
         {

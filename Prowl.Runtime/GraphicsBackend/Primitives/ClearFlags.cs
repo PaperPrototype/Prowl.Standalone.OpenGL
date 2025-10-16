@@ -3,13 +3,12 @@
 
 using System;
 
-namespace Prowl.Runtime.GraphicsBackend.Primitives
+namespace Prowl.Runtime.GraphicsBackend.Primitives;
+
+[Flags]
+public enum ClearFlags
 {
-    [Flags]
-    public enum ClearFlags
-    {
-        Color = 1 << 1,
-        Depth = 1 << 2,
-        Stencil = 1 << 3,
-    }
+    Color = 1 << 1,
+    Depth = 1 << 2,
+    Stencil = 1 << 3,
 }

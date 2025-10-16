@@ -150,8 +150,8 @@ public class DualAxisCompositeBinding : InputCompositeBinding
             // For mouse axis, read the specified axis
             InputBindingType.MouseAxis => binding.AxisIndex switch
             {
-                0 => (double)inputHandler.MouseDelta.X,
-                1 => (double)inputHandler.MouseDelta.Y,
+                0 => inputHandler.MouseDelta.X,
+                1 => inputHandler.MouseDelta.Y,
                 2 => inputHandler.MouseWheelDelta,
                 _ => 0f
             },

@@ -18,10 +18,10 @@ internal class Program
 
 public sealed class PhysicsDemo : Game
 {
-    private GameObject cameraGO;
-    private Scene scene;
+    private GameObject? cameraGO;
+    private Scene? scene;
     private double selectedCubeMass = 1.0;
-    private Material standardMaterial;
+    private Material? standardMaterial;
 
     public override void Initialize()
     {

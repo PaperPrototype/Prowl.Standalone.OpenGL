@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for details.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 using Echo.Logging;
 
@@ -133,6 +134,7 @@ public abstract class Game
     public virtual void Resize(int width, int height) { }
     public virtual void Closing() { }
 
+    [RequiresDynamicCode("Calls System.Enum.GetValues(Type)")]
     private void UpdatePaperInput()
     {
         // Handle mouse position and movement

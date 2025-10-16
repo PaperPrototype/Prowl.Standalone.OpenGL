@@ -491,8 +491,8 @@ public class InputAction
             InputBindingType.GamepadTrigger => inputHandler.GetGamepadTrigger(binding.RequiredDeviceIndex ?? 0, binding.AxisIndex ?? 0),
             InputBindingType.MouseAxis => binding.AxisIndex switch
             {
-                0 => (double)inputHandler.MouseDelta.X,
-                1 => (double)inputHandler.MouseDelta.Y,
+                0 => inputHandler.MouseDelta.X,
+                1 => inputHandler.MouseDelta.Y,
                 2 => inputHandler.MouseWheelDelta,
                 _ => 0f
             },

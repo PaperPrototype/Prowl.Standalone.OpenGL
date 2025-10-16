@@ -468,7 +468,7 @@ public static class RuntimeUtils
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe int NonNormalizedAsInt(bool b) =>
-        (int)(*(byte*)(&b));
+        *(byte*)(&b);
 
     internal static int? GetExecutionOrder(MonoBehaviour a)
     {
