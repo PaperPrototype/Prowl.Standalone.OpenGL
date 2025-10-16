@@ -31,10 +31,10 @@ public class InputAction
     /// </summary>
     public InputActionType ActionType { get; set; } = InputActionType.Button;
 
-    private Type _expectedValueType = typeof(float);
+    private Type _expectedValueType = typeof(double);
 
     /// <summary>
-    /// The expected value type for this action (typeof(float), typeof(Float2), etc.).
+    /// The expected value type for this action (typeof(double), typeof(Double2), etc.).
     /// </summary>
     public Type ExpectedValueType
     {
@@ -90,7 +90,7 @@ public class InputAction
     {
         Name = name;
         ActionType = type;
-        ExpectedValueType = type == InputActionType.Button ? typeof(float) : typeof(float);
+        ExpectedValueType = type == InputActionType.Button ? typeof(double) : typeof(double);
 
         // Initialize with proper default value based on type
         _currentValue = GetDefaultValue();
@@ -156,7 +156,7 @@ public class InputAction
 
     /// <summary>
     /// Adds a composite binding that combines multiple inputs into one value.
-    /// Example: WASD keys → Vector2, or two triggers → float axis
+    /// Example: WASD keys → Vector2, or two triggers → double axis
     /// </summary>
     public InputAction AddBinding(InputCompositeBinding composite)
     {
@@ -191,7 +191,7 @@ public class InputAction
         if (!Enabled || ActionType != InputActionType.Button)
             return false;
 
-        return ReadValue<float>() > 0f && Convert.ToSingle(_previousValue) <= 0f;
+        return ReadValue<double>() > 0f && Convert.ToSingle(_previousValue) <= 0f;
     }
 
     /// <summary>
@@ -202,7 +202,7 @@ public class InputAction
         if (!Enabled || ActionType != InputActionType.Button)
             return false;
 
-        return ReadValue<float>() <= 0f && Convert.ToSingle(_previousValue) > 0f;
+        return ReadValue<double>() <= 0f && Convert.ToSingle(_previousValue) > 0f;
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ public class InputAction
         if (!Enabled || ActionType != InputActionType.Button)
             return false;
 
-        return ReadValue<float>() > 0f;
+        return ReadValue<double>() > 0f;
     }
 
     /// <summary>
@@ -279,9 +279,9 @@ public class InputAction
                 // Apply processors from the composite
                 foreach (var processor in composite.Processors)
                 {
-                    if (compositeValue is float floatValue)
-                        compositeValue = processor.Process(floatValue);
-                    else if (compositeValue is Float2 vectorValue)
+                    if (compositeValue is double doubleValue)
+                        compositeValue = processor.Process(doubleValue);
+                    else if (compositeValue is Double2 vectorValue)
                         compositeValue = processor.Process(vectorValue);
                 }
                 return compositeValue;
@@ -300,9 +300,9 @@ public class InputAction
             // Apply processors from THIS binding only
             foreach (var processor in binding.Processors)
             {
-                if (rawValue is float floatValue)
-                    rawValue = processor.Process(floatValue);
-                else if (rawValue is Float2 vectorValue)
+                if (rawValue is double doubleValue)
+                    rawValue = processor.Process(doubleValue);
+                else if (rawValue is Double2 vectorValue)
                     rawValue = processor.Process(vectorValue);
             }
 
@@ -491,8 +491,8 @@ public class InputAction
             InputBindingType.GamepadTrigger => inputHandler.GetGamepadTrigger(binding.RequiredDeviceIndex ?? 0, binding.AxisIndex ?? 0),
             InputBindingType.MouseAxis => binding.AxisIndex switch
             {
-                0 => (float)inputHandler.MouseDelta.X,
-                1 => (float)inputHandler.MouseDelta.Y,
+                0 => (double)inputHandler.MouseDelta.X,
+                1 => (double)inputHandler.MouseDelta.Y,
                 2 => inputHandler.MouseWheelDelta,
                 _ => 0f
             },
@@ -500,26 +500,19 @@ public class InputAction
         };
     }
 
-    private object ApplyProcessors(object value)
-    {
-        // Don't apply processors from all bindings - this is handled per-binding
-        // Processors should be applied in ReadValueFromBindings instead
-        return value;
-    }
-
     private bool IsValueActuated(object value)
     {
-        if (value is float floatValue)
-            return Math.Abs(floatValue) > 0.0001f;
-        if (value is Float2 vectorValue)
+        if (value is double doubleValue)
+            return Math.Abs(doubleValue) > 0.0001f;
+        if (value is Double2 vectorValue)
             return Math.Abs(vectorValue.X) > 0.0001f || Math.Abs(vectorValue.Y) > 0.0001f;
         return false;
     }
 
     private object GetDefaultValue()
     {
-        if (ExpectedValueType == typeof(Float2))
-            return Float2.Zero;
+        if (ExpectedValueType == typeof(Double2))
+            return Double2.Zero;
         return 0f;
     }
 

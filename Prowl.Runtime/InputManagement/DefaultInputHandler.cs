@@ -50,7 +50,7 @@ public class DefaultInputHandler : IInputHandler, IDisposable
             return new Double2(delta.X, delta.Y); // Invert Y to match gamepad (up = positive)
         }
     }
-    public float MouseWheelDelta => Mice[0].ScrollWheels[0].Y;
+    public double MouseWheelDelta => Mice[0].ScrollWheels[0].Y;
 
     private Dictionary<KeyCode, bool> wasKeyPressed = new Dictionary<KeyCode, bool>();
     private Dictionary<KeyCode, bool> isKeyPressed = new Dictionary<KeyCode, bool>();
@@ -257,20 +257,20 @@ public class DefaultInputHandler : IInputHandler, IDisposable
                wasGamepadButtonPressed[gamepadIndex].GetValueOrDefault(button, false);
     }
 
-    public Float2 GetGamepadAxis(int gamepadIndex, int axisIndex)
+    public Double2 GetGamepadAxis(int gamepadIndex, int axisIndex)
     {
         if (!IsGamepadConnected(gamepadIndex))
-            return Float2.Zero;
+            return Double2.Zero;
 
         var gamepad = Context.Gamepads[gamepadIndex];
         if (axisIndex < 0 || axisIndex >= gamepad.Thumbsticks.Count)
-            return Float2.Zero;
+            return Double2.Zero;
 
         var thumbstick = gamepad.Thumbsticks[axisIndex];
-        return new Float2(thumbstick.X, thumbstick.Y); // We flip y to make UP on the stick positive
+        return new Double2(thumbstick.X, thumbstick.Y); // We flip y to make UP on the stick positive
     }
 
-    public float GetGamepadTrigger(int gamepadIndex, int triggerIndex)
+    public double GetGamepadTrigger(int gamepadIndex, int triggerIndex)
     {
         if (!IsGamepadConnected(gamepadIndex))
             return 0f;
@@ -282,7 +282,7 @@ public class DefaultInputHandler : IInputHandler, IDisposable
         return gamepad.Triggers[triggerIndex].Position;
     }
 
-    public void SetGamepadVibration(int gamepadIndex, float leftMotor, float rightMotor)
+    public void SetGamepadVibration(int gamepadIndex, double leftMotor, double rightMotor)
     {
         if (!IsGamepadConnected(gamepadIndex))
             return;
@@ -290,8 +290,8 @@ public class DefaultInputHandler : IInputHandler, IDisposable
         var gamepad = Context.Gamepads[gamepadIndex];
         if (gamepad.VibrationMotors.Count >= 2)
         {
-            gamepad.VibrationMotors[0].Speed = leftMotor;
-            gamepad.VibrationMotors[1].Speed = rightMotor;
+            gamepad.VibrationMotors[0].Speed = (float)leftMotor;
+            gamepad.VibrationMotors[1].Speed = (float)rightMotor;
         }
     }
 

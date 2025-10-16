@@ -53,7 +53,7 @@ public static class Input
         set => Current.MousePosition = value;
     }
     public static Double2 MouseDelta => Current.MouseDelta;
-    public static float MouseWheelDelta => Current.MouseWheelDelta;
+    public static double MouseWheelDelta => Current.MouseWheelDelta;
 
     // Keyboard
     public static char? GetPressedChar() => Current.GetPressedChar();
@@ -73,11 +73,11 @@ public static class Input
     public static bool GetGamepadButton(GamepadButton button, int gamepadIndex = 0) => Current.GetGamepadButton(gamepadIndex, button);
     public static bool GetGamepadButtonDown(GamepadButton button, int gamepadIndex = 0) => Current.GetGamepadButtonDown(gamepadIndex, button);
     public static bool GetGamepadButtonUp(GamepadButton button, int gamepadIndex = 0) => Current.GetGamepadButtonUp(gamepadIndex, button);
-    public static Float2 GetGamepadLeftStick(int gamepadIndex = 0) => Current.GetGamepadAxis(gamepadIndex, 0);
-    public static Float2 GetGamepadRightStick(int gamepadIndex = 0) => Current.GetGamepadAxis(gamepadIndex, 1);
-    public static float GetGamepadLeftTrigger(int gamepadIndex = 0) => Current.GetGamepadTrigger(gamepadIndex, 0);
-    public static float GetGamepadRightTrigger(int gamepadIndex = 0) => Current.GetGamepadTrigger(gamepadIndex, 1);
-    public static void SetGamepadVibration(float leftMotor, float rightMotor, int gamepadIndex = 0) => Current.SetGamepadVibration(gamepadIndex, leftMotor, rightMotor);
+    public static Double2 GetGamepadLeftStick(int gamepadIndex = 0) => Current.GetGamepadAxis(gamepadIndex, 0);
+    public static Double2 GetGamepadRightStick(int gamepadIndex = 0) => Current.GetGamepadAxis(gamepadIndex, 1);
+    public static double GetGamepadLeftTrigger(int gamepadIndex = 0) => Current.GetGamepadTrigger(gamepadIndex, 0);
+    public static double GetGamepadRightTrigger(int gamepadIndex = 0) => Current.GetGamepadTrigger(gamepadIndex, 1);
+    public static void SetGamepadVibration(double leftMotor, double rightMotor, int gamepadIndex = 0) => Current.SetGamepadVibration(gamepadIndex, leftMotor, rightMotor);
 
     #endregion
 
@@ -181,16 +181,16 @@ public static class Input
     /// <summary>
     /// Gets a Vector2 from WASD keys (normalized).
     /// </summary>
-    public static Float2 GetWASD()
+    public static Double2 GetWASD()
     {
-        Float2 input = Float2.Zero;
+        Double2 input = Double2.Zero;
         if (GetKey(KeyCode.W)) input.Y += 1;
         if (GetKey(KeyCode.S)) input.Y -= 1;
         if (GetKey(KeyCode.A)) input.X -= 1;
         if (GetKey(KeyCode.D)) input.X += 1;
 
         // Normalize diagonal movement
-        float magnitude = (float)Math.Sqrt(input.X * input.X + input.Y * input.Y);
+        double magnitude = Math.Sqrt(input.X * input.X + input.Y * input.Y);
         if (magnitude > 1f)
             input /= magnitude;
 
@@ -200,16 +200,16 @@ public static class Input
     /// <summary>
     /// Gets a Vector2 from arrow keys (normalized).
     /// </summary>
-    public static Float2 GetArrowKeys()
+    public static Double2 GetArrowKeys()
     {
-        Float2 input = Float2.Zero;
+        Double2 input = Double2.Zero;
         if (GetKey(KeyCode.Up)) input.Y += 1;
         if (GetKey(KeyCode.Down)) input.Y -= 1;
         if (GetKey(KeyCode.Left)) input.X -= 1;
         if (GetKey(KeyCode.Right)) input.X += 1;
 
         // Normalize diagonal movement
-        float magnitude = (float)Math.Sqrt(input.X * input.X + input.Y * input.Y);
+        double magnitude = Math.Sqrt(input.X * input.X + input.Y * input.Y);
         if (magnitude > 1f)
             input /= magnitude;
 

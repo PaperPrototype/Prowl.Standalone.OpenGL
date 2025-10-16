@@ -14,7 +14,7 @@ public interface IInputHandler
     bool IsAnyKeyDown { get; }
     Double2 MouseDelta { get; }
     Int2 MousePosition { get; set; }
-    float MouseWheelDelta { get; }
+    double MouseWheelDelta { get; }
     Int2 PrevMousePosition { get; }
 
     event Action<KeyCode, bool> OnKeyEvent;
@@ -38,7 +38,7 @@ public interface IInputHandler
     bool GetGamepadButton(int gamepadIndex, GamepadButton button);
     bool GetGamepadButtonDown(int gamepadIndex, GamepadButton button);
     bool GetGamepadButtonUp(int gamepadIndex, GamepadButton button);
-    Float2 GetGamepadAxis(int gamepadIndex, int axisIndex);
-    float GetGamepadTrigger(int gamepadIndex, int triggerIndex);
-    void SetGamepadVibration(int gamepadIndex, float leftMotor, float rightMotor);
+    Double2 GetGamepadAxis(int gamepadIndex, int axisIndex);
+    double GetGamepadTrigger(int gamepadIndex, int triggerIndex);
+    void SetGamepadVibration(int gamepadIndex, double leftMotor, double rightMotor);
 }

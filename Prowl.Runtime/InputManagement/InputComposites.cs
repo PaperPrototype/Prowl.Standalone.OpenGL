@@ -63,7 +63,7 @@ public class Vector2CompositeBinding : InputCompositeBinding
 
     public override object ReadValue(IInputHandler inputHandler)
     {
-        Float2 value = Float2.Zero;
+        Double2 value = Double2.Zero;
 
         // Check each direction
         if (IsPressed(inputHandler, Parts[UP]))
@@ -76,9 +76,9 @@ public class Vector2CompositeBinding : InputCompositeBinding
             value.X += 1f;
 
         // Normalize if requested
-        if (Normalize && !value.Equals(Float2.Zero))
+        if (Normalize && !value.Equals(Double2.Zero))
         {
-            float magnitude = (float)Math.Sqrt(value.X * value.X + value.Y * value.Y);
+            double magnitude = Math.Sqrt(value.X * value.X + value.Y * value.Y);
             if (magnitude > 1f)
                 value /= magnitude;
         }
@@ -126,9 +126,9 @@ public class DualAxisCompositeBinding : InputCompositeBinding
 
     public override object ReadValue(IInputHandler inputHandler)
     {
-        float x = ReadSingleAxisValue(inputHandler, Parts[X_AXIS]);
-        float y = ReadSingleAxisValue(inputHandler, Parts[Y_AXIS]);
-        Float2 value = new Float2(x, y);
+        double x = ReadSingleAxisValue(inputHandler, Parts[X_AXIS]);
+        double y = ReadSingleAxisValue(inputHandler, Parts[Y_AXIS]);
+        Double2 value = new Double2(x, y);
 
         // Apply processors to the final composite value
         foreach (var processor in Processors)
@@ -139,7 +139,7 @@ public class DualAxisCompositeBinding : InputCompositeBinding
         return value;
     }
 
-    private float ReadSingleAxisValue(IInputHandler inputHandler, InputBinding binding)
+    private double ReadSingleAxisValue(IInputHandler inputHandler, InputBinding binding)
     {
         return binding.BindingType switch
         {
@@ -149,8 +149,8 @@ public class DualAxisCompositeBinding : InputCompositeBinding
             // For mouse axis, read the specified axis
             InputBindingType.MouseAxis => binding.AxisIndex switch
             {
-                0 => (float)inputHandler.MouseDelta.X,
-                1 => (float)inputHandler.MouseDelta.Y,
+                0 => (double)inputHandler.MouseDelta.X,
+                1 => (double)inputHandler.MouseDelta.Y,
                 2 => inputHandler.MouseWheelDelta,
                 _ => 0f
             },
@@ -180,7 +180,7 @@ public class AxisCompositeBinding : InputCompositeBinding
 
     public override object ReadValue(IInputHandler inputHandler)
     {
-        float value = 0f;
+        double value = 0f;
 
         if (IsPressed(inputHandler, Parts[POSITIVE]))
             value += 1f;
