@@ -30,7 +30,7 @@ public sealed class ConvexHullCollider : Collider
     {
         if (mesh == null)
         {
-            Awake(); // Trigger awake to grab the mesh from a renderer
+            OnEnable(); // Trigger OnEnable to grab the mesh from a renderer
             if (mesh == null)
                 Debug.LogError("Mesh is null");
             return null;
@@ -41,7 +41,7 @@ public sealed class ConvexHullCollider : Collider
         return [new ConvexHullShape(ToTriangleList(mesh))];
     }
 
-    public override void Awake()
+    public override void OnEnable()
     {
         if(mesh == null)
         {

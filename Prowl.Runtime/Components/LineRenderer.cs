@@ -40,7 +40,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
     private TextureWrapMode _lastTextureMode;
     private float _lastTextureTiling;
 
-    public override void Awake()
+    public override void OnEnable()
     {
         _lastPoints = new List<Double3>();
         _lastStartColor = StartColor;

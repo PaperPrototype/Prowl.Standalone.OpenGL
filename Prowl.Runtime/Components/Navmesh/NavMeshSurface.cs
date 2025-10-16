@@ -71,7 +71,7 @@ public class NavMeshSurface : MonoBehaviour
 
     #endregion
 
-    public override void Awake()
+    public override void OnEnable()
     {
         if (navMesh == null) return;
 

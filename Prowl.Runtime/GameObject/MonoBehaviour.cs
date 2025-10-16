@@ -36,8 +36,6 @@ public abstract class MonoBehaviour : EngineObject
     [SerializeIgnore]
     private bool _executeAlways = false;
     [SerializeIgnore]
-    private bool _hasAwoken = false;
-    [SerializeIgnore]
     private bool _hasStarted = false;
 
     /// <summary>
@@ -60,10 +58,6 @@ public abstract class MonoBehaviour : EngineObject
     /// Gets or sets whether this MonoBehaviour should execute in edit mode.
     /// </summary>
     public bool ExecuteAlways { get => _executeAlways; internal set => _executeAlways = value; }
-    /// <summary>
-    /// Gets whether the Awake method has been called.
-    /// </summary>
-    public bool HasAwoken { get => _hasAwoken; internal set => _hasAwoken = value; }
     /// <summary>
     /// Gets whether the Start method has been called.
     /// </summary>
@@ -242,11 +236,6 @@ public abstract class MonoBehaviour : EngineObject
     // Lifecycle methods
 
     /// <summary>
-    /// Called when the script instance is being loaded.
-    /// </summary>
-    public virtual void Awake() { }
-
-    /// <summary>
     /// Called when the GameObject is added to a Scene.
     /// This happens before OnEnable and only once per scene add.
     /// </summary>
@@ -305,17 +294,6 @@ public abstract class MonoBehaviour : EngineObject
     /// Called when the MonoBehaviour will be destroyed.
     /// </summary>
     public virtual void OnDestroy() { }
-
-    /// <summary>
-    /// Internal method to handle the Awake lifecycle event.
-    /// OnEnable is now called separately when added to Scene.
-    /// </summary>
-    internal void InternalAwake()
-    {
-        if (HasAwoken) return;
-        HasAwoken = true;
-        Awake();
-    }
 
     /// <summary>
     /// Internal method to handle the Start lifecycle event.

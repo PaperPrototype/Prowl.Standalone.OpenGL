@@ -251,7 +251,7 @@ public class PlayerController : MonoBehaviour
     private bool crouchInput = false;
     private bool isCrouching = false;
 
-    public override void Awake()
+    public override void OnEnable()
     {
         characterController = GameObject.GetComponent<CharacterController>();
     }

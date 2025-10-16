@@ -406,9 +406,6 @@ public class GameObject : EngineObject, ISerializable
     {
         foreach (var component in _components)
         {
-            if (!component.HasAwoken)
-                component.InternalAwake();
-
             if (!component.HasStarted)
                 if (component.EnabledInHierarchy)
                 {
@@ -457,11 +454,6 @@ public class GameObject : EngineObject, ISerializable
         _components.Add(newComponent);
         _componentCache.Add(type, newComponent);
 
-        if (enabledInHierarchy)
-        {
-            newComponent.InternalAwake();
-        }
-
         SortComponents();
 
         return newComponent;
@@ -496,10 +488,6 @@ public class GameObject : EngineObject, ISerializable
         comp.AttachToGameObject(this);
         _components.Add(comp);
         _componentCache.Add(comp.GetType(), comp);
-        if (enabledInHierarchy)
-        {
-            comp.InternalAwake();
-        }
 
         SortComponents();
     }

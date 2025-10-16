@@ -329,7 +329,7 @@ public class VoxelChunk : MonoBehaviour
         world = voxelWorld;
     }
 
-    public override void Awake()
+    public override void OnEnable()
     {
         meshRenderer = GameObject.AddComponent<MeshRenderer>();
         meshRenderer.Material = new Material(Shader.LoadDefault(DefaultShader.Standard));
