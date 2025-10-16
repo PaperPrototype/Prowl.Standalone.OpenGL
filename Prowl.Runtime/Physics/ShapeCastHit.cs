@@ -15,53 +15,48 @@ public struct ShapeCastHit
     /// <summary>
     /// If the shape cast hit something.
     /// </summary>
-    public bool hit;
+    public bool Hit;
 
     /// <summary>
     /// The fraction/lambda along the sweep direction where the hit occurred (0 = start, 1 = end of sweep).
     /// Note: This is not a distance, but a normalized value between 0 and 1.
     /// </summary>
-    public double fraction;
+    public double Fraction;
 
     /// <summary>
     /// The amount of penetration at the hit point. Only valid for overlap casts.
     /// </summary>
-    public double penetration;
+    public double Penetration;
 
     /// <summary>
     /// The normal of the surface the shape hit.
     /// </summary>
-    public Double3 normal;
+    public Double3 Normal;
 
     /// <summary>
     /// The point in world space on the casting shape where it hit the collider (at t=0).
     /// </summary>
-    public Double3 point;
+    public Double3 Point;
 
     /// <summary>
     /// The point in world space on the hit collider where the cast shape touched it (at t=0).
     /// </summary>
-    public Double3 hitPoint;
+    public Double3 HitPoint;
 
     /// <summary>
     /// The Rigidbody3D of the collider that was hit.
     /// </summary>
-    public Rigidbody3D rigidbody;
+    public Rigidbody3D Rigidbody;
 
     /// <summary>
     /// The Shape that was hit.
     /// </summary>
-    public RigidBodyShape shape;
+    public RigidBodyShape Shape;
 
     /// <summary>
     /// The Transform of the rigidbody that was hit.
     /// </summary>
-    public Transform transform;
-
-    /// <summary>
-    /// The distance traveled along the sweep direction before hitting.
-    /// </summary>
-    public double distance => fraction;
+    public Transform Transform;
 
     /// <summary>
     /// Draws debug visualization gizmos for this shape cast hit.
@@ -69,25 +64,25 @@ public struct ShapeCastHit
     /// <param name="hitColor">Color to draw the hit visualization.</param>
     /// <param name="normalColor">Color to draw the hit normal.</param>
     /// <param name="normalLength">Length of the normal arrow.</param>
-    public void DrawGizmos(Color hitColor, Color normalColor, double normalLength = 1.0)
+    public readonly void DrawGizmos(Color hitColor, Color normalColor, double normalLength = 1.0)
     {
-        if (!hit) return;
+        if (!Hit) return;
 
         // Draw hit point as a small sphere
-        Debug.DrawWireSphere(point, 0.1, hitColor, 8);
-        Debug.DrawWireSphere(hitPoint, 0.1, hitColor, 8);
+        Debug.DrawWireSphere(Point, 0.1, hitColor, 8);
+        Debug.DrawWireSphere(HitPoint, 0.1, hitColor, 8);
 
         // Draw line between the two hit points
-        Debug.DrawLine(point, hitPoint, hitColor);
+        Debug.DrawLine(Point, HitPoint, hitColor);
 
         // Draw normal arrow at hit point
-        Debug.DrawArrow(hitPoint, normal * normalLength, normalColor);
+        Debug.DrawArrow(HitPoint, Normal * normalLength, normalColor);
     }
 
     /// <summary>
     /// Draws debug visualization gizmos with default colors (yellow for hit, red for normal).
     /// </summary>
-    public void DrawGizmos()
+    public readonly void DrawGizmos()
     {
         DrawGizmos(new Color(255, 255, 0, 200), new Color(255, 0, 0, 255), 1.0);
     }

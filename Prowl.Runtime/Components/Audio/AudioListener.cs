@@ -13,17 +13,17 @@ public class AudioListener : MonoBehaviour
 
     public override void OnEnable()
     {
-        lastPos = GameObject.Transform.position;
+        lastPos = GameObject.Transform.Position;
         AudioSystem.RegisterListener(this);
     }
     public override void OnDisable() => AudioSystem.UnregisterListener(this);
     public override void Update()
     {
-        if (_lastVersion != GameObject.Transform.version)
+        if (_lastVersion != GameObject.Transform.Version)
         {
             AudioSystem.ListenerTransformChanged(GameObject.Transform, lastPos);
-            lastPos = GameObject.Transform.position;
-            _lastVersion = GameObject.Transform.version;
+            lastPos = GameObject.Transform.Position;
+            _lastVersion = GameObject.Transform.Version;
         }
     }
 }

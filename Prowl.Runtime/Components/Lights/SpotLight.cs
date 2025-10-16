@@ -16,11 +16,11 @@ public class SpotLight : Light
         _2048 = 2048,
     }
 
-    public Resolution shadowResolution = Resolution._512;
+    public Resolution ShadowResolution = Resolution._512;
 
-    public double range = 10f;
-    public double innerAngle = 30f; // Inner cone angle in degrees
-    public double outerAngle = 45f; // Outer cone angle in degrees
+    public double Range = 10f;
+    public double InnerAngle = 30f; // Inner cone angle in degrees
+    public double OuterAngle = 45f; // Outer cone angle in degrees
 
     public override void Update()
     {
@@ -29,27 +29,27 @@ public class SpotLight : Light
 
     public override void DrawGizmos()
     {
-        Debug.DrawArrow(Transform.position, Transform.forward * range, color);
-        Debug.DrawWireCircle(Transform.position + Transform.forward * range, -Transform.forward, range * Maths.Tan(outerAngle * 0.5f * Maths.Deg2Rad), color);
+        Debug.DrawArrow(Transform.Position, Transform.Forward * Range, Color);
+        Debug.DrawWireCircle(Transform.Position + Transform.Forward * Range, -Transform.Forward, Range * Maths.Tan(OuterAngle * 0.5f * Maths.Deg2Rad), Color);
     }
 
     public override LightType GetLightType() => LightType.Spot;
 
     public override void GetShadowMatrix(out Double4x4 view, out Double4x4 projection)
     {
-        Double3 forward = Transform.forward;
+        Double3 forward = Transform.Forward;
         // Use perspective projection for spot light shadows
-        double fov = outerAngle * 2.0f; // Full cone angle
-        projection = Double4x4.CreatePerspectiveFov(fov * Maths.Deg2Rad, 1.0f, 0.1f, range);
-        view = Double4x4.CreateLookTo(Transform.position, forward, Transform.up);
+        double fov = OuterAngle * 2.0f; // Full cone angle
+        projection = Double4x4.CreatePerspectiveFov(fov * Maths.Deg2Rad, 1.0f, 0.1f, Range);
+        view = Double4x4.CreateLookTo(Transform.Position, forward, Transform.Up);
     }
 
     public void UploadToGPU(bool cameraRelative, Double3 cameraPosition, int atlasX, int atlasY, int atlasWidth, int lightIndex)
     {
-        Double3 position = cameraRelative ? Transform.position - cameraPosition : Transform.position;
-        Double3 colorVec = new(color.R, color.G, color.B);
-        float innerAngleCos = (float)Maths.Cos(innerAngle * 0.5f * Maths.Deg2Rad);
-        float outerAngleCos = (float)Maths.Cos(outerAngle * 0.5f * Maths.Deg2Rad);
+        Double3 position = cameraRelative ? Transform.Position - cameraPosition : Transform.Position;
+        Double3 colorVec = new(Color.R, Color.G, Color.B);
+        float innerAngleCos = (float)Maths.Cos(InnerAngle * 0.5f * Maths.Deg2Rad);
+        float outerAngleCos = (float)Maths.Cos(OuterAngle * 0.5f * Maths.Deg2Rad);
 
         GetShadowMatrix(out Double4x4 view, out Double4x4 proj);
 
@@ -59,21 +59,21 @@ public class SpotLight : Light
         Double4x4 shadowMatrix = proj * view;
 
         // Use GlobalUniforms to set packed spot light data
-        if (castShadows)
+        if (CastShadows)
         {
             GlobalUniforms.SetSpotLightData(
                 lightIndex,
                 position,
-                Transform.forward,
+                Transform.Forward,
                 colorVec,
-                intensity,
-                range,
+                Intensity,
+                Range,
                 innerAngleCos,
                 outerAngleCos,
-                shadowBias,
-                shadowNormalBias,
-                shadowStrength,
-                (float)shadowQuality,
+                ShadowBias,
+                ShadowNormalBias,
+                ShadowStrength,
+                (float)ShadowQuality,
                 atlasX,
                 atlasY,
                 atlasWidth,
@@ -85,16 +85,16 @@ public class SpotLight : Light
             GlobalUniforms.SetSpotLightData(
                 lightIndex,
                 position,
-                Transform.forward,
+                Transform.Forward,
                 colorVec,
-                intensity,
-                range,
+                Intensity,
+                Range,
                 innerAngleCos,
                 outerAngleCos,
-                shadowBias,
-                shadowNormalBias,
+                ShadowBias,
+                ShadowNormalBias,
                 0, // shadowStrength = 0
-                (float)shadowQuality,
+                (float)ShadowQuality,
                 -1, // atlasX = -1
                 -1, // atlasY = -1
                 0,  // atlasWidth = 0

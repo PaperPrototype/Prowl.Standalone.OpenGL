@@ -53,7 +53,7 @@ public class PhysicsWorld
 
         World.Gravity = new JVector(Gravity.X, Gravity.Y, Gravity.Z);
 
-        World.Step(Time.fixedDeltaTime, UseMultithreading);
+        World.Step(Time.FixedDeltaTime, UseMultithreading);
     }
 
     /// <summary>
@@ -274,14 +274,14 @@ public class PhysicsWorld
 
                 var castHit = new ShapeCastHit
                 {
-                    hit = true,
-                    fraction = lambda,
-                    normal = -(new Double3(normal.X, normal.Y, normal.Z)),
-                    point = new Double3(pointA.X, pointA.Y, pointA.Z),
-                    hitPoint = new Double3(pointB.X, pointB.Y, pointB.Z),
-                    rigidbody = userData.Rigidbody,
-                    shape = targetShape,
-                    transform = userData.Rigidbody?.GameObject?.Transform
+                    Hit = true,
+                    Fraction = lambda,
+                    Normal = -(new Double3(normal.X, normal.Y, normal.Z)),
+                    Point = new Double3(pointA.X, pointA.Y, pointA.Z),
+                    HitPoint = new Double3(pointB.X, pointB.Y, pointB.Z),
+                    Rigidbody = userData.Rigidbody,
+                    Shape = targetShape,
+                    Transform = userData.Rigidbody?.GameObject?.Transform
                 };
                 hits.Add(castHit);
             }
@@ -320,7 +320,7 @@ public class PhysicsWorld
             ShapeCastHit closest = hits[0];
             for (int i = 1; i < hits.Count; i++)
             {
-                if (hits[i].fraction < closest.fraction)
+                if (hits[i].Fraction < closest.Fraction)
                     closest = hits[i];
             }
             hitInfo = closest;
@@ -678,15 +678,15 @@ public class PhysicsWorld
             {
                 var hit = new ShapeCastHit
                 {
-                    hit = true,
-                    fraction = 0,
-                    penetration = penetration,
-                    normal = -(new Double3(normal.X, normal.Y, normal.Z)),
-                    point = new Double3(pointA.X, pointA.Y, pointA.Z),
-                    hitPoint = new Double3(pointB.X, pointB.Y, pointB.Z),
-                    rigidbody = userData.Rigidbody,
-                    shape = targetShape,
-                    transform = userData.Rigidbody?.GameObject?.Transform
+                    Hit = true,
+                    Fraction = 0,
+                    Penetration = penetration,
+                    Normal = -(new Double3(normal.X, normal.Y, normal.Z)),
+                    Point = new Double3(pointA.X, pointA.Y, pointA.Z),
+                    HitPoint = new Double3(pointB.X, pointB.Y, pointB.Z),
+                    Rigidbody = userData.Rigidbody,
+                    Shape = targetShape,
+                    Transform = userData.Rigidbody?.GameObject?.Transform
                 };
                 hits.Add(hit);
             }

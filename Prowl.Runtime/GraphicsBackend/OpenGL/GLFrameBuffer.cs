@@ -53,15 +53,15 @@ public sealed unsafe class GLFrameBuffer : GraphicsFrameBuffer
             {
                 for (int i = 0; i < numTextures; i++)
                 {
-                    if (!attachments[i].isDepth)
+                    if (!attachments[i].IsDepth)
                     {
                         //InternalTextures[i].SetTextureFilters(TextureMinFilter.Linear, TextureMagFilter.Linear);
                         //InternalTextures[i].SetWrapModes(TextureWrapMode.ClampToEdge, TextureWrapMode.ClampToEdge);
-                        GLDevice.GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0 + i, (attachments[i].texture as GLTexture)!.Target, (attachments[i].texture as GLTexture)!.Handle, 0);
+                        GLDevice.GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0 + i, (attachments[i].Texture as GLTexture)!.Target, (attachments[i].Texture as GLTexture)!.Handle, 0);
                     }
                     else
                     {
-                        GLDevice.GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, (attachments[i].texture as GLTexture)!.Handle, 0);
+                        GLDevice.GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, (attachments[i].Texture as GLTexture)!.Handle, 0);
                     }
                 }
                 GLDevice.GL.DrawBuffers((uint)numTextures, buffers);

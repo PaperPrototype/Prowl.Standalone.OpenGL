@@ -16,54 +16,54 @@ public struct RaycastHit
     /// <summary>
     /// If the ray hit something.
     /// </summary>
-    public bool hit;
+    public bool Hit;
 
     /// <summary>
     /// The distance from the ray's origin to the impact point.
     /// </summary>
-    public double distance;
+    public double Distance;
 
     /// <summary>
     /// The normal of the surface the ray hit.
     /// </summary>
-    public Double3 normal;
+    public Double3 Normal;
 
     /// <summary>
     /// The point in world space where the ray hit the collider.
     /// </summary>
-    public Double3 point;
+    public Double3 Point;
 
     /// <summary>
     /// The Rigidbody3D of the collider that was hit.
     /// </summary>
-    public Rigidbody3D rigidbody;
+    public Rigidbody3D Rigidbody;
 
     /// <summary>
     /// The Shape that was hit.
     /// </summary>
-    public RigidBodyShape shape;
+    public RigidBodyShape Shape;
 
     /// <summary>
     /// The Transform of the rigidbody that was hit.
     /// </summary>
-    public Transform transform;
+    public Transform Transform;
 
     internal void SetFromJitterResult(DynamicTree.RayCastResult result, Double3 origin, Double3 direction)
     {
-        shape = result.Entity as RigidBodyShape;
-        if (shape == null)
+        Shape = result.Entity as RigidBodyShape;
+        if (Shape == null)
         {
-            hit = false;
+            Hit = false;
             return;
         }
 
-        var userData = shape.RigidBody.Tag as Rigidbody3D.RigidBodyUserData;
+        var userData = Shape.RigidBody.Tag as Rigidbody3D.RigidBodyUserData;
 
-        hit = true;
-        rigidbody = userData.Rigidbody;
-        transform = rigidbody?.GameObject?.Transform;
-        normal = new Double3(result.Normal.X, result.Normal.Y, result.Normal.Z);
-        distance = result.Lambda;
-        point = origin + direction * distance;
+        Hit = true;
+        Rigidbody = userData.Rigidbody;
+        Transform = Rigidbody?.GameObject?.Transform;
+        Normal = new Double3(result.Normal.X, result.Normal.Y, result.Normal.Z);
+        Distance = result.Lambda;
+        Point = origin + direction * Distance;
     }
 }

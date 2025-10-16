@@ -30,16 +30,16 @@ public sealed class PhysicsDemo : Game
         // Create directional light
         GameObject lightGO = new("Directional Light");
         DirectionalLight light = lightGO.AddComponent<DirectionalLight>();
-        light.shadowQuality = ShadowQuality.Soft;
-        light.shadowBias = 0.5f;
-        lightGO.Transform.localEulerAngles = new Double3(-45, 45, 0);
+        light.ShadowQuality = ShadowQuality.Soft;
+        light.ShadowBias = 0.5f;
+        lightGO.Transform.LocalEulerAngles = new Double3(-45, 45, 0);
         scene.Add(lightGO);
 
         // Create camera
         GameObject cam = new("Main Camera");
-        cam.tag = "Main Camera";
-        cam.Transform.position = new(0, 5, -15);
-        cam.Transform.localEulerAngles = new Double3(15, 0, 0);
+        cam.Tag = "Main Camera";
+        cam.Transform.Position = new(0, 5, -15);
+        cam.Transform.LocalEulerAngles = new Double3(15, 0, 0);
         Camera camera = cam.AddComponent<Camera>();
         camera.Depth = -1;
         camera.HDR = true;
@@ -65,7 +65,7 @@ public sealed class PhysicsDemo : Game
         floorRenderer.Mesh = Mesh.CreateCube(new Double3(20, 1, 20));
         floorRenderer.Material = standardMaterial;
         floorRenderer.MainColor = new Color(0.8f, 0.8f, 0.8f, 1.0f);
-        floor.Transform.position = new Double3(0, -0.5f, 0);
+        floor.Transform.Position = new Double3(0, -0.5f, 0);
 
         // Add static rigidbody for floor
         Rigidbody3D floorRigidbody = floor.AddComponent<Rigidbody3D>();
@@ -94,7 +94,7 @@ public sealed class PhysicsDemo : Game
     private void CreateChainDemo(Scene scene, Double3 startPos, Color color)
     {
         GameObject anchor = new("Chain Anchor");
-        anchor.Transform.position = startPos;
+        anchor.Transform.Position = startPos;
         Rigidbody3D anchorRb = anchor.AddComponent<Rigidbody3D>();
         anchorRb.IsStatic = true;
         SphereCollider anchorCollider = anchor.AddComponent<SphereCollider>();
@@ -109,7 +109,7 @@ public sealed class PhysicsDemo : Game
         for (int i = 0; i < 5; i++)
         {
             GameObject link = new($"Chain Link {i}");
-            link.Transform.position = startPos + new Double3(0, -(i + 1) * 1.5, 0);
+            link.Transform.Position = startPos + new Double3(0, -(i + 1) * 1.5, 0);
             MeshRenderer linkRenderer = link.AddComponent<MeshRenderer>();
             linkRenderer.Mesh = Mesh.CreateCube(new Double3(0.5, 1, 0.5));
             linkRenderer.Material = standardMaterial;
@@ -135,7 +135,7 @@ public sealed class PhysicsDemo : Game
     {
         // Door frame (static)
         GameObject frame = new("Door Frame");
-        frame.Transform.position = position;
+        frame.Transform.Position = position;
         Rigidbody3D frameRb = frame.AddComponent<Rigidbody3D>();
         frameRb.IsStatic = true;
         BoxCollider frameCollider = frame.AddComponent<BoxCollider>();
@@ -148,7 +148,7 @@ public sealed class PhysicsDemo : Game
 
         // Door (dynamic)
         GameObject door = new("Door");
-        door.Transform.position = position + new Double3(1.5, 0, 0);
+        door.Transform.Position = position + new Double3(1.5, 0, 0);
         MeshRenderer doorRenderer = door.AddComponent<MeshRenderer>();
         doorRenderer.Mesh = Mesh.CreateCube(new Double3(3, 2.8, 0.1));
         doorRenderer.Material = standardMaterial;
@@ -175,7 +175,7 @@ public sealed class PhysicsDemo : Game
     {
         // Rail (static)
         GameObject rail = new("Slider Rail");
-        rail.Transform.position = position;
+        rail.Transform.Position = position;
         Rigidbody3D railRb = rail.AddComponent<Rigidbody3D>();
         railRb.IsStatic = true;
         BoxCollider railCollider = rail.AddComponent<BoxCollider>();
@@ -188,7 +188,7 @@ public sealed class PhysicsDemo : Game
 
         // Slider (dynamic)
         GameObject slider = new("Slider");
-        slider.Transform.position = position + new Double3(0, 1, 0);
+        slider.Transform.Position = position + new Double3(0, 1, 0);
         MeshRenderer sliderRenderer = slider.AddComponent<MeshRenderer>();
         sliderRenderer.Mesh = Mesh.CreateCube(new Double3(1, 0.5, 1));
         sliderRenderer.Material = standardMaterial;
@@ -216,7 +216,7 @@ public sealed class PhysicsDemo : Game
     {
         // Torso (parent body)
         GameObject torso = new("Torso");
-        torso.Transform.position = position;
+        torso.Transform.Position = position;
         MeshRenderer torsoRenderer = torso.AddComponent<MeshRenderer>();
         torsoRenderer.Mesh = Mesh.CreateCube(new Double3(1, 1.5, 0.5));
         torsoRenderer.Material = standardMaterial;
@@ -232,7 +232,7 @@ public sealed class PhysicsDemo : Game
 
         // Left arm with cone limit
         GameObject leftArm = new("Left Arm");
-        leftArm.Transform.position = position + new Double3(-0.75, 0.5, 0);
+        leftArm.Transform.Position = position + new Double3(-0.75, 0.5, 0);
         MeshRenderer armRenderer = leftArm.AddComponent<MeshRenderer>();
         armRenderer.Mesh = Mesh.CreateCube(new Double3(1, 0.3, 0.3));
         armRenderer.Material = standardMaterial;
@@ -263,7 +263,7 @@ public sealed class PhysicsDemo : Game
     {
         // Base (static)
         GameObject motorBase = new("Motor Base");
-        motorBase.Transform.position = position;
+        motorBase.Transform.Position = position;
         Rigidbody3D baseRb = motorBase.AddComponent<Rigidbody3D>();
         baseRb.IsStatic = true;
         BoxCollider baseCollider = motorBase.AddComponent<BoxCollider>();
@@ -276,7 +276,7 @@ public sealed class PhysicsDemo : Game
 
         // Spinning platform
         GameObject platform = new("Spinning Platform");
-        platform.Transform.position = position + new Double3(0, 0.5, 0);
+        platform.Transform.Position = position + new Double3(0, 0.5, 0);
         MeshRenderer platformRenderer = platform.AddComponent<MeshRenderer>();
         platformRenderer.Mesh = Mesh.CreateCube(new Double3(2, 0.2, 2));
         platformRenderer.Material = standardMaterial;
@@ -309,7 +309,7 @@ public sealed class PhysicsDemo : Game
         // Create a cube at camera position
         GameObject cube = new("Shot Cube");
         lastShot = cube;
-        cube.Transform.position = cameraGO.Transform.position + cameraGO.Transform.forward * 2.0;
+        cube.Transform.Position = cameraGO.Transform.Position + cameraGO.Transform.Forward * 2.0;
 
         MeshRenderer cubeRenderer = cube.AddComponent<MeshRenderer>();
         cubeShootMesh = cubeShootMesh == null ? Mesh.CreateCube(new Double3(0.5, 0.5, 0.5)) : cubeShootMesh;
@@ -331,7 +331,7 @@ public sealed class PhysicsDemo : Game
         scene.Add(cube);
 
         // Add velocity in the direction the camera is facing
-        cubeRb.LinearVelocity = cameraGO.Transform.forward * 20.0;
+        cubeRb.LinearVelocity = cameraGO.Transform.Forward * 20.0;
 
 
         shootCounter++;
@@ -361,21 +361,21 @@ public sealed class PhysicsDemo : Game
         if (Input.GetKey(KeyCode.D)) movement += Double2.UnitX;
 
         // forward/back
-        cameraGO.Transform.position += cameraGO.Transform.forward * movement.Y * 10f * Time.deltaTime;
+        cameraGO.Transform.Position += cameraGO.Transform.Forward * movement.Y * 10f * Time.DeltaTime;
         // left/right
-        cameraGO.Transform.position += cameraGO.Transform.right * movement.X * 10f * Time.deltaTime;
+        cameraGO.Transform.Position += cameraGO.Transform.Right * movement.X * 10f * Time.DeltaTime;
 
         // up/down
         float upDown = 0;
         if (Input.GetKey(KeyCode.E)) upDown += 1;
         if (Input.GetKey(KeyCode.Q)) upDown -= 1;
-        cameraGO.Transform.position += Double3.UnitY * upDown * 10f * Time.deltaTime;
+        cameraGO.Transform.Position += Double3.UnitY * upDown * 10f * Time.DeltaTime;
 
         // rotate with mouse
         if (Input.GetMouseButton(1))
         {
             Double2 delta = Input.MouseDelta;
-            cameraGO.Transform.localEulerAngles += new Double3(delta.Y, delta.X, 0) * 0.1f;
+            cameraGO.Transform.LocalEulerAngles += new Double3(delta.Y, delta.X, 0) * 0.1f;
         }
 
         // Reset scene with R key

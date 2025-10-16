@@ -255,7 +255,7 @@ public sealed class Rigidbody3D : MonoBehaviour
         _body.Tag = new RigidBodyUserData()
         {
             Rigidbody = this,
-            Layer = GameObject.layerIndex,
+            Layer = GameObject.LayerIndex,
             //HasTransformConstraints = rotationConstraints != Vector3Int.one || translationConstraints != Vector3Int.one,
             //RotationConstraint = new JVector(rotationConstraints.x, rotationConstraints.y, rotationConstraints.z),
             //TranslationConstraint = new JVector(translationConstraints.x, translationConstraints.y, translationConstraints.z)
@@ -279,8 +279,8 @@ public sealed class Rigidbody3D : MonoBehaviour
     {
         if (_body == null || _body.Handle.IsZero) return;
 
-        Transform.position = new Double3(_body.Position.X, _body.Position.Y, _body.Position.Z);
-        Transform.rotation = new Quaternion(_body.Orientation.X, _body.Orientation.Y, _body.Orientation.Z, _body.Orientation.W);
+        Transform.Position = new Double3(_body.Position.X, _body.Position.Y, _body.Position.Z);
+        Transform.Rotation = new Quaternion(_body.Orientation.X, _body.Orientation.Y, _body.Orientation.Z, _body.Orientation.W);
     }
 
     public override void DrawGizmos()
@@ -320,7 +320,7 @@ public sealed class Rigidbody3D : MonoBehaviour
         rb.Tag = new RigidBodyUserData()
         {
             Rigidbody = this,
-            Layer = GameObject.layerIndex,
+            Layer = GameObject.LayerIndex,
         };
         rb.SetMassInertia(mass);
     }
@@ -341,8 +341,8 @@ public sealed class Rigidbody3D : MonoBehaviour
     {
         if (GameObject?.Scene?.Physics.AutoSyncTransforms ?? true)
         {
-            rb.Position = new JVector(Transform.position.X, Transform.position.Y, Transform.position.Z);
-            rb.Orientation = new JQuaternion(Transform.rotation.X, Transform.rotation.Y, Transform.rotation.Z, Transform.rotation.W);
+            rb.Position = new JVector(Transform.Position.X, Transform.Position.Y, Transform.Position.Z);
+            rb.Orientation = new JQuaternion(Transform.Rotation.X, Transform.Rotation.Y, Transform.Rotation.Z, Transform.Rotation.W);
         }
     }
 
@@ -391,7 +391,7 @@ public sealed class Rigidbody3D : MonoBehaviour
     {
         get
         {
-            if (_body == null) return Transform.position;
+            if (_body == null) return Transform.Position;
             JVector pos = _body.Position;
             return new Double3(pos.X, pos.Y, pos.Z);
         }

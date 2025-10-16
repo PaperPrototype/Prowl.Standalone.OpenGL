@@ -16,9 +16,9 @@ public class DirectionalLight : Light
         _4096 = 4096,
     }
 
-    public Resolution shadowResolution = Resolution._1024;
+    public Resolution ShadowResolution = Resolution._1024;
 
-    public double shadowDistance = 50f;
+    public double ShadowDistance = 50f;
 
     public override void Update()
     {
@@ -27,29 +27,29 @@ public class DirectionalLight : Light
 
     public override void DrawGizmos()
     {
-        Debug.DrawArrow(Transform.position, -Transform.forward, Color.Yellow);
-        Debug.DrawWireCircle(Transform.position, Transform.forward, 0.5f, Color.Yellow);
+        Debug.DrawArrow(Transform.Position, -Transform.Forward, Color.Yellow);
+        Debug.DrawWireCircle(Transform.Position, Transform.Forward, 0.5f, Color.Yellow);
     }
 
 
     public override LightType GetLightType() => LightType.Directional;
     public override void GetShadowMatrix(out Double4x4 view, out Double4x4 projection)
     {
-        Double3 forward = -Transform.forward;
-        projection = Double4x4.CreateOrtho(shadowDistance, shadowDistance, 0.1f, shadowDistance);
-        view = Double4x4.CreateLookTo(Transform.position - (forward * shadowDistance * 0.5), forward, Transform.up);
+        Double3 forward = -Transform.Forward;
+        projection = Double4x4.CreateOrtho(ShadowDistance, ShadowDistance, 0.1f, ShadowDistance);
+        view = Double4x4.CreateLookTo(Transform.Position - (forward * ShadowDistance * 0.5), forward, Transform.Up);
     }
 
     public void GetShadowMatrix(Double3 cameraPosition, int shadowResolution, out Double4x4 view, out Double4x4 projection)
     {
-        Double3 forward = -Transform.forward;
-        projection = Double4x4.CreateOrtho(shadowDistance, shadowDistance, 0.1f, shadowDistance);
+        Double3 forward = -Transform.Forward;
+        projection = Double4x4.CreateOrtho(ShadowDistance, ShadowDistance, 0.1f, ShadowDistance);
 
         // Calculate texel size in world units
-        double texelSize = (shadowDistance * 2.0) / shadowResolution;
+        double texelSize = (ShadowDistance * 2.0) / shadowResolution;
 
         // Build orthonormal basis for light space
-        Double3 lightUp = Double3.Normalize(Transform.up);
+        Double3 lightUp = Double3.Normalize(Transform.Up);
         Double3 lightRight = Double3.Normalize(Double3.Cross(lightUp, forward));
         lightUp = Double3.Normalize(Double3.Cross(forward, lightRight)); // Recompute to ensure orthogonality
 
@@ -65,7 +65,7 @@ public class DirectionalLight : Light
         Double3 snappedPosition = (lightRight * x) + (lightUp * y);
 
         // Position the shadow map at the snapped position, offset back by half the shadow distance
-        view = Double4x4.CreateLookTo(snappedPosition - (forward * shadowDistance * 0.5), forward, Transform.up);
+        view = Double4x4.CreateLookTo(snappedPosition - (forward * ShadowDistance * 0.5), forward, Transform.Up);
     }
 
     public void UploadToGPU(bool cameraRelative, Double3 cameraPosition, int atlasX, int atlasY, int atlasWidth)
@@ -81,12 +81,12 @@ public class DirectionalLight : Light
             view.Translation -= new Double4(cameraPosition.X, cameraPosition.Y, cameraPosition.Z, 0.0f);
 
         // Use GlobalUniforms to set directional light data
-        GlobalUniforms.SetSunDirection(Transform.forward);
-        GlobalUniforms.SetSunColor(new Double3(color.R, color.G, color.B));
-        GlobalUniforms.SetSunIntensity(intensity);
-        GlobalUniforms.SetSunShadowBias(shadowBias);
+        GlobalUniforms.SetSunDirection(Transform.Forward);
+        GlobalUniforms.SetSunColor(new Double3(Color.R, Color.G, Color.B));
+        GlobalUniforms.SetSunIntensity(Intensity);
+        GlobalUniforms.SetSunShadowBias(ShadowBias);
         GlobalUniforms.SetSunShadowMatrix(proj * view);
-        GlobalUniforms.SetSunShadowParams(new Double4(shadowNormalBias, shadowStrength, shadowDistance, (double)shadowQuality));
+        GlobalUniforms.SetSunShadowParams(new Double4(ShadowNormalBias, ShadowStrength, ShadowDistance, (double)ShadowQuality));
         GlobalUniforms.SetSunAtlasParams(new Double4(atlasX, atlasY, atlasWidth, 0));
     }
 }

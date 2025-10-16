@@ -57,13 +57,13 @@ public class ModelRenderer : MonoBehaviour
         // Update animation
         if (_isPlaying && CurrentAnimation != null)
         {
-            _animationTime += Time.deltaTimeF * AnimationSpeed;
+            _animationTime += Time.DeltaTimeF * AnimationSpeed;
 
             if (_animationTime >= CurrentAnimation.Duration)
             {
                 if (Loop)
                 {
-                    _animationTime = _animationTime % CurrentAnimation.Duration;
+                    _animationTime %= CurrentAnimation.Duration;
                 }
                 else
                 {
@@ -79,7 +79,7 @@ public class ModelRenderer : MonoBehaviour
         // Render the model
         if (Model != null)
         {
-            RenderModelNode(Model.RootNode, Transform.localToWorldMatrix);
+            RenderModelNode(Model.RootNode, Transform.LocalToWorldMatrix);
         }
     }
 
@@ -254,7 +254,7 @@ public class ModelRenderer : MonoBehaviour
                     modelMesh.Mesh,
                     modelMesh.Material,
                     nodeWorldMatrix,
-                    GameObject.layerIndex,
+                    GameObject.LayerIndex,
                     properties));
             }
         }
@@ -273,7 +273,7 @@ public class ModelRenderer : MonoBehaviour
         if (Model == null)
             return false;
 
-        return RaycastModelNode(Model.RootNode, Transform.localToWorldMatrix, ray, ref distance);
+        return RaycastModelNode(Model.RootNode, Transform.LocalToWorldMatrix, ray, ref distance);
     }
 
     private bool RaycastModelNode(ModelNode node, Double4x4 parentMatrix, Ray ray, ref double closestDistance)

@@ -9,8 +9,8 @@ namespace Prowl.Runtime;
 
 public abstract class Collider : MonoBehaviour
 {
-    public Double3 center;
-    public Double3 rotation;
+    public Double3 Center;
+    public Double3 Rotation;
 
     protected Rigidbody3D RigidBody => GetComponentInParent<Rigidbody3D>();
 
@@ -39,23 +39,23 @@ public abstract class Collider : MonoBehaviour
 
         while (current != null)
         {
-            cumulativeScale = cumulativeScale * current.localScale;
-            current = current.parent;
+            cumulativeScale *= current.LocalScale;
+            current = current.Parent;
         }
 
         cumulativeScale = Maths.Max(cumulativeScale, Double3.One * 0.05);
 
         // Get the local rotation and position in world space
-        Quaternion localRotation = Quaternion.FromEuler(rotation);
-        Double3 scaledCenter = center * cumulativeScale;
+        Quaternion localRotation = Quaternion.FromEuler(Rotation);
+        Double3 scaledCenter = Center * cumulativeScale;
 
         // Transform local position and rotation to world space
         Double3 worldCenter = Transform.TransformPoint(scaledCenter);
-        Quaternion worldRotation = Transform.rotation * localRotation;
+        Quaternion worldRotation = Transform.Rotation * localRotation;
 
         // Transform from world space to rigid body's local space
         Double3 rbLocalCenter = rb.Transform.InverseTransformPoint(worldCenter);
-        Quaternion rbLocalRotation = Quaternion.Inverse(rb.Transform.rotation) * worldRotation;
+        Quaternion rbLocalRotation = Quaternion.Inverse(rb.Transform.Rotation) * worldRotation;
 
         // Create a scale transform matrix that includes both rotation and scale
         Double4x4 scaleMatrix = Double4x4.CreateTRS(Double3.Zero, rbLocalRotation, cumulativeScale);

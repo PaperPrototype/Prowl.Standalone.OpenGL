@@ -170,7 +170,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
     #region IRenderable Implementation
 
     public Material GetMaterial() => Material;
-    public int GetLayer() => GameObject.layerIndex;
+    public int GetLayer() => GameObject.LayerIndex;
 
     public void GetRenderingData(ViewerData viewer, out PropertyState properties, out Mesh drawData, out Double4x4 model)
     {

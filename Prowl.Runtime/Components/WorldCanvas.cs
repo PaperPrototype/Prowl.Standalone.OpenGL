@@ -176,12 +176,12 @@ public class WorldCanvas : MonoBehaviour, IRenderable
         uv = Double2.Zero;
 
         // Get the transform matrix of the canvas
-        Double4x4 worldMatrix = Transform.localToWorldMatrix;
+        Double4x4 worldMatrix = Transform.LocalToWorldMatrix;
 
         // The fullscreen quad has vertices from (-1, -1, 0) to (1, 1, 0) in local space
         // Transform the quad plane to world space
-        Double3 worldPos = Transform.position;
-        Double3 worldNormal = Transform.forward;
+        Double3 worldPos = Transform.Position;
+        Double3 worldNormal = Transform.Forward;
 
         // Plane-ray intersection
         double denom = Double3.Dot(worldNormal, ray.Direction);
@@ -227,7 +227,7 @@ public class WorldCanvas : MonoBehaviour, IRenderable
         Graphics.Device.Clear(0f, 0f, 0f, 0f, GraphicsBackend.Primitives.ClearFlags.Color);
 
         // Begin Paper frame
-        _paper.BeginFrame(Time.deltaTimeF);
+        _paper.BeginFrame(Time.DeltaTimeF);
 
         // Invoke the user's GUI callback
         OnRenderUI?.Invoke(_paper);
@@ -242,13 +242,13 @@ public class WorldCanvas : MonoBehaviour, IRenderable
     // IRenderable implementation
     public Material GetMaterial() => Material ?? new Material(Shader.LoadDefault(DefaultShader.Unlit));
 
-    public int GetLayer() => GameObject.layerIndex;
+    public int GetLayer() => GameObject.LayerIndex;
 
     public void GetRenderingData(ViewerData viewer, out PropertyState properties, out Mesh drawData, out Double4x4 model)
     {
         properties = _properties;
         drawData = _quadMesh ?? Mesh.GetFullscreenQuad();
-        model = Transform.localToWorldMatrix;
+        model = Transform.LocalToWorldMatrix;
     }
 
     public void GetCullingData(out bool isRenderable, out AABB bounds)
@@ -259,7 +259,7 @@ public class WorldCanvas : MonoBehaviour, IRenderable
         Double3 min = new(-1, -1, 0);
         Double3 max = new(1, 1, 0);
         AABB localBounds = new(min, max);
-        bounds = localBounds.TransformBy(Transform.localToWorldMatrix);
+        bounds = localBounds.TransformBy(Transform.LocalToWorldMatrix);
     }
 
     /// <summary>

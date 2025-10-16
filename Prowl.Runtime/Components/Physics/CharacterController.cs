@@ -60,7 +60,7 @@ public class CharacterController : MonoBehaviour
     /// </summary>
     public void Move(Double3 motion)
     {
-        Double3 position = GameObject.Transform.position;
+        Double3 position = GameObject.Transform.Position;
         lastVelocity = motion;
 
         // Update grounded state before moving
@@ -75,7 +75,7 @@ public class CharacterController : MonoBehaviour
             finalPosition = SnapToGround(finalPosition);
         }
 
-        GameObject.Transform.position = finalPosition;
+        GameObject.Transform.Position = finalPosition;
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public class CharacterController : MonoBehaviour
             return false;
 
         // Check if the surface is walkable
-        double slopeAngle = GetSlopeAngle(hitInfo.normal);
+        double slopeAngle = GetSlopeAngle(hitInfo.Normal);
         return slopeAngle <= MaxSlopeAngle;
     }
 
@@ -116,7 +116,7 @@ public class CharacterController : MonoBehaviour
             return false;
         }
 
-        Double3 position = GameObject.Transform.position;
+        Double3 position = GameObject.Transform.Position;
         bool wouldCollide = CheckShapeOverlap(position, newHeight, Radius);
 
         if (!wouldCollide)
@@ -146,7 +146,7 @@ public class CharacterController : MonoBehaviour
         if (Shape == ColliderShape.Capsule && newRadius * 2 >= Height)
             return false;
 
-        Double3 position = GameObject.Transform.position;
+        Double3 position = GameObject.Transform.Position;
         bool wouldCollide = CheckShapeOverlap(position, Height, newRadius);
 
         if (!wouldCollide)
@@ -253,7 +253,7 @@ public class CharacterController : MonoBehaviour
         if (hit)
         {
             // Move to safe distance from hit point
-            double safeDistance = (moveDistance * hitInfo.fraction - SkinWidth);
+            double safeDistance = (moveDistance * hitInfo.Fraction - SkinWidth);
             position += moveDirection * safeDistance;
 
             // Calculate remaining movement after hitting surface
@@ -272,7 +272,7 @@ public class CharacterController : MonoBehaviour
             }
 
             // Project remaining movement onto the hit surface (slide)
-            Double3 slideMove = ProjectOntoSurface(remainingMove, hitInfo.normal);
+            Double3 slideMove = ProjectOntoSurface(remainingMove, hitInfo.Normal);
 
             // Recurse with remaining slide movement
             return CollideAndSlide(position, slideMove, depth + 1);
@@ -323,7 +323,7 @@ public class CharacterController : MonoBehaviour
         );
 
         // If we still hit something at the elevated position, we can't step up
-        if (hitAtElevated && elevatedHit.fraction < 0.5)
+        if (hitAtElevated && elevatedHit.Fraction < 0.5)
             return false;
 
         // Step 5: Move forward at elevated height
@@ -342,19 +342,19 @@ public class CharacterController : MonoBehaviour
         if (hasGroundBelow)
         {
             // Verify the surface is walkable dont want to perform steps on steep surfaces or walls
-            double slopeAngle = GetSlopeAngle(downHit.normal);
+            double slopeAngle = GetSlopeAngle(downHit.Normal);
             if (slopeAngle > MaxSlopeAngle)
                 return false; // Surface is too steep
 
             // Calculate the actual step height
-            double actualStepHeight = StepSize - (downHit.fraction * maxStepDownDistance - SkinWidth);
+            double actualStepHeight = StepSize - (downHit.Fraction * maxStepDownDistance - SkinWidth);
 
             // Only accept if we're actually stepping up (not down)
             if (actualStepHeight < 0.0)
                 return false;
 
             // Step down onto the surface
-            double stepDownDistance = downHit.fraction * maxStepDownDistance - SkinWidth;
+            double stepDownDistance = downHit.Fraction * maxStepDownDistance - SkinWidth;
             newPosition = forwardPosition - new Double3(0, stepDownDistance, 0);
             return true;
         }
@@ -400,11 +400,11 @@ public class CharacterController : MonoBehaviour
         if (hit)
         {
             // Check if the surface is walkable
-            double slopeAngle = GetSlopeAngle(hitInfo.normal);
+            double slopeAngle = GetSlopeAngle(hitInfo.Normal);
             if (slopeAngle <= MaxSlopeAngle)
             {
                 // Snap down to the surface
-                double snapDistance = hitInfo.fraction * SnapDownDistance - SkinWidth;
+                double snapDistance = hitInfo.Fraction * SnapDownDistance - SkinWidth;
                 if (snapDistance > 0)
                 {
                     position.Y -= snapDistance;
@@ -419,7 +419,7 @@ public class CharacterController : MonoBehaviour
     {
         if (GameObject.Scene.Physics == null) return;
 
-        Double3 position = GameObject.Transform.position;
+        Double3 position = GameObject.Transform.Position;
 
         if (Shape == ColliderShape.Capsule)
         {
@@ -431,7 +431,7 @@ public class CharacterController : MonoBehaviour
         }
 
         // Draw ground hit if grounded
-        if (lastGroundHit.hit)
+        if (lastGroundHit.Hit)
         {
             lastGroundHit.DrawGizmos();
         }

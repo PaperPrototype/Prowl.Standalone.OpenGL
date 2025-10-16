@@ -52,13 +52,13 @@ public sealed class RenderTexture : EngineObject, ISerializable
             InternalTextures[i] = new Texture2D((uint)Width, (uint)Height, false, textureFormats[i]);
             InternalTextures[i].SetTextureFilters(TextureMin.Linear, TextureMag.Linear);
             InternalTextures[i].SetWrapModes(TextureWrap.ClampToEdge, TextureWrap.ClampToEdge);
-            attachments[i] = new GraphicsFrameBuffer.Attachment { texture = InternalTextures[i].Handle, isDepth = false };
+            attachments[i] = new GraphicsFrameBuffer.Attachment { Texture = InternalTextures[i].Handle, IsDepth = false };
         }
 
         if (hasDepthAttachment)
         {
             InternalDepth = new Texture2D((uint)Width, (uint)Height, false, TextureImageFormat.Depth32f);
-            attachments[numTextures] = new GraphicsFrameBuffer.Attachment { texture = InternalDepth.Handle, isDepth = true };
+            attachments[numTextures] = new GraphicsFrameBuffer.Attachment { Texture = InternalDepth.Handle, IsDepth = true };
         }
 
         frameBuffer = Graphics.Device.CreateFramebuffer(attachments, (uint)Width, (uint)Height);
@@ -178,7 +178,7 @@ public sealed class RenderTexture : EngineObject, ISerializable
             pool[key] = list;
         }
 
-        list.Add((renderTexture, Time.frameCount));
+        list.Add((renderTexture, Time.FrameCount));
     }
 
     public static void UpdatePool()
@@ -189,7 +189,7 @@ public sealed class RenderTexture : EngineObject, ISerializable
             for (int i = pair.Value.Count - 1; i >= 0; i--)
             {
                 (RenderTexture renderTexture, long frameCreated) = pair.Value[i];
-                if (Time.frameCount - frameCreated > MaxUnusedFrames)
+                if (Time.FrameCount - frameCreated > MaxUnusedFrames)
                 {
                     disposableTextures.Add(renderTexture);
                     pair.Value.RemoveAt(i);

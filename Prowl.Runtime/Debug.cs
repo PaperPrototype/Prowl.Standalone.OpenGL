@@ -26,22 +26,22 @@ public enum LogSeverity
 public delegate void OnLog(string message, DebugStackTrace? stackTrace, LogSeverity logSeverity);
 
 
-public record DebugStackFrame(string fileName, int? line = null, int? column = null, MethodBase? methodBase = null)
+public record DebugStackFrame(string FileName, int? Line = null, int? Column = null, MethodBase? MethodBase = null)
 {
     public override string ToString()
     {
-        string locSuffix = line != null ? column != null ? $"({line},{column})" : $"({line})" : "";
+        string locSuffix = Line != null ? Column != null ? $"({Line},{Column})" : $"({Line})" : "";
 
-        if (methodBase != null)
-            return $"In {methodBase.DeclaringType.Name}.{methodBase.Name} at {fileName}{locSuffix}";
+        if (MethodBase != null)
+            return $"In {MethodBase.DeclaringType.Name}.{MethodBase.Name} at {FileName}{locSuffix}";
         else
-            return $"At {fileName}{locSuffix}";
+            return $"At {FileName}{locSuffix}";
     }
 
 }
 
 
-public record DebugStackTrace(params DebugStackFrame[] stackFrames)
+public record DebugStackTrace(params DebugStackFrame[] StackFrames)
 {
     public static explicit operator DebugStackTrace(StackTrace stackTrace)
     {
@@ -61,8 +61,8 @@ public record DebugStackTrace(params DebugStackFrame[] stackFrames)
     {
         StringBuilder sb = new();
 
-        for (int i = 0; i < stackFrames.Length; i++)
-            sb.AppendLine($"\t{stackFrames[i]}");
+        for (int i = 0; i < StackFrames.Length; i++)
+            sb.AppendLine($"\t{StackFrames[i]}");
 
         return sb.ToString();
     }
@@ -234,10 +234,10 @@ public class GizmoBuilder
 {
     private struct MeshData
     {
-        public List<Double3> s_vertices = [];
-        public List<Double2> s_uvs = [];
-        public List<Color32> s_colors = [];
-        public List<int> s_indices = [];
+        public List<Double3> Vertices = [];
+        public List<Double2> Uvs = [];
+        public List<Color32> Colors = [];
+        public List<int> Indices = [];
 
         public MeshData()
         {
@@ -245,10 +245,10 @@ public class GizmoBuilder
 
         public readonly void Clear()
         {
-            s_vertices.Clear();
-            s_uvs.Clear();
-            s_colors.Clear();
-            s_indices.Clear();
+            Vertices.Clear();
+            Uvs.Clear();
+            Colors.Clear();
+            Indices.Clear();
         }
     }
 
@@ -259,10 +259,10 @@ public class GizmoBuilder
 
     public struct IconDrawCall
     {
-        public Texture2D texture;
-        public Double3 center;
-        public double scale;
-        public Color color;
+        public Texture2D Texture;
+        public Double3 Center;
+        public double Scale;
+        public Color Color;
     }
 
     private List<IconDrawCall> _icons = [];
@@ -292,15 +292,15 @@ public class GizmoBuilder
             b = Double4x4.TransformPoint(b, m);
         }
 
-        int index = _wireData.s_vertices.Count;
-        _wireData.s_vertices.Add(a);
-        _wireData.s_vertices.Add(b);
+        int index = _wireData.Vertices.Count;
+        _wireData.Vertices.Add(a);
+        _wireData.Vertices.Add(b);
 
-        _wireData.s_colors.Add(color);
-        _wireData.s_colors.Add(color);
+        _wireData.Colors.Add(color);
+        _wireData.Colors.Add(color);
 
-        _wireData.s_indices.Add(index);
-        _wireData.s_indices.Add(index + 1);
+        _wireData.Indices.Add(index);
+        _wireData.Indices.Add(index + 1);
     }
 
     private void AddTriangle(Double3 a, Double3 b, Double3 c, Double2 a_uv, Double2 b_uv, Double2 c_uv, Color color)
@@ -313,23 +313,23 @@ public class GizmoBuilder
             c = Double4x4.TransformPoint(c, m);
         }
 
-        int index = _solidData.s_vertices.Count;
+        int index = _solidData.Vertices.Count;
 
-        _solidData.s_vertices.Add(a);
-        _solidData.s_vertices.Add(b);
-        _solidData.s_vertices.Add(c);
+        _solidData.Vertices.Add(a);
+        _solidData.Vertices.Add(b);
+        _solidData.Vertices.Add(c);
 
-        _solidData.s_uvs.Add(a_uv);
-        _solidData.s_uvs.Add(b_uv);
-        _solidData.s_uvs.Add(c_uv);
+        _solidData.Uvs.Add(a_uv);
+        _solidData.Uvs.Add(b_uv);
+        _solidData.Uvs.Add(c_uv);
 
-        _solidData.s_colors.Add(color);
-        _solidData.s_colors.Add(color);
-        _solidData.s_colors.Add(color);
+        _solidData.Colors.Add(color);
+        _solidData.Colors.Add(color);
+        _solidData.Colors.Add(color);
 
-        _solidData.s_indices.Add(index);
-        _solidData.s_indices.Add(index + 1);
-        _solidData.s_indices.Add(index + 2);
+        _solidData.Indices.Add(index);
+        _solidData.Indices.Add(index + 1);
+        _solidData.Indices.Add(index + 2);
     }
 
     public void PushMatrix(Double4x4 matrix)
@@ -684,7 +684,7 @@ public class GizmoBuilder
 
     private Double3 GetPerpendicularVector(Double3 v)
     {
-        Double3 result = Double3.UnitX;
+        Double3 result;
         if (Math.Abs(v.X) > 0.1f)
             result = new Double3(v.Y, -v.X, 0);
         else if (Math.Abs(v.Y) > 0.1f)
@@ -704,11 +704,11 @@ public class GizmoBuilder
 
     }
 
-    public void DrawIcon(Texture2D icon, Double3 center, double scale, Color color) => _icons.Add(new IconDrawCall { texture = icon, center = center, scale = scale, color = color });
+    public void DrawIcon(Texture2D icon, Double3 center, double scale, Color color) => _icons.Add(new IconDrawCall { Texture = icon, Center = center, Scale = scale, Color = color });
 
     public (Mesh? wire, Mesh? solid) UpdateMesh(bool cameraRelative, Double3 cameraPosition)
     {
-        bool hasWire = _wireData.s_vertices.Count > 0;
+        bool hasWire = _wireData.Vertices.Count > 0;
         if (hasWire)
         {
             _wire ??= new()
@@ -717,25 +717,25 @@ public class GizmoBuilder
                 IndexFormat = IndexFormat.UInt16,
             };
 
-            _wire.Vertices = [.. _wireData.s_vertices.Select(v => (Float3)v)];
-            _wire.Colors = [.. _wireData.s_colors];
-            _wire.Indices = [.. _wireData.s_indices.Select(i => (uint)i)];
+            _wire.Vertices = [.. _wireData.Vertices.Select(v => (Float3)v)];
+            _wire.Colors = [.. _wireData.Colors];
+            _wire.Indices = [.. _wireData.Indices.Select(i => (uint)i)];
 
             if (cameraRelative)
             {
                 // Convert vertices to be relative to the camera
-                Float3[] vertices = new Float3[_wireData.s_vertices.Count];
-                for (int i = 0; i < _wireData.s_vertices.Count; i++)
-                    vertices[i] = (Float3)(_wireData.s_vertices[i] - cameraPosition);
+                Float3[] vertices = new Float3[_wireData.Vertices.Count];
+                for (int i = 0; i < _wireData.Vertices.Count; i++)
+                    vertices[i] = (Float3)(_wireData.Vertices[i] - cameraPosition);
                 _wire.Vertices = vertices;
             }
             else
             {
-                _wire.Vertices = [.. _wireData.s_vertices.Select(v => (Float3)v)];
+                _wire.Vertices = [.. _wireData.Vertices.Select(v => (Float3)v)];
             }
         }
 
-        bool hasSolid = _solidData.s_vertices.Count > 0;
+        bool hasSolid = _solidData.Vertices.Count > 0;
         if (hasSolid)
         {
             _solid ??= new()
@@ -747,19 +747,19 @@ public class GizmoBuilder
             if (cameraRelative)
             {
                 // Convert vertices to be relative to the camera
-                Float3[] vertices2 = new Float3[_solidData.s_vertices.Count];
-                for (int i = 0; i < _solidData.s_vertices.Count; i++)
-                    vertices2[i] = (Float3)(_solidData.s_vertices[i] - cameraPosition);
+                Float3[] vertices2 = new Float3[_solidData.Vertices.Count];
+                for (int i = 0; i < _solidData.Vertices.Count; i++)
+                    vertices2[i] = (Float3)(_solidData.Vertices[i] - cameraPosition);
                 _solid.Vertices = vertices2;
             }
             else
             {
-                _solid.Vertices = [.. _solidData.s_vertices.Select(v => (Float3)v)];
+                _solid.Vertices = [.. _solidData.Vertices.Select(v => (Float3)v)];
             }
 
-            _solid.Colors = [.. _solidData.s_colors];
-            _solid.UV = [.. _solidData.s_uvs.Select(v => (Float2)v)];
-            _solid.Indices = [.. _solidData.s_indices.Select(i => (uint)i)];
+            _solid.Colors = [.. _solidData.Colors];
+            _solid.UV = [.. _solidData.Uvs.Select(v => (Float2)v)];
+            _solid.Indices = [.. _solidData.Indices.Select(i => (uint)i)];
         }
 
         return (

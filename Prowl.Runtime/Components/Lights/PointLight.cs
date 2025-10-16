@@ -18,9 +18,9 @@ public class PointLight : Light
         _2048 = 2048,
     }
 
-    public Resolution shadowResolution = Resolution._512;
+    public Resolution ShadowResolution = Resolution._512;
 
-    public double range = 10f;
+    public double Range = 10f;
 
     public override void Update()
     {
@@ -29,7 +29,7 @@ public class PointLight : Light
 
     public override void DrawGizmos()
     {
-        Debug.DrawWireSphere(Transform.position, range, color);
+        Debug.DrawWireSphere(Transform.Position, Range, Color);
     }
 
     public override LightType GetLightType() => LightType.Point;
@@ -37,17 +37,17 @@ public class PointLight : Light
     public override void GetShadowMatrix(out Double4x4 view, out Double4x4 projection)
     {
         // Default implementation - will be overridden by GetShadowMatrixForFace
-        projection = Double4x4.CreatePerspectiveFov(90f * Maths.Deg2Rad, 1.0f, 0.1f, range);
-        view = Double4x4.CreateLookTo(Transform.position, Transform.forward, Transform.up);
+        projection = Double4x4.CreatePerspectiveFov(90f * Maths.Deg2Rad, 1.0f, 0.1f, Range);
+        view = Double4x4.CreateLookTo(Transform.Position, Transform.Forward, Transform.Up);
     }
 
     // Get shadow matrix for a specific cubemap face
     public void GetShadowMatrixForFace(int faceIndex, out Double4x4 view, out Double4x4 projection, out Double3 forward, out Double3 up)
     {
         // 90 degree FOV perspective projection for cubemap faces
-        projection = Double4x4.CreatePerspectiveFov(90f * Maths.Deg2Rad, 1.0f, 0.1f, range);
+        projection = Double4x4.CreatePerspectiveFov(90f * Maths.Deg2Rad, 1.0f, 0.1f, Range);
 
-        Double3 position = Transform.position;
+        Double3 position = Transform.Position;
 
         // Define view matrices for each cubemap face
         // 0: +X, 1: -X, 2: +Y, 3: -Y, 4: +Z, 5: -Z
@@ -86,22 +86,22 @@ public class PointLight : Light
 
     public void UploadToGPU(bool cameraRelative, Double3 cameraPosition, int atlasX, int atlasY, int atlasWidth, int lightIndex)
     {
-        Double3 position = cameraRelative ? Transform.position - cameraPosition : Transform.position;
-        Double3 colorVec = new(color.R, color.G, color.B);
+        Double3 position = cameraRelative ? Transform.Position - cameraPosition : Transform.Position;
+        Double3 colorVec = new(Color.R, Color.G, Color.B);
 
         // Use GlobalUniforms to set packed point light data
-        if (castShadows && atlasX >= 0)
+        if (CastShadows && atlasX >= 0)
         {
             GlobalUniforms.SetPointLightData(
                 lightIndex,
                 position,
                 colorVec,
-                intensity,
-                range,
-                shadowBias,
-                shadowNormalBias,
-                shadowStrength,
-                (double)shadowQuality,
+                Intensity,
+                Range,
+                ShadowBias,
+                ShadowNormalBias,
+                ShadowStrength,
+                (double)ShadowQuality,
                 atlasX,
                 atlasY,
                 atlasWidth
@@ -113,12 +113,12 @@ public class PointLight : Light
                 lightIndex,
                 position,
                 colorVec,
-                intensity,
-                range,
-                shadowBias,
-                shadowNormalBias,
+                Intensity,
+                Range,
+                ShadowBias,
+                ShadowNormalBias,
                 0, // shadowStrength = 0
-                (double)shadowQuality,
+                (double)ShadowQuality,
                 -1, // atlasX = -1
                 -1, // atlasY = -1
                 0   // atlasWidth = 0

@@ -33,24 +33,24 @@ public sealed class VoxelGame : Game
         // Create directional light
         GameObject lightGO = new("Directional Light");
         DirectionalLight light = lightGO.AddComponent<DirectionalLight>();
-        lightGO.Transform.position = new Double3(0, 64, 0);
-        lightGO.Transform.localEulerAngles = new Double3(-45, 45, 0);
-        light.shadowResolution = DirectionalLight.Resolution._4096;
-        light.shadowDistance = 100f;
+        lightGO.Transform.Position = new Double3(0, 64, 0);
+        lightGO.Transform.LocalEulerAngles = new Double3(-45, 45, 0);
+        light.ShadowResolution = DirectionalLight.Resolution._4096;
+        light.ShadowDistance = 100f;
         scene.Add(lightGO);
 
         // Create camera
         cameraGO = new("Main Camera");
-        cameraGO.tag = "Main Camera";
-        cameraGO.Transform.position = new(0, 70, 0);
+        cameraGO.Tag = "Main Camera";
+        cameraGO.Transform.Position = new(0, 70, 0);
         camera = cameraGO.AddComponent<Camera>();
         camera.Depth = -1;
         camera.HDR = true;
 
         spot = new GameObject("Spot Light");
         PointLight sl = spot.AddComponent<PointLight>();
-        sl.range = 50f;
-        sl.intensity = 256f;
+        sl.Range = 50f;
+        sl.Intensity = 256f;
         scene.Add(spot);
 
         camera.Effects =
@@ -95,21 +95,21 @@ public sealed class VoxelGame : Game
         float speed = Input.GetKey(KeyCode.ShiftLeft) ? 20f : 10f;
 
         // forward/back
-        cameraGO.Transform.position += cameraGO.Transform.forward * movement.Y * speed * Time.deltaTime;
+        cameraGO.Transform.Position += cameraGO.Transform.Forward * movement.Y * speed * Time.DeltaTime;
         // left/right
-        cameraGO.Transform.position += cameraGO.Transform.right * movement.X * speed * Time.deltaTime;
+        cameraGO.Transform.Position += cameraGO.Transform.Right * movement.X * speed * Time.DeltaTime;
 
         // up/down with Q/E
         float upDown = 0;
         if (Input.GetKey(KeyCode.E)) upDown += 1;
         if (Input.GetKey(KeyCode.Q)) upDown -= 1;
-        cameraGO.Transform.position += Double3.UnitY * upDown * speed * Time.deltaTime;
+        cameraGO.Transform.Position += Double3.UnitY * upDown * speed * Time.DeltaTime;
 
         // rotate with mouse
         if (Input.GetMouseButton(1))
         {
             Double2 delta = Input.MouseDelta;
-            cameraGO.Transform.localEulerAngles += new Double3(delta.Y, delta.X, 0) * 0.1f;
+            cameraGO.Transform.LocalEulerAngles += new Double3(delta.Y, delta.X, 0) * 0.1f;
         }
 
         // Voxel editing
@@ -126,8 +126,8 @@ public sealed class VoxelGame : Game
 
         if (Input.GetKey(KeyCode.F))
         {
-            spot.Transform.position = cameraGO.Transform.position;
-            spot.Transform.rotation = cameraGO.Transform.rotation;
+            spot.Transform.Position = cameraGO.Transform.Position;
+            spot.Transform.Rotation = cameraGO.Transform.Rotation;
         }
     }
 }
@@ -156,7 +156,7 @@ public class VoxelWorld : MonoBehaviour
     private void CreateChunk(Int3 chunkPos)
     {
         GameObject chunkGO = new($"Chunk_{chunkPos.X}_{chunkPos.Y}_{chunkPos.Z}");
-        chunkGO.Transform.position = new Double3(
+        chunkGO.Transform.Position = new Double3(
             chunkPos.X * ChunkWidth,
             chunkPos.Y * ChunkHeight,
             chunkPos.Z * ChunkDepth

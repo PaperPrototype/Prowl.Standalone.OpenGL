@@ -9,41 +9,41 @@ namespace Prowl.Runtime;
 
 public class TimeData
 {
-    public double unscaledDeltaTime;
-    public double unscaledTotalTime;
-    public double deltaTime;
-    public double time;
-    public double smoothUnscaledDeltaTime;
-    public double smoothDeltaTime;
+    public double UnscaledDeltaTime;
+    public double UnscaledTotalTime;
+    public double DeltaTime;
+    public double Time;
+    public double SmoothUnscaledDeltaTime;
+    public double SmoothDeltaTime;
 
-    private Stopwatch stopwatch;
+    private Stopwatch _stopwatch;
 
     public TimeData() { }
 
-    public long frameCount;
+    public long FrameCount;
 
-    public double timeScale = 1f;
-    public float timeScaleF => (float)timeScale;
-    public double timeSmoothFactor = .25f;
+    public double TimeScale = 1f;
+    public float TimeScaleF => (float)TimeScale;
+    public double TimeSmoothFactor = .25f;
 
     public void Update()
     {
-        stopwatch ??= Stopwatch.StartNew();
+        _stopwatch ??= Stopwatch.StartNew();
 
-        double dt = stopwatch.Elapsed.TotalMilliseconds / 1000.0;
+        double dt = _stopwatch.Elapsed.TotalMilliseconds / 1000.0;
 
-        frameCount++;
+        FrameCount++;
 
-        unscaledDeltaTime = dt;
-        unscaledTotalTime += unscaledDeltaTime;
+        UnscaledDeltaTime = dt;
+        UnscaledTotalTime += UnscaledDeltaTime;
 
-        deltaTime = dt * timeScale;
-        time += deltaTime;
+        DeltaTime = dt * TimeScale;
+        Time += DeltaTime;
 
-        smoothUnscaledDeltaTime = smoothUnscaledDeltaTime + (dt - smoothUnscaledDeltaTime) * timeSmoothFactor;
-        smoothDeltaTime = smoothUnscaledDeltaTime * dt;
+        SmoothUnscaledDeltaTime += (dt - SmoothUnscaledDeltaTime) * TimeSmoothFactor;
+        SmoothDeltaTime = SmoothUnscaledDeltaTime * dt;
 
-        stopwatch.Restart();
+        _stopwatch.Restart();
     }
 }
 
@@ -54,34 +54,34 @@ public static class Time
 
     public static TimeData CurrentTime => TimeStack.Peek();
 
-    public static double unscaledDeltaTime => CurrentTime.unscaledDeltaTime;
-    public static double unscaledTotalTime => CurrentTime.unscaledTotalTime;
+    public static double UnscaledDeltaTime => CurrentTime.UnscaledDeltaTime;
+    public static double UnscaledTotalTime => CurrentTime.UnscaledTotalTime;
 
-    public static double deltaTime => CurrentTime.deltaTime;
-    public static float deltaTimeF => (float)deltaTime;
-    public static double fixedDeltaTime => 1.0 / 60.0; // 60 FPS fixed timestep
-    public static double time => CurrentTime.time;
+    public static double DeltaTime => CurrentTime.DeltaTime;
+    public static float DeltaTimeF => (float)DeltaTime;
+    public static double FixedDeltaTime => 1.0 / 60.0; // 60 FPS fixed timestep
+    public static double TimeSinceStartup => CurrentTime.Time;
 
-    public static double smoothUnscaledDeltaTime => CurrentTime.smoothUnscaledDeltaTime;
-    public static double smoothDeltaTime => CurrentTime.smoothDeltaTime;
+    public static double SmoothUnscaledDeltaTime => CurrentTime.SmoothUnscaledDeltaTime;
+    public static double SmoothDeltaTime => CurrentTime.SmoothDeltaTime;
 
-    public static long frameCount => CurrentTime.frameCount;
+    public static long FrameCount => CurrentTime.FrameCount;
 
-    public static double timeScale
+    public static double TimeScale
     {
-        get => CurrentTime.timeScale;
-        set => CurrentTime.timeScale = value;
+        get => CurrentTime.TimeScale;
+        set => CurrentTime.TimeScale = value;
     }
 
-    public static float timeScaleF
+    public static float TimeScaleF
     {
-        get => (float)timeScale;
-        set => timeScale = value;
+        get => (float)TimeScale;
+        set => TimeScale = value;
     }
 
-    public static double timeSmoothFactor
+    public static double TimeSmoothFactor
     {
-        get => CurrentTime.timeSmoothFactor;
-        set => CurrentTime.timeSmoothFactor = value;
+        get => CurrentTime.TimeSmoothFactor;
+        set => CurrentTime.TimeSmoothFactor = value;
     }
 }

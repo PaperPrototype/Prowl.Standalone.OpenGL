@@ -55,7 +55,7 @@ public class Camera : MonoBehaviour
     public LayerMask CullingMask = LayerMask.Everything;
 
     public enum ProjectionType { Perspective, Orthographic }
-    public ProjectionType projectionType = ProjectionType.Perspective;
+    public ProjectionType ProjectionMode = ProjectionType.Perspective;
 
     public double FieldOfView = 60f;
     public double OrthographicSize = 0.5f;
@@ -69,7 +69,7 @@ public class Camera : MonoBehaviour
     public bool HDR = false;
     public double RenderScale = 1.0f;
 
-    public bool IsOrthographic => projectionType == ProjectionType.Orthographic;
+    public bool IsOrthographic => ProjectionMode == ProjectionType.Orthographic;
 
     [SerializeIgnore]
     public DepthTextureMode DepthTextureMode = DepthTextureMode.None;
@@ -158,8 +158,8 @@ public class Camera : MonoBehaviour
             _projectionMatrix = GetProjectionMatrix(_aspect);
         }
 
-        ViewMatrix = Double4x4.CreateLookTo(Transform.position, Transform.forward, Transform.up);
-        OriginViewMatrix = Double4x4.CreateLookTo(Double3.Zero, Transform.forward, Transform.up);
+        ViewMatrix = Double4x4.CreateLookTo(Transform.Position, Transform.Forward, Transform.Up);
+        OriginViewMatrix = Double4x4.CreateLookTo(Double3.Zero, Transform.Forward, Transform.Up);
 
         return camTarget;
     }
@@ -215,16 +215,16 @@ public class Camera : MonoBehaviour
 
     public Double4x4 GetViewMatrix(bool applyPosition = true)
     {
-        Double3 position = applyPosition ? Transform.position : Double3.Zero;
+        Double3 position = applyPosition ? Transform.Position : Double3.Zero;
 
-        return Double4x4.CreateLookTo(position, Transform.forward, Transform.up);
+        return Double4x4.CreateLookTo(position, Transform.Forward, Transform.Up);
     }
 
     private Double4x4 GetProjectionMatrix(double aspect)
     {
         Double4x4 proj;
 
-        if (projectionType == ProjectionType.Orthographic)
+        if (ProjectionMode == ProjectionType.Orthographic)
             proj = Double4x4.CreateOrtho(OrthographicSize, OrthographicSize, NearClipPlane, FarClipPlane);
         else
             proj = Double4x4.CreatePerspectiveFov(Maths.ToRadians(FieldOfView), aspect, NearClipPlane, FarClipPlane);

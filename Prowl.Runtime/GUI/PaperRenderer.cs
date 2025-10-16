@@ -121,13 +121,13 @@ public class PaperRenderer : ICanvasRenderer
         // Configure state for UI rendering
         var state = new RasterizerState
         {
-            depthTest = false,
-            doBlend = true,
-            blendSrc = RasterizerState.Blending.One,
-            blendDst = RasterizerState.Blending.OneMinusSrcAlpha,
-            blendMode = RasterizerState.BlendMode.Add,
+            DepthTest = false,
+            DoBlend = true,
+            BlendSrc = RasterizerState.Blending.One,
+            BlendDst = RasterizerState.Blending.OneMinusSrcAlpha,
+            Blend = RasterizerState.BlendMode.Add,
 
-            cullFace = RasterizerState.PolyFace.None,
+            CullFace = RasterizerState.PolyFace.None,
         };
 
         Graphics.Device.SetState(state);

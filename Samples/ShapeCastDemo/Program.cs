@@ -31,16 +31,16 @@ public sealed class ShapeCastDemoGame : Game
         // Create directional light
         GameObject lightGO = new("Directional Light");
         DirectionalLight light = lightGO.AddComponent<DirectionalLight>();
-        light.shadowQuality = ShadowQuality.Soft;
-        light.shadowBias = 0.5f;
-        lightGO.Transform.localEulerAngles = new Double3(-45, 45, 0);
+        light.ShadowQuality = ShadowQuality.Soft;
+        light.ShadowBias = 0.5f;
+        lightGO.Transform.LocalEulerAngles = new Double3(-45, 45, 0);
         scene.Add(lightGO);
 
         // Create camera
         GameObject cam = new("Main Camera");
-        cam.tag = "Main Camera";
-        cam.Transform.position = new(0, 5, -10);
-        cam.Transform.localEulerAngles = new Double3(20, 0, 0);
+        cam.Tag = "Main Camera";
+        cam.Transform.Position = new(0, 5, -10);
+        cam.Transform.LocalEulerAngles = new Double3(20, 0, 0);
         Camera camera = cam.AddComponent<Camera>();
         camera.Depth = -1;
         camera.HDR = true;
@@ -85,7 +85,7 @@ public sealed class ShapeCastDemoGame : Game
         floorRenderer.Mesh = Mesh.CreateCube(new Double3(40, 1, 40));
         floorRenderer.Material = standardMaterial;
         floorRenderer.MainColor = new Color(0.7f, 0.7f, 0.7f, 1.0f);
-        floor.Transform.position = new Double3(0, -0.5f, 0);
+        floor.Transform.Position = new Double3(0, -0.5f, 0);
 
         Rigidbody3D floorRigidbody = floor.AddComponent<Rigidbody3D>();
         floorRigidbody.IsStatic = true;
@@ -110,7 +110,7 @@ public sealed class ShapeCastDemoGame : Game
             stepRenderer.Material = standardMaterial;
             stepRenderer.MainColor = new Color(0.6f, 0.6f, 0.8f, 1.0f);
 
-            step.Transform.position = new Double3(
+            step.Transform.Position = new Double3(
                 -10,
                 i * stepHeight,
                 i * stepDepth
@@ -133,8 +133,8 @@ public sealed class ShapeCastDemoGame : Game
         slopeRenderer.Material = standardMaterial;
         slopeRenderer.MainColor = new Color(0.8f, 0.6f, 0.6f, 1.0f);
 
-        slope.Transform.position = position;
-        slope.Transform.localEulerAngles = new Double3(angleDegrees, 0, 0);
+        slope.Transform.Position = position;
+        slope.Transform.LocalEulerAngles = new Double3(angleDegrees, 0, 0);
 
         Rigidbody3D slopeRb = slope.AddComponent<Rigidbody3D>();
         slopeRb.IsStatic = true;
@@ -156,7 +156,7 @@ public sealed class ShapeCastDemoGame : Game
             boxRenderer.Material = standardMaterial;
             boxRenderer.MainColor = new Color(0.9f, 0.5f, 0.3f, 1.0f);
 
-            box.Transform.position = new Double3(
+            box.Transform.Position = new Double3(
                 i * 3 - 6,
                 height * 0.5,
                 -5
@@ -174,7 +174,7 @@ public sealed class ShapeCastDemoGame : Game
     private void CreatePlayer()
     {
         playerGO = new GameObject("Player");
-        playerGO.Transform.position = new Double3(0, 2, 0);
+        playerGO.Transform.Position = new Double3(0, 2, 0);
 
         //var playerRenderer = playerGO.AddComponent<MeshRenderer>();
         //playerRenderer.Mesh = Mesh.CreateCapsule(0.5f, 1.8f, 16, 8);
@@ -204,16 +204,16 @@ public sealed class ShapeCastDemoGame : Game
         // Camera follows player from behind
         if (playerGO != null)
         {
-            Double3 targetPos = playerGO.Transform.position + new Double3(0, 3, -8);
-            cameraGO.Transform.position = Maths.Lerp(cameraGO.Transform.position, targetPos, 1.0 * Time.deltaTime);
+            Double3 targetPos = playerGO.Transform.Position + new Double3(0, 3, -8);
+            cameraGO.Transform.Position = Maths.Lerp(cameraGO.Transform.Position, targetPos, 1.0 * Time.DeltaTime);
 
             // Look at player
-            Double3 lookDir = playerGO.Transform.position - cameraGO.Transform.position;
+            Double3 lookDir = playerGO.Transform.Position - cameraGO.Transform.Position;
             if (Double3.Length(lookDir) > 0.01)
             {
                 double pitch = System.Math.Atan2(lookDir.Y, System.Math.Sqrt(lookDir.X * lookDir.X + lookDir.Z * lookDir.Z));
                 double yaw = System.Math.Atan2(lookDir.X, lookDir.Z);
-                cameraGO.Transform.localEulerAngles = new Double3(
+                cameraGO.Transform.LocalEulerAngles = new Double3(
                     -pitch * 180.0 / System.Math.PI,
                     yaw * 180.0 / System.Math.PI,
                     0
@@ -281,7 +281,7 @@ public class PlayerController : MonoBehaviour
         HandleGravityAndJump();
 
         // Calculate total movement for this frame
-        Double3 movement = velocity * Time.deltaTime;
+        Double3 movement = velocity * Time.DeltaTime;
 
         // Move the character using the CharacterController (this also updates IsGrounded)
         characterController.Move(movement);
@@ -312,7 +312,7 @@ public class PlayerController : MonoBehaviour
     {
         if (!characterController.IsGrounded)
         {
-            velocity.Y -= Gravity * Time.deltaTime;
+            velocity.Y -= Gravity * Time.DeltaTime;
         }
         else
         {
@@ -332,7 +332,7 @@ public class PlayerController : MonoBehaviour
         // Draw velocity
         if (Double3.Length(velocity) > 0.1)
         {
-            Double3 position = GameObject.Transform.position;
+            Double3 position = GameObject.Transform.Position;
             Debug.DrawArrow(position, velocity * 0.5, new Color(255, 255, 0, 255));
         }
     }

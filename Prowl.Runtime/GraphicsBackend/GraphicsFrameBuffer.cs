@@ -7,8 +7,8 @@ public abstract unsafe class GraphicsFrameBuffer
 {
     public struct Attachment
     {
-        public GraphicsTexture texture;
-        public bool isDepth;
+        public GraphicsTexture Texture;
+        public bool IsDepth;
     }
 
     public abstract bool IsDisposed { get; protected set; }

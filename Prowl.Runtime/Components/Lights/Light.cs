@@ -15,13 +15,13 @@ public enum ShadowQuality
 public abstract class Light : MonoBehaviour, IRenderableLight
 {
 
-    public Color color = Color.White;
-    public double intensity = 8.0f;
-    public double shadowStrength = 1.0f;
-    public double shadowBias = 0.05f;
-    public double shadowNormalBias = 1f;
-    public bool castShadows = true;
-    public ShadowQuality shadowQuality = ShadowQuality.Hard;
+    public Color Color = Color.White;
+    public double Intensity = 8.0f;
+    public double ShadowStrength = 1.0f;
+    public double ShadowBias = 0.05f;
+    public double ShadowNormalBias = 1f;
+    public bool CastShadows = true;
+    public ShadowQuality ShadowQuality = ShadowQuality.Hard;
 
 
     public override void Update()
@@ -29,11 +29,11 @@ public abstract class Light : MonoBehaviour, IRenderableLight
         GameObject.Scene.PushLight(this);
     }
 
-    public virtual int GetLayer() => GameObject.layerIndex;
+    public virtual int GetLayer() => GameObject.LayerIndex;
     public virtual int GetLightID() => InstanceID;
     public abstract LightType GetLightType();
-    public virtual Double3 GetLightPosition() => Transform.position;
-    public virtual Double3 GetLightDirection() => Transform.forward;
-    public virtual bool DoCastShadows() => castShadows;
+    public virtual Double3 GetLightPosition() => Transform.Position;
+    public virtual Double3 GetLightDirection() => Transform.Forward;
+    public virtual bool DoCastShadows() => CastShadows;
     public abstract void GetShadowMatrix(out Double4x4 view, out Double4x4 projection);
 }

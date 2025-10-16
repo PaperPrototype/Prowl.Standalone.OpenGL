@@ -46,40 +46,40 @@ public class GameObject : EngineObject, ISerializable
     #region Public Fields/Properties
 
     /// <summary> The Tag Index of this GameObject </summary>
-    public int tagIndex;
+    public int TagIndex;
 
     /// <summary> The Layer Index of this GameObject </summary>
-    public int layerIndex;
+    public int LayerIndex;
 
     /// <summary> The Hide Flags of this GameObject, Used to hide the GameObject from a variety of places like Serializing, Inspector or Hierarchy </summary>
-    public HideFlags hideFlags = HideFlags.None;
+    public HideFlags HideFlags = HideFlags.None;
 
     /// <summary> Gets whether or not this gameobject is enabled explicitly </summary>
-    public bool enabled
+    public bool Enabled
     {
         get => _enabled;
         set { if (value != _enabled) { SetEnabled(value); } }
     }
 
     /// <summary> Gets whether this gameobject is enabled in the hierarchy, so if its parent is disabled this will return false </summary>
-    public bool enabledInHierarchy => _enabledInHierarchy;
+    public bool EnabledInHierarchy => _enabledInHierarchy;
 
     /// <summary> The Tag of this GameObject </summary>
-    public string tag
+    public string Tag
     {
-        get => TagLayerManager.GetTag(tagIndex);
-        set => tagIndex = TagLayerManager.GetTagIndex(value);
+        get => TagLayerManager.GetTag(TagIndex);
+        set => TagIndex = TagLayerManager.GetTagIndex(value);
     }
 
     /// <summary> The Layer of this GameObject </summary>
-    public string layer
+    public string Layer
     {
-        get => TagLayerManager.GetLayer(layerIndex);
-        set => layerIndex = TagLayerManager.GetLayerIndex(value);
+        get => TagLayerManager.GetLayer(LayerIndex);
+        set => LayerIndex = TagLayerManager.GetLayerIndex(value);
     }
 
     /// <summary> The Static flag of this GameObject, Changing this may not behave as expected! </summary>
-    public bool isStatic
+    public bool IsStatic
     {
         get => _static;
         set => _static = value;
@@ -89,12 +89,12 @@ public class GameObject : EngineObject, ISerializable
     public Guid Identifier => _identifier;
 
     /// <summary> The Parent of this GameObject, Can be null </summary>
-    public GameObject? parent => _parent;
+    public GameObject? Parent => _parent;
 
     /// <summary> A List of all children of this GameObject </summary>
-    public List<GameObject> children = [];
+    public List<GameObject> Children = [];
 
-    public int childCount => children.Count;
+    public int ChildCount => Children.Count;
 
 
     /// <summary>
@@ -114,7 +114,7 @@ public class GameObject : EngineObject, ISerializable
     {
         get
         {
-            _transform.gameObject = this; // ensure game object is this
+            _transform.GameObject = this; // ensure game object is this
             return _transform;
         }
     }
@@ -188,8 +188,8 @@ public class GameObject : EngineObject, ISerializable
 
         if (worldPositionStays)
         {
-            worldPosition = Transform.position;
-            worldRotation = Transform.rotation;
+            worldPosition = Transform.Position;
+            worldRotation = Transform.Rotation;
             worldScale = Transform.GetWorldRotationAndScale();
         }
 
@@ -197,10 +197,10 @@ public class GameObject : EngineObject, ISerializable
         {
             // If it already has an father, remove this from fathers children
             if (_parent != null)
-                _parent.children.Remove(this);
+                _parent.Children.Remove(this);
 
             if (NewParent != null)
-                NewParent.children.Add(this);
+                NewParent.Children.Add(this);
 
             _parent = NewParent;
         }
@@ -209,18 +209,18 @@ public class GameObject : EngineObject, ISerializable
         {
             if (_parent != null)
             {
-                Transform.localPosition = _parent.Transform.InverseTransformPoint(worldPosition);
-                Transform.localRotation = Quaternion.NormalizeSafe(Quaternion.Inverse(_parent.Transform.rotation) * worldRotation);
+                Transform.LocalPosition = _parent.Transform.InverseTransformPoint(worldPosition);
+                Transform.LocalRotation = Quaternion.NormalizeSafe(Quaternion.Inverse(_parent.Transform.Rotation) * worldRotation);
             }
             else
             {
-                Transform.localPosition = worldPosition;
-                Transform.localRotation = Quaternion.NormalizeSafe(worldRotation);
+                Transform.LocalPosition = worldPosition;
+                Transform.LocalRotation = Quaternion.NormalizeSafe(worldRotation);
             }
 
-            Transform.localScale = Double3.One;
+            Transform.LocalScale = Double3.One;
             Double4x4 inverseRS = Transform.GetWorldRotationAndScale().Invert() * worldScale;
-            Transform.localScale = new Double3(inverseRS[0, 0], inverseRS[1, 1], inverseRS[2, 2]);
+            Transform.LocalScale = new Double3(inverseRS[0, 0], inverseRS[1, 1], inverseRS[2, 2]);
         }
 
         HierarchyStateChanged();
@@ -244,10 +244,10 @@ public class GameObject : EngineObject, ISerializable
     public bool IsParentOf(GameObject go)
     {
         if (go == null) return false;
-        if (go.parent?.InstanceID == InstanceID)
+        if (go.Parent?.InstanceID == InstanceID)
             return true;
 
-        foreach (GameObject child in children)
+        foreach (GameObject child in Children)
             if (child.IsParentOf(go))
                 return true;
 
@@ -261,7 +261,7 @@ public class GameObject : EngineObject, ISerializable
     /// </summary>
     /// <param name="otherTag">The tag to compare against.</param>
     /// <returns>True if the tags match, false otherwise.</returns>
-    public bool CompareTag(string otherTag) => TagLayerManager.GetTag(tagIndex).Equals(otherTag, StringComparison.OrdinalIgnoreCase);
+    public bool CompareTag(string otherTag) => TagLayerManager.GetTag(TagIndex).Equals(otherTag, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Finds a GameObject by name in the same scene.
@@ -292,9 +292,9 @@ public class GameObject : EngineObject, ISerializable
     /// </summary>
     public IEnumerable<GameObject> GetChildrenDeep()
     {
-        if (children == null) return Enumerable.Empty<GameObject>();
+        if (Children == null) return [];
 
-        int startCapacity = Math.Max(children.Count * 2, 8);
+        int startCapacity = Math.Max(Children.Count * 2, 8);
         List<GameObject> result = new(startCapacity);
         GetChildrenDeep(result);
         return result;
@@ -306,10 +306,10 @@ public class GameObject : EngineObject, ISerializable
     /// </summary>
     public void GetChildrenDeep(List<GameObject> resultList)
     {
-        if (children == null) return;
-        resultList.AddRange(children);
-        for (int i = 0; i < children.Count; i++)
-            children[i].GetChildrenDeep(resultList);
+        if (Children == null) return;
+        resultList.AddRange(Children);
+        for (int i = 0; i < Children.Count; i++)
+            Children[i].GetChildrenDeep(resultList);
     }
 
     public GameObject GetChildAtIndexPath(IEnumerable<int> indexPath)
@@ -318,9 +318,9 @@ public class GameObject : EngineObject, ISerializable
         foreach (int i in indexPath)
         {
             if (i < 0) return null;
-            if (curObj.children == null) return null;
-            if (i >= curObj.children.Count) return null;
-            curObj = curObj.children[i];
+            if (curObj.Children == null) return null;
+            if (i >= curObj.Children.Count) return null;
+            curObj = curObj.Children[i];
         }
         return curObj;
     }
@@ -334,10 +334,10 @@ public class GameObject : EngineObject, ISerializable
     public List<int> GetIndexPathOfChild(GameObject child)
     {
         List<int> path = [];
-        while (child.parent != null && child != this)
+        while (child.Parent != null && child != this)
         {
-            path.Add(child.parent.children.IndexOf(child));
-            child = child.parent;
+            path.Add(child.Parent.Children.IndexOf(child));
+            child = child.Parent;
         }
         path.Reverse();
         return path;
@@ -353,7 +353,7 @@ public class GameObject : EngineObject, ISerializable
         if (_identifier == identifier)
             return this;
 
-        foreach (GameObject child in children)
+        foreach (GameObject child in Children)
         {
             if (child.Identifier == identifier)
                 return child;
@@ -374,13 +374,13 @@ public class GameObject : EngineObject, ISerializable
     /// <exception cref="Exception">Thrown if the GameObject is not found in its parent's children list.</exception>
     public int? GetSiblingIndex()
     {
-        if (parent == null) return null;
+        if (Parent == null) return null;
 
-        for (int i = 0; i < parent.children.Count; i++)
-            if (parent.children[i] == this)
+        for (int i = 0; i < Parent.Children.Count; i++)
+            if (Parent.Children[i] == this)
                 return i;
 
-        throw new Exception($"This gameobject appears to be in Limbo, This should never happen!, The gameobject believes its a child of {parent.Name} but parent doesn't have it as a child!");
+        throw new Exception($"This gameobject appears to be in Limbo, This should never happen!, The gameobject believes its a child of {Parent.Name} but parent doesn't have it as a child!");
     }
 
     /// <summary>
@@ -389,16 +389,16 @@ public class GameObject : EngineObject, ISerializable
     /// <param name="index">The new index of this GameObject.</param>
     public void SetSiblingIndex(int index)
     {
-        if (parent == null) return;
+        if (Parent == null) return;
 
         // Remove this object from current position
-        parent.children.Remove(this);
+        Parent.Children.Remove(this);
 
         // Ensure index is within bounds
-        index = Math.Max(0, Math.Min(index, parent.children.Count));
+        index = Math.Max(0, Math.Min(index, Parent.Children.Count));
 
         // Insert at new position
-        parent.children.Insert(index, this);
+        Parent.Children.Insert(index, this);
     }
 
     /// <summary>
@@ -668,7 +668,7 @@ public class GameObject : EngineObject, ISerializable
         if (componentType == null) return null;
         // First check the current Object
         MonoBehaviour component;
-        if (includeSelf && (enabledInHierarchy || includeInactive))
+        if (includeSelf && (EnabledInHierarchy || includeInactive))
         {
             component = GetComponent(componentType);
             if (component != null)
@@ -676,9 +676,9 @@ public class GameObject : EngineObject, ISerializable
         }
         // Now check all parents
         GameObject parent = this;
-        while ((parent = parent.parent) != null)
+        while ((parent = parent.Parent) != null)
         {
-            if (parent.enabledInHierarchy || includeInactive)
+            if (parent.EnabledInHierarchy || includeInactive)
             {
                 component = parent.GetComponent(componentType);
                 if (component != null)
@@ -707,14 +707,14 @@ public class GameObject : EngineObject, ISerializable
     public IEnumerable<MonoBehaviour> GetComponentsInParent(Type type, bool includeSelf = true, bool includeInactive = false)
     {
         // First check the current Object
-        if (includeSelf && (enabledInHierarchy || includeInactive))
+        if (includeSelf && (EnabledInHierarchy || includeInactive))
             foreach (MonoBehaviour component in GetComponents(type))
                 yield return component;
         // Now check all parents
         GameObject parent = this;
-        while ((parent = parent.parent) != null)
+        while ((parent = parent.Parent) != null)
         {
-            if (parent.enabledInHierarchy || includeInactive)
+            if (parent.EnabledInHierarchy || includeInactive)
                 foreach (MonoBehaviour component in parent.GetComponents(type))
                     yield return component;
         }
@@ -741,17 +741,17 @@ public class GameObject : EngineObject, ISerializable
         if (componentType == null) return null;
         // First check the current Object
         MonoBehaviour component;
-        if (includeSelf && (enabledInHierarchy || includeInactive))
+        if (includeSelf && (EnabledInHierarchy || includeInactive))
         {
             component = GetComponent(componentType);
             if (component != null)
                 return component;
         }
         // Now check all children
-        foreach (GameObject child in children)
+        foreach (GameObject child in Children)
         {
             // Skip inactive children unless includeInactive is true
-            if (!child.enabledInHierarchy && !includeInactive)
+            if (!child.EnabledInHierarchy && !includeInactive)
                 continue;
 
             component = child.GetComponentInChildren(componentType, true, includeInactive);
@@ -763,17 +763,17 @@ public class GameObject : EngineObject, ISerializable
 
     public MonoBehaviour GetComponentInChildrenByIdentifier(Guid identifier, bool includeSelf = true, bool includeInactive = false)
     {
-        if (includeSelf && (enabledInHierarchy || includeInactive))
+        if (includeSelf && (EnabledInHierarchy || includeInactive))
         {
             MonoBehaviour component = GetComponentByIdentifier(identifier);
             if (component != null)
                 return component;
         }
 
-        foreach (GameObject child in children)
+        foreach (GameObject child in Children)
         {
             // Skip inactive children unless includeInactive is true
-            if (!child.enabledInHierarchy && !includeInactive)
+            if (!child.EnabledInHierarchy && !includeInactive)
                 continue;
 
             MonoBehaviour component = child.GetComponentInChildrenByIdentifier(identifier, true, includeInactive);
@@ -802,14 +802,14 @@ public class GameObject : EngineObject, ISerializable
     public IEnumerable<MonoBehaviour> GetComponentsInChildren(Type type, bool includeSelf = true, bool includeInactive = false)
     {
         // First check the current Object
-        if (includeSelf && (enabledInHierarchy || includeInactive))
+        if (includeSelf && (EnabledInHierarchy || includeInactive))
             foreach (MonoBehaviour component in GetComponents(type))
                 yield return component;
         // Now check all children
-        foreach (GameObject child in children)
+        foreach (GameObject child in Children)
         {
             // Skip inactive children unless includeInactive is true
-            if (!child.enabledInHierarchy && !includeInactive)
+            if (!child.EnabledInHierarchy && !includeInactive)
                 continue;
 
             foreach (MonoBehaviour component in child.GetComponentsInChildren(type, true, includeInactive))
@@ -858,8 +858,8 @@ public class GameObject : EngineObject, ISerializable
     /// </summary>
     public override void OnDispose()
     {
-        for (int i = children.Count - 1; i >= 0; i--)
-            children[i].Destroy();
+        for (int i = Children.Count - 1; i >= 0; i--)
+            Children[i].Destroy();
 
         for (int i = _components.Count - 1; i >= 0; i--)
         {
@@ -898,7 +898,7 @@ public class GameObject : EngineObject, ISerializable
                 component.HierarchyStateChanged();
         }
 
-        foreach (GameObject child in children)
+        foreach (GameObject child in Children)
             child.HierarchyStateChanged();
     }
 
@@ -906,7 +906,7 @@ public class GameObject : EngineObject, ISerializable
     /// Checks if the parent of this GameObject is enabled.
     /// </summary>
     /// <returns>True if the parent is enabled or if there is no parent, false otherwise.</returns>
-    private bool IsParentEnabled() => parent == null || parent.enabledInHierarchy;
+    private bool IsParentEnabled() => Parent == null || Parent.EnabledInHierarchy;
 
     /// <summary>
     /// Calls the specified method on every MonoBehaviour in this GameObject and its children.
@@ -918,7 +918,7 @@ public class GameObject : EngineObject, ISerializable
         foreach (MonoBehaviour component in GetComponents<MonoBehaviour>())
             component.SendMessage(methodName, objs);
 
-        foreach (GameObject child in children)
+        foreach (GameObject child in Children)
             child.BroadcastMessage(methodName, objs);
     }
 
@@ -954,22 +954,22 @@ public class GameObject : EngineObject, ISerializable
     private void PrintRecursive(GameObject obj, System.Text.StringBuilder sb, string indent, bool isRoot)
     {
         // Print GameObject info
-        string enabledIndicator = obj.enabled ? "" : " [DISABLED]";
-        string staticIndicator = obj.isStatic ? " [STATIC]" : "";
+        string enabledIndicator = obj.Enabled ? "" : " [DISABLED]";
+        string staticIndicator = obj.IsStatic ? " [STATIC]" : "";
         sb.AppendLine($"{indent}{obj.Name}{enabledIndicator}{staticIndicator}");
 
         // Print additional info
         string detailIndent = indent + "  ";
-        if (!string.IsNullOrEmpty(obj.tag) && obj.tag != "Untagged")
-            sb.AppendLine($"{detailIndent}Tag: {obj.tag}");
-        if (!string.IsNullOrEmpty(obj.layer) && obj.layer != "Default")
-            sb.AppendLine($"{detailIndent}Layer: {obj.layer}");
+        if (!string.IsNullOrEmpty(obj.Tag) && obj.Tag != "Untagged")
+            sb.AppendLine($"{detailIndent}Tag: {obj.Tag}");
+        if (!string.IsNullOrEmpty(obj.Layer) && obj.Layer != "Default")
+            sb.AppendLine($"{detailIndent}Layer: {obj.Layer}");
 
         // Print Transform info
         Transform t = obj.Transform;
-        sb.AppendLine($"{detailIndent}Position: {FormatVector(t.localPosition)} (World: {FormatVector(t.position)})");
-        sb.AppendLine($"{detailIndent}Rotation: {FormatVector(t.localEulerAngles)} (World: {FormatVector(t.eulerAngles)})");
-        sb.AppendLine($"{detailIndent}Scale: {FormatVector(t.localScale)} (Lossy: {FormatVector(t.lossyScale)})");
+        sb.AppendLine($"{detailIndent}Position: {FormatVector(t.LocalPosition)} (World: {FormatVector(t.Position)})");
+        sb.AppendLine($"{detailIndent}Rotation: {FormatVector(t.LocalEulerAngles)} (World: {FormatVector(t.EulerAngles)})");
+        sb.AppendLine($"{detailIndent}Scale: {FormatVector(t.LocalScale)} (Lossy: {FormatVector(t.LossyScale)})");
 
         // Print Components
         var components = obj.GetComponents<MonoBehaviour>().ToList();
@@ -984,18 +984,18 @@ public class GameObject : EngineObject, ISerializable
         }
 
         // Print Children
-        if (obj.children.Count > 0)
+        if (obj.Children.Count > 0)
         {
-            sb.AppendLine($"{detailIndent}Children ({obj.children.Count}):");
-            for (int i = 0; i < obj.children.Count; i++)
+            sb.AppendLine($"{detailIndent}Children ({obj.Children.Count}):");
+            for (int i = 0; i < obj.Children.Count; i++)
             {
-                bool isLast = i == obj.children.Count - 1;
+                bool isLast = i == obj.Children.Count - 1;
                 string childIndent = indent + (isRoot ? "  " : "  ");
                 string connector = isLast ? "└─ " : "├─ ";
                 string nextIndent = indent + (isRoot ? "  " : "  ") + (isLast ? "   " : "│  ");
 
                 sb.Append($"{childIndent}{connector}");
-                PrintRecursive(obj.children[i], sb, nextIndent, false);
+                PrintRecursive(obj.Children[i], sb, nextIndent, false);
             }
         }
     }
@@ -1021,10 +1021,10 @@ public class GameObject : EngineObject, ISerializable
         compoundTag.Add("Enabled", new EchoObject((byte)(_enabled ? 1 : 0)));
         compoundTag.Add("EnabledInHierarchy", new EchoObject((byte)(_enabledInHierarchy ? 1 : 0)));
 
-        compoundTag.Add("TagIndex", new EchoObject(tagIndex));
-        compoundTag.Add("LayerIndex", new EchoObject(layerIndex));
+        compoundTag.Add("TagIndex", new EchoObject(TagIndex));
+        compoundTag.Add("LayerIndex", new EchoObject(LayerIndex));
 
-        compoundTag.Add("HideFlags", new EchoObject((int)hideFlags));
+        compoundTag.Add("HideFlags", new EchoObject((int)HideFlags));
 
         compoundTag.Add("Transform", Serializer.Serialize(_transform, ctx));
 
@@ -1034,7 +1034,7 @@ public class GameObject : EngineObject, ISerializable
         compoundTag.Add("Components", components);
 
         EchoObject children = EchoObject.NewList();
-        foreach (GameObject child in this.children)
+        foreach (GameObject child in Children)
             children.ListAdd(Serializer.Serialize(typeof(GameObject), child, ctx));
         compoundTag.Add("Children", children);
     }
@@ -1053,21 +1053,21 @@ public class GameObject : EngineObject, ISerializable
         _static = value["Static"]?.ByteValue == 1;
         _enabled = value["Enabled"]?.ByteValue == 1;
         _enabledInHierarchy = value["EnabledInHierarchy"]?.ByteValue == 1;
-        tagIndex = value["TagIndex"]?.IntValue ?? 0;
-        layerIndex = value["LayerIndex"]?.IntValue ?? 0;
-        hideFlags = (HideFlags)(value["HideFlags"]?.IntValue ?? 0);
+        TagIndex = value["TagIndex"]?.IntValue ?? 0;
+        LayerIndex = value["LayerIndex"]?.IntValue ?? 0;
+        HideFlags = (HideFlags)(value["HideFlags"]?.IntValue ?? 0);
 
         _transform = Serializer.Deserialize<Transform>(value["Transform"], ctx);
-        _transform.gameObject = this;
+        _transform.GameObject = this;
 
         EchoObject children = value["Children"];
-        this.children = [];
+        Children = [];
         foreach (EchoObject childTag in children.List)
         {
             GameObject? child = Serializer.Deserialize<GameObject>(childTag, ctx);
             if (child == null) continue;
             child._parent = this;
-            this.children.Add(child);
+            Children.Add(child);
         }
 
         EchoObject comps = value["Components"];
@@ -1084,8 +1084,10 @@ public class GameObject : EngineObject, ISerializable
                 if (oType == null)
                 {
                     Debug.LogWarning("Missing Monobehaviour Type: " + typeProperty.StringValue + " On " + Name);
-                    MissingMonobehaviour missing = new();
-                    missing.ComponentData = compTag;
+                    MissingMonobehaviour missing = new()
+                    {
+                        ComponentData = compTag
+                    };
                     _components.Add(missing);
                     continue;
                 }

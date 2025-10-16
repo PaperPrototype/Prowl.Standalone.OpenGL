@@ -56,7 +56,7 @@ public sealed class WheelCollider : MonoBehaviour
 
     public bool IsGrounded => _grounded;
     public double Displacement => _displacement;
-    public Double3 WorldPosition => Transform.position + (Transform.up * _displacement);
+    public Double3 WorldPosition => Transform.Position + (Transform.Up * _displacement);
     public double WheelRotation { get; private set; } = 0.0;
 
     public void AddTorque(double torque)
@@ -66,7 +66,7 @@ public sealed class WheelCollider : MonoBehaviour
 
     public void PostStep()
     {
-        double timeStep = Time.fixedDeltaTime;
+        double timeStep = Time.FixedDeltaTime;
 
         // Check for no update
         if (timeStep <= 0.0 || Body == null || Body.Enabled == false)
@@ -123,10 +123,10 @@ public sealed class WheelCollider : MonoBehaviour
         _lastDisplacement = _displacement;
         _displacement = 0.0f;
 
-        Double3 worldPos = Transform.position;
-        Double3 worldAxis = Body.Transform.up;
+        Double3 worldPos = Transform.Position;
+        Double3 worldAxis = Body.Transform.Up;
 
-        Double3 forward = Body.Transform.forward;
+        Double3 forward = Body.Transform.Forward;
         Double3 wheelFwd = Quaternion.AxisAngle(worldAxis, SteerAngle) * forward;
 
         Double3 wheelLeft = Double3.Cross(worldAxis, wheelFwd);
@@ -169,17 +169,17 @@ public sealed class WheelCollider : MonoBehaviour
 
             if (result)
             {
-                if (hitInfo.distance < deepestFrac)
+                if (hitInfo.Distance < deepestFrac)
                 {
-                    deepestFrac = hitInfo.distance;
-                    groundPos = newOrigin + hitInfo.distance * wheelRayDelta;
-                    groundNormal = hitInfo.normal;
-                    worldBody = hitInfo.rigidbody;
+                    deepestFrac = hitInfo.Distance;
+                    groundPos = newOrigin + hitInfo.Distance * wheelRayDelta;
+                    groundNormal = hitInfo.Normal;
+                    worldBody = hitInfo.Rigidbody;
                 }
 
                 _grounded = true;
 
-                _debugRayEnd.Add(newOrigin + (hitInfo.distance * wheelRayDelta));
+                _debugRayEnd.Add(newOrigin + (hitInfo.Distance * wheelRayDelta));
             }
             else
             {
@@ -220,7 +220,7 @@ public sealed class WheelCollider : MonoBehaviour
 
         Double3 groundFwd = Double3.Cross(groundLeft, groundUp);
 
-        Double3 wheelCenterVel = Body.LinearVelocity + Double3.Cross(Body.AngularVelocity, (Body.Transform.rotation * Transform.localPosition));
+        Double3 wheelCenterVel = Body.LinearVelocity + Double3.Cross(Body.AngularVelocity, (Body.Transform.Rotation * Transform.LocalPosition));
 
         // rimVel=(wxr)*v
         Double3 rimVel = _angularVelocity * Double3.Cross(wheelLeft, groundPos - worldPos);
@@ -228,7 +228,7 @@ public sealed class WheelCollider : MonoBehaviour
 
         if (worldBody == null) throw new Exception("world Body is null.");
 
-        Double3 worldVel = worldBody.LinearVelocity + Double3.Cross(worldBody.AngularVelocity, groundPos - worldBody.Transform.position);
+        Double3 worldVel = worldBody.LinearVelocity + Double3.Cross(worldBody.AngularVelocity, groundPos - worldBody.Transform.Position);
 
         wheelPointVel -= worldVel;
 
@@ -299,8 +299,8 @@ public sealed class WheelCollider : MonoBehaviour
 
     public override void DrawGizmos()
     {
-        Double3 wheelFwd = Quaternion.AxisAngle(Body.Transform.up, SteerAngle) * Body.Transform.forward;
-        Double3 wheelLeft = Double3.Cross(Body.Transform.up, wheelFwd);
+        Double3 wheelFwd = Quaternion.AxisAngle(Body.Transform.Up, SteerAngle) * Body.Transform.Forward;
+        Double3 wheelLeft = Double3.Cross(Body.Transform.Up, wheelFwd);
         wheelLeft = Double3.Normalize(wheelLeft);
 
         // Debug Draw

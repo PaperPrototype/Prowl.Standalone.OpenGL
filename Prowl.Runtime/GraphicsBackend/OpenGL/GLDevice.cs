@@ -87,65 +87,65 @@ public sealed unsafe class GLDevice : GraphicsDevice
 
     public override void SetState(RasterizerState state, bool force = false)
     {
-        if (depthTest != state.depthTest || force)
+        if (depthTest != state.DepthTest || force)
         {
-            if (state.depthTest)
+            if (state.DepthTest)
                 GL.Enable(EnableCap.DepthTest);
             else
                 GL.Disable(EnableCap.DepthTest);
-            depthTest = state.depthTest;
+            depthTest = state.DepthTest;
         }
 
-        if (depthWrite != state.depthWrite || force)
+        if (depthWrite != state.DepthWrite || force)
         {
-            GL.DepthMask(state.depthWrite);
-            depthWrite = state.depthWrite;
+            GL.DepthMask(state.DepthWrite);
+            depthWrite = state.DepthWrite;
         }
 
-        if (depthMode != state.depthMode || force)
+        if (depthMode != state.Depth || force)
         {
-            GL.DepthFunc(DepthModeToGL(state.depthMode));
-            depthMode = state.depthMode;
+            GL.DepthFunc(DepthModeToGL(state.Depth));
+            depthMode = state.Depth;
         }
 
-        if (doBlend != state.doBlend || force)
+        if (doBlend != state.DoBlend || force)
         {
-            if (state.doBlend)
+            if (state.DoBlend)
                 GL.Enable(EnableCap.Blend);
             else
                 GL.Disable(EnableCap.Blend);
-            doBlend = state.doBlend;
+            doBlend = state.DoBlend;
         }
 
-        if (blendSrc != state.blendSrc || blendDst != state.blendDst || force)
+        if (blendSrc != state.BlendSrc || blendDst != state.BlendDst || force)
         {
-            GL.BlendFunc(BlendingToGL(state.blendSrc), BlendingToGL(state.blendDst));
-            blendSrc = state.blendSrc;
-            blendDst = state.blendDst;
+            GL.BlendFunc(BlendingToGL(state.BlendSrc), BlendingToGL(state.BlendDst));
+            blendSrc = state.BlendSrc;
+            blendDst = state.BlendDst;
         }
 
-        if (blendEquation != state.blendMode || force)
+        if (blendEquation != state.Blend || force)
         {
-            GL.BlendEquation(BlendModeToGL(state.blendMode));
-            blendEquation = state.blendMode;
+            GL.BlendEquation(BlendModeToGL(state.Blend));
+            blendEquation = state.Blend;
         }
 
-        if (cullFace != state.cullFace || force)
+        if (cullFace != state.CullFace || force)
         {
-            if (state.cullFace != RasterizerState.PolyFace.None)
+            if (state.CullFace != RasterizerState.PolyFace.None)
             {
                 GL.Enable(EnableCap.CullFace);
-                GL.CullFace(CullFaceToGL(state.cullFace));
+                GL.CullFace(CullFaceToGL(state.CullFace));
             }
             else
                 GL.Disable(EnableCap.CullFace);
-            cullFace = state.cullFace;
+            cullFace = state.CullFace;
         }
 
-        if (winding != state.winding || force)
+        if (winding != state.Winding || force)
         {
-            GL.FrontFace(WindingToGL(state.winding));
-            winding = state.winding;
+            GL.FrontFace(WindingToGL(state.Winding));
+            winding = state.Winding;
         }
     }
 
@@ -153,14 +153,14 @@ public sealed unsafe class GLDevice : GraphicsDevice
     {
         return new RasterizerState
         {
-            depthTest = depthTest,
-            depthWrite = depthWrite,
-            depthMode = depthMode,
-            doBlend = doBlend,
-            blendSrc = blendSrc,
-            blendDst = blendDst,
-            blendMode = blendEquation,
-            cullFace = cullFace
+            DepthTest = depthTest,
+            DepthWrite = depthWrite,
+            Depth = depthMode,
+            DoBlend = doBlend,
+            BlendSrc = blendSrc,
+            BlendDst = blendDst,
+            Blend = blendEquation,
+            CullFace = cullFace
         };
     }
 

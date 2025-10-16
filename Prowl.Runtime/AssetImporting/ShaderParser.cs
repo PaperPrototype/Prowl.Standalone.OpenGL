@@ -485,30 +485,30 @@ public static class ShaderParser
 
                 case "Cull":
                     ExpectToken("cull", tokenizer, ShaderToken.Identifier);
-                    pass.State.cullFace = ParseCullMode(tokenizer.Token.ToString());
+                    pass.State.CullFace = ParseCullMode(tokenizer.Token.ToString());
                     break;
 
                 case "ZTest":
                     ExpectToken("ztest", tokenizer, ShaderToken.Identifier);
                     if (tokenizer.Token.ToString().Equals("Off", StringComparison.OrdinalIgnoreCase))
                     {
-                        pass.State.depthTest = false;
+                        pass.State.DepthTest = false;
                     }
                     else
                     {
-                        pass.State.depthTest = true;
-                        pass.State.depthMode = EnumParse<RasterizerState.DepthMode>(tokenizer.Token.ToString(), "Z test");
+                        pass.State.DepthTest = true;
+                        pass.State.Depth = EnumParse<RasterizerState.DepthMode>(tokenizer.Token.ToString(), "Z test");
                     }
                     break;
 
                 case "ZWrite":
                     ExpectToken("zwrite", tokenizer, ShaderToken.Identifier);
-                    pass.State.depthWrite = BoolParse(tokenizer.Token, "Z write");
+                    pass.State.DepthWrite = BoolParse(tokenizer.Token, "Z write");
                     break;
 
                 case "Winding":
                     ExpectToken("winding", tokenizer, ShaderToken.Identifier);
-                    pass.State.winding = EnumParse<RasterizerState.WindingOrder>(tokenizer.Token.ToString(), "winding order");
+                    pass.State.Winding = EnumParse<RasterizerState.WindingOrder>(tokenizer.Token.ToString(), "winding order");
                     break;
 
                 case "GLSLPROGRAM":
@@ -567,7 +567,7 @@ public static class ShaderParser
     private static void ParseBlendState(Tokenizer<ShaderToken> tokenizer, RasterizerState state)
     {
         // Enable blending by default
-        state.doBlend = true;
+        state.DoBlend = true;
 
         if (tokenizer.MoveNext() && tokenizer.TokenType != ShaderToken.OpenCurlBrace)
         {
@@ -575,25 +575,25 @@ public static class ShaderParser
 
             if (preset.Equals("Additive", StringComparison.OrdinalIgnoreCase))
             {
-                state.blendSrc = RasterizerState.Blending.One;
-                state.blendDst = RasterizerState.Blending.One;
-                state.blendMode = RasterizerState.BlendMode.Add;
+                state.BlendSrc = RasterizerState.Blending.One;
+                state.BlendDst = RasterizerState.Blending.One;
+                state.Blend = RasterizerState.BlendMode.Add;
             }
             else if (preset.Equals("Alpha", StringComparison.OrdinalIgnoreCase))
             {
-                state.blendSrc = RasterizerState.Blending.SrcAlpha;
-                state.blendDst = RasterizerState.Blending.OneMinusSrcAlpha;
-                state.blendMode = RasterizerState.BlendMode.Add;
+                state.BlendSrc = RasterizerState.Blending.SrcAlpha;
+                state.BlendDst = RasterizerState.Blending.OneMinusSrcAlpha;
+                state.Blend = RasterizerState.BlendMode.Add;
             }
             else if (preset.Equals("Override", StringComparison.OrdinalIgnoreCase))
             {
-                state.blendSrc = RasterizerState.Blending.One;
-                state.blendDst = RasterizerState.Blending.Zero;
-                state.blendMode = RasterizerState.BlendMode.Add;
+                state.BlendSrc = RasterizerState.Blending.One;
+                state.BlendDst = RasterizerState.Blending.Zero;
+                state.Blend = RasterizerState.BlendMode.Add;
             }
             else if (preset.Equals("Off", StringComparison.OrdinalIgnoreCase))
             {
-                state.doBlend = false;
+                state.DoBlend = false;
             }
             else
                 throw new ParseException("blend state", $"unknown blend preset '{preset}' (valid presets: Additive, Alpha, Override, Off)");
@@ -609,17 +609,17 @@ public static class ShaderParser
             {
                 case "Src":
                     ExpectToken("blend state", tokenizer, ShaderToken.Identifier);
-                    state.blendSrc = EnumParse<RasterizerState.Blending>(tokenizer.Token.ToString(), "Src blend factor");
+                    state.BlendSrc = EnumParse<RasterizerState.Blending>(tokenizer.Token.ToString(), "Src blend factor");
                     break;
 
                 case "Dst":
                     ExpectToken("blend state", tokenizer, ShaderToken.Identifier);
-                    state.blendDst = EnumParse<RasterizerState.Blending>(tokenizer.Token.ToString(), "Dst blend factor");
+                    state.BlendDst = EnumParse<RasterizerState.Blending>(tokenizer.Token.ToString(), "Dst blend factor");
                     break;
 
                 case "Mode":
                     ExpectToken("blend state", tokenizer, ShaderToken.Identifier);
-                    state.blendMode = EnumParse<RasterizerState.BlendMode>(tokenizer.Token.ToString(), "blend mode");
+                    state.Blend = EnumParse<RasterizerState.BlendMode>(tokenizer.Token.ToString(), "blend mode");
                     break;
 
                 default:

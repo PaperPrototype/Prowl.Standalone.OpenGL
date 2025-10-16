@@ -31,7 +31,7 @@ public abstract class MonoBehaviour : EngineObject
     /// <summary>
     /// Gets or sets the hide flags for this MonoBehaviour.
     /// </summary>
-    public HideFlags hideFlags;
+    public HideFlags HideFlags;
 
     [SerializeIgnore]
     private bool _executeAlways = false;
@@ -65,7 +65,7 @@ public abstract class MonoBehaviour : EngineObject
     /// <summary>
     /// Gets the tag of the GameObject this MonoBehaviour is attached to.
     /// </summary>
-    public string Tag => _go.tag;
+    public string Tag => _go.Tag;
 
     /// <summary>
     /// Gets or sets whether the MonoBehaviour is enabled.
@@ -191,7 +191,7 @@ public abstract class MonoBehaviour : EngineObject
     {
         _go = go;
 
-        bool isEnabled = _enabled && _go.enabledInHierarchy;
+        bool isEnabled = _enabled && _go.EnabledInHierarchy;
         _enabledInHierarchy = isEnabled;
     }
 
@@ -201,7 +201,7 @@ public abstract class MonoBehaviour : EngineObject
     /// </summary>
     internal void HierarchyStateChanged()
     {
-        bool newState = _enabled && _go.enabledInHierarchy;
+        bool newState = _enabled && _go.EnabledInHierarchy;
         if (newState != _enabledInHierarchy)
         {
             _enabledInHierarchy = newState;

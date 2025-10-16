@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Prowl.Runtime.GraphicsBackend;
 using Prowl.Runtime.GraphicsBackend.Primitives;
 using Prowl.Runtime.Rendering.Shaders;
 using Prowl.Runtime.Resources;
@@ -15,9 +14,6 @@ using Prowl.Vector.Geometry;
 using Material = Prowl.Runtime.Resources.Material;
 using Mesh = Prowl.Runtime.Resources.Mesh;
 using Shader = Prowl.Runtime.Resources.Shader;
-
-// Room for Optomizations:
-// 1. Uniform Buffer for all Global shared data being rendered in a frame like Camera matrices, Time, etc
 
 // TODO:
 // 1. Image Effects need a Dispose method to clean up their resources, Camera needs to call it too
@@ -30,20 +26,20 @@ public sealed class FXAAEffect : ImageEffect
     public float EdgeThresholdMin = 0.0312f;  // 0.0312 - 0.0833 (trims dark edges)
     public float SubpixelQuality = 0.75f;     // 0.0 - 1.0 (subpixel AA amount)
 
-    private Material mat;
+    private Material _mat;
 
     public override void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        mat ??= new Material(Shader.LoadDefault(DefaultShader.FXAA));
+        _mat ??= new Material(Shader.LoadDefault(DefaultShader.FXAA));
 
         // Set shader parameters
-        mat.SetFloat("_EdgeThresholdMax", EdgeThresholdMax);
-        mat.SetFloat("_EdgeThresholdMin", EdgeThresholdMin);
-        mat.SetFloat("_SubpixelQuality", SubpixelQuality);
-        mat.SetVector("_Resolution", new Double2(source.Width, source.Height));
+        _mat.SetFloat("_EdgeThresholdMax", EdgeThresholdMax);
+        _mat.SetFloat("_EdgeThresholdMin", EdgeThresholdMin);
+        _mat.SetFloat("_SubpixelQuality", SubpixelQuality);
+        _mat.SetVector("_Resolution", new Double2(source.Width, source.Height));
 
         // Apply FXAA
-        Graphics.Blit(source, destination, mat, 0);
+        Graphics.Blit(source, destination, _mat, 0);
     }
 }
 
@@ -54,14 +50,14 @@ public sealed class TonemapperEffect : ImageEffect
     public float Contrast = 1.1f;
     public float Saturation = 1.1f;
 
-    Material mat;
+    Material _mat;
 
     public override void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        mat ??= new Material(Shader.LoadDefault(DefaultShader.Tonemapper));
-        mat.SetFloat("Contrast", Contrast);
-        mat.SetFloat("Saturation", Saturation);
-        Graphics.Blit(source, destination, mat, 0);
+        _mat ??= new Material(Shader.LoadDefault(DefaultShader.Tonemapper));
+        _mat.SetFloat("Contrast", Contrast);
+        _mat.SetFloat("Saturation", Saturation);
+        Graphics.Blit(source, destination, _mat, 0);
     }
 }
 
@@ -72,13 +68,13 @@ public sealed class KawaseBloomEffect : ImageEffect
     public int Iterations = 6;
     public float Spread = 1f;
 
-    private Material bloomMaterial;
-    private RenderTexture[] pingPongBuffers = new RenderTexture[2];
+    private Material _bloomMaterial;
+    private RenderTexture[] _pingPongBuffers = new RenderTexture[2];
 
     public override void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         // Create material if it doesn't exist
-        bloomMaterial ??= new Material(Shader.LoadDefault(DefaultShader.Bloom));
+        _bloomMaterial ??= new Material(Shader.LoadDefault(DefaultShader.Bloom));
 
         int width = source.Width / 4;
         int height = source.Height / 4;
@@ -86,16 +82,16 @@ public sealed class KawaseBloomEffect : ImageEffect
         // Create ping-pong buffers if they don't exist
         for (int i = 0; i < 2; i++)
         {
-            if (pingPongBuffers[i] == null || pingPongBuffers[i].Width != width || pingPongBuffers[i].Height != height)
+            if (_pingPongBuffers[i] == null || _pingPongBuffers[i].Width != width || _pingPongBuffers[i].Height != height)
             {
-                pingPongBuffers[i]?.Destroy();
-                pingPongBuffers[i] = new RenderTexture(width, height, false, [destination.MainTexture.ImageFormat]);
+                _pingPongBuffers[i]?.Destroy();
+                _pingPongBuffers[i] = new RenderTexture(width, height, false, [destination.MainTexture.ImageFormat]);
             }
         }
 
         // 1. Extract bright areas (threshold pass)
-        bloomMaterial.SetFloat("_Threshold", Threshold);
-        Graphics.Blit(source, pingPongBuffers[0], bloomMaterial, 0);
+        _bloomMaterial.SetFloat("_Threshold", Threshold);
+        Graphics.Blit(source, _pingPongBuffers[0], _bloomMaterial, 0);
 
         // 2. Apply Kawase blur ping-pong (multiple iterations with increasing radius)
         int current = 0;
@@ -104,17 +100,17 @@ public sealed class KawaseBloomEffect : ImageEffect
         for (int i = 0; i < Iterations; i++)
         {
             float offset = (i * 0.5f + 0.5f) * Spread;
-            bloomMaterial.SetFloat("_Offset", offset);
-            Graphics.Blit(pingPongBuffers[current], pingPongBuffers[next], bloomMaterial, 1);
+            _bloomMaterial.SetFloat("_Offset", offset);
+            Graphics.Blit(_pingPongBuffers[current], _pingPongBuffers[next], _bloomMaterial, 1);
 
             // Swap buffers
             (next, current) = (current, next);
         }
 
         // 3. Composite the bloom with the original image
-        bloomMaterial.SetTexture("_BloomTex", pingPongBuffers[current].MainTexture);
-        bloomMaterial.SetFloat("_Intensity", Intensity);
-        Graphics.Blit(source, destination, bloomMaterial, 2);
+        _bloomMaterial.SetTexture("_BloomTex", _pingPongBuffers[current].MainTexture);
+        _bloomMaterial.SetFloat("_Intensity", Intensity);
+        Graphics.Blit(source, destination, _bloomMaterial, 2);
     }
 
     public override void OnPostRender(Camera camera)
@@ -138,44 +134,44 @@ public sealed class BokehDepthOfFieldEffect : ImageEffect
     //[Range(0.25f, 1.0f)]
     public float DownsampleFactor = 0.5f;
 
-    private Material mat;
-    private RenderTexture downsampledRT;
+    private Material _mat;
+    private RenderTexture _downsampledRT;
 
     public override void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        mat ??= new Material(Shader.LoadDefault(DefaultShader.BokehDoF));
+        _mat ??= new Material(Shader.LoadDefault(DefaultShader.BokehDoF));
 
         int width = (int)(source.Width * DownsampleFactor);
         int height = (int)(source.Height * DownsampleFactor);
 
         // Create or update downsampled render texture if needed
-        if (downsampledRT == null || downsampledRT.Width != width || downsampledRT.Height != height)
+        if (_downsampledRT == null || _downsampledRT.Width != width || _downsampledRT.Height != height)
         {
-            if (downsampledRT != null)
-                downsampledRT.Destroy();
+            if (_downsampledRT != null)
+                _downsampledRT.Destroy();
 
-            downsampledRT = new RenderTexture(width, height, false, [source.MainTexture.ImageFormat]);
+            _downsampledRT = new RenderTexture(width, height, false, [source.MainTexture.ImageFormat]);
         }
 
         // Set shader properties
-        mat.SetFloat("_BlurRadius", BlurRadius);
-        mat.SetFloat("_FocusStrength", FocusStrength);
-        mat.SetFloat("_Quality", Quality);
-        mat.SetFloat("_ManualFocusPoint", ManualFocusPoint);
-        mat.SetKeyword("AUTOFOCUS", UseAutoFocus);
-        mat.SetVector("_Resolution", new Double2(source.Width, source.Height));
+        _mat.SetFloat("_BlurRadius", BlurRadius);
+        _mat.SetFloat("_FocusStrength", FocusStrength);
+        _mat.SetFloat("_Quality", Quality);
+        _mat.SetFloat("_ManualFocusPoint", ManualFocusPoint);
+        _mat.SetKeyword("AUTOFOCUS", UseAutoFocus);
+        _mat.SetVector("_Resolution", new Double2(source.Width, source.Height));
 
         // Two-pass approach:
 
         // Pass 1: Apply DoF at reduced resolution
-        mat.SetVector("_Resolution", new Double2(width, height));
-        Graphics.Blit(source, downsampledRT, mat, 0); // DoFDownsample pass
+        _mat.SetVector("_Resolution", new Double2(width, height));
+        Graphics.Blit(source, _downsampledRT, _mat, 0); // DoFDownsample pass
 
         // Pass 2: Combine original image with blurred result
-        mat.SetTexture("_MainTex", source.MainTexture);
-        mat.SetTexture("_DownsampledDoF", downsampledRT.MainTexture);
-        mat.SetVector("_Resolution", new Double2(source.Width, source.Height));
-        Graphics.Blit(source, destination, mat, 1); // DoFCombine pass
+        _mat.SetTexture("_MainTex", source.MainTexture);
+        _mat.SetTexture("_DownsampledDoF", _downsampledRT.MainTexture);
+        _mat.SetVector("_Resolution", new Double2(source.Width, source.Height));
+        Graphics.Blit(source, destination, _mat, 1); // DoFCombine pass
     }
 }
 
@@ -184,21 +180,21 @@ public sealed class ScreenSpaceReflectionEffect : ImageEffect
     public int RayStepCount = 16;
     public float ScreenEdgeFade = 0.1f;
 
-    Material mat;
+    Material _mat;
 
     public override void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        mat ??= new Material(Shader.LoadDefault(DefaultShader.SSR));
+        _mat ??= new Material(Shader.LoadDefault(DefaultShader.SSR));
 
         // Set uniforms
-        mat.SetInt("_RayStepCount", RayStepCount);
-        mat.SetFloat("_ScreenEdgeFade", ScreenEdgeFade);
+        _mat.SetInt("_RayStepCount", RayStepCount);
+        _mat.SetFloat("_ScreenEdgeFade", ScreenEdgeFade);
 
         // Set textures
-        mat.SetTexture("_MainTex", source.MainTexture);
+        _mat.SetTexture("_MainTex", source.MainTexture);
 
         // Apply effect
-        Graphics.Blit(source, destination, mat, 0);
+        Graphics.Blit(source, destination, _mat, 0);
     }
 }
 
@@ -211,10 +207,10 @@ public struct ViewerData
 
     public ViewerData(DefaultRenderPipeline.CameraSnapshot css)
     {
-        Position = css.cameraPosition;
-        Forward = css.cameraForward;
-        Up = css.cameraUp;
-        Right = css.cameraRight;
+        Position = css.CameraPosition;
+        Forward = css.CameraForward;
+        Up = css.CameraUp;
+        Right = css.CameraRight;
     }
 
     public ViewerData(Double3 position, Double3 forward, Double3 right, Double3 up) : this()
@@ -243,10 +239,10 @@ public class DefaultRenderPipeline : RenderPipeline
     private static Material s_skybox;
     private static Material s_gizmo;
 
-    private static RenderTexture? ShadowMap;
+    private static RenderTexture? s_shadowMap;
 
     public static DefaultRenderPipeline Default { get; } = new();
-    public static HashSet<int> S_activeObjectIds { get => s_activeObjectIds; set => s_activeObjectIds = value; }
+    public static HashSet<int> ActiveObjectIds { get => s_activeObjectIds; set => s_activeObjectIds = value; }
 
     private static Dictionary<int, Double4x4> s_prevModelMatrices = [];
     private static HashSet<int> s_activeObjectIds = [];
@@ -266,9 +262,7 @@ public class DefaultRenderPipeline : RenderPipeline
 
         if (s_skyDome == null)
         {
-            Model skyDomeModel = Model.LoadDefault(DefaultModel.SkyDome);
-            if (skyDomeModel == null)
-                throw new Exception("SkyDome model not found. Please ensure the model is included in the project.");
+            Model skyDomeModel = Model.LoadDefault(DefaultModel.SkyDome) ?? throw new Exception("SkyDome model not found. Please ensure the model is included in the project.");
             s_skyDome = skyDomeModel.Meshes[0].Mesh;
         }
     }
@@ -286,20 +280,20 @@ public class DefaultRenderPipeline : RenderPipeline
 
         // Remove all matrices that weren't used in this frame
         var unusedKeys = s_prevModelMatrices.Keys
-            .Where(key => !S_activeObjectIds.Contains(key))
+            .Where(key => !ActiveObjectIds.Contains(key))
             .ToList();
 
         foreach (int key in unusedKeys)
             s_prevModelMatrices.Remove(key);
 
         // Clear the active IDs set for next frame
-        S_activeObjectIds.Clear();
+        ActiveObjectIds.Clear();
     }
 
     private static void TrackModelMatrix(int objectId, Double4x4 currentModel)
     {
         // Mark this object ID as active this frame
-        S_activeObjectIds.Add(objectId);
+        ActiveObjectIds.Add(objectId);
 
         // Store current model matrix for next frame
         if (s_prevModelMatrices.TryGetValue(objectId, out Double4x4 prevModel))
@@ -351,22 +345,22 @@ public class DefaultRenderPipeline : RenderPipeline
         // Set View Rect
         //buffer.SetViewports((int)(camera.Viewrect.x * target.Width), (int)(camera.Viewrect.y * target.Height), (int)(camera.Viewrect.width * target.Width), (int)(camera.Viewrect.height * target.Height), 0, 1000);
 
-        GlobalUniforms.SetPrevViewProj(css.previousViewProj);
+        GlobalUniforms.SetPrevViewProj(css.PreviousViewProj);
 
         // Setup Default Uniforms for this frame
         // Camera
-        GlobalUniforms.SetWorldSpaceCameraPos(CAMERA_RELATIVE ? Double3.Zero : css.cameraPosition);
-        GlobalUniforms.SetProjectionParams(new Double4(1.0f, css.nearClipPlane, css.farClipPlane, 1.0f / css.farClipPlane));
-        GlobalUniforms.SetScreenParams(new Double4(css.pixelWidth, css.pixelHeight, 1.0f + 1.0f / css.pixelWidth, 1.0f + 1.0f / css.pixelHeight));
+        GlobalUniforms.SetWorldSpaceCameraPos(CAMERA_RELATIVE ? Double3.Zero : css.CameraPosition);
+        GlobalUniforms.SetProjectionParams(new Double4(1.0f, css.NearClipPlane, css.FarClipPlane, 1.0f / css.FarClipPlane));
+        GlobalUniforms.SetScreenParams(new Double4(css.PixelWidth, css.PixelHeight, 1.0f + 1.0f / css.PixelWidth, 1.0f + 1.0f / css.PixelHeight));
 
         // Time
-        GlobalUniforms.SetTime(new Double4(Time.time / 20, Time.time, Time.time * 2, Time.frameCount));
-        GlobalUniforms.SetSinTime(new Double4(Math.Sin(Time.time / 8), Math.Sin(Time.time / 4), Math.Sin(Time.time / 2), Math.Sin(Time.time)));
-        GlobalUniforms.SetCosTime(new Double4(Math.Cos(Time.time / 8), Math.Cos(Time.time / 4), Math.Cos(Time.time / 2), Math.Cos(Time.time)));
-        GlobalUniforms.SetDeltaTime(new Double4(Time.deltaTime, 1.0f / Time.deltaTime, Time.smoothDeltaTime, 1.0f / Time.smoothDeltaTime));
+        GlobalUniforms.SetTime(new Double4(Time.TimeSinceStartup / 20, Time.TimeSinceStartup, Time.TimeSinceStartup * 2, Time.FrameCount));
+        GlobalUniforms.SetSinTime(new Double4(Math.Sin(Time.TimeSinceStartup / 8), Math.Sin(Time.TimeSinceStartup / 4), Math.Sin(Time.TimeSinceStartup / 2), Math.Sin(Time.TimeSinceStartup)));
+        GlobalUniforms.SetCosTime(new Double4(Math.Cos(Time.TimeSinceStartup / 8), Math.Cos(Time.TimeSinceStartup / 4), Math.Cos(Time.TimeSinceStartup / 2), Math.Cos(Time.TimeSinceStartup)));
+        GlobalUniforms.SetDeltaTime(new Double4(Time.DeltaTime, 1.0f / Time.DeltaTime, Time.SmoothDeltaTime, 1.0f / Time.SmoothDeltaTime));
 
         // Fog
-        Scene.FogParams fog = css.scene.Fog;
+        Scene.FogParams fog = css.Scene.Fog;
         Double4 fogParams;
         fogParams.X = fog.Density / Maths.Sqrt(0.693147181); // ln(2)
         fogParams.Y = fog.Density / 0.693147181; // ln(2)
@@ -381,7 +375,7 @@ public class DefaultRenderPipeline : RenderPipeline
             ));
 
         // Ambient Lighting
-        Scene.AmbientLightParams ambient = css.scene.Ambient;
+        Scene.AmbientLightParams ambient = css.Scene.Ambient;
         GlobalUniforms.SetAmbientMode(new Double2(
             ambient.Mode == Scene.AmbientLightParams.AmbientMode.Uniform ? 1 : 0,
             ambient.Mode == Scene.AmbientLightParams.AmbientMode.Hemisphere ? 1 : 0
@@ -412,26 +406,26 @@ public class DefaultRenderPipeline : RenderPipeline
 
     public struct CameraSnapshot(Camera camera)
     {
-        public Scene scene = camera.Scene;
+        public Scene Scene = camera.Scene;
 
-        public Double3 cameraPosition = camera.Transform.position;
-        public Double3 cameraRight = camera.Transform.right;
-        public Double3 cameraUp = camera.Transform.up;
-        public Double3 cameraForward = camera.Transform.forward;
-        public LayerMask cullingMask = camera.CullingMask;
-        public CameraClearFlags clearFlags = camera.ClearFlags;
-        public double nearClipPlane = camera.NearClipPlane;
-        public double farClipPlane = camera.FarClipPlane;
-        public uint pixelWidth = camera.PixelWidth;
-        public uint pixelHeight = camera.PixelHeight;
-        public double aspect = camera.Aspect;
-        public Double4x4 originView = camera.OriginViewMatrix;
-        public Double4x4 view = CAMERA_RELATIVE ? camera.OriginViewMatrix : camera.ViewMatrix;
-        public Double4x4 viewInverse = (CAMERA_RELATIVE ? camera.OriginViewMatrix : camera.ViewMatrix).Invert();
-        public Double4x4 projection = camera.ProjectionMatrix;
-        public Double4x4 previousViewProj = camera.PreviousViewProjectionMatrix;
-        public Frustrum worldFrustum = Frustrum.FromMatrix(camera.ProjectionMatrix * camera.ViewMatrix);
-        public DepthTextureMode depthTextureMode = camera.DepthTextureMode; // Flags, Can be None, Normals, MotionVectors
+        public Double3 CameraPosition = camera.Transform.Position;
+        public Double3 CameraRight = camera.Transform.Right;
+        public Double3 CameraUp = camera.Transform.Up;
+        public Double3 CameraForward = camera.Transform.Forward;
+        public LayerMask CullingMask = camera.CullingMask;
+        public CameraClearFlags ClearFlags = camera.ClearFlags;
+        public double NearClipPlane = camera.NearClipPlane;
+        public double FarClipPlane = camera.FarClipPlane;
+        public uint PixelWidth = camera.PixelWidth;
+        public uint PixelHeight = camera.PixelHeight;
+        public double Aspect = camera.Aspect;
+        public Double4x4 OriginView = camera.OriginViewMatrix;
+        public Double4x4 View = CAMERA_RELATIVE ? camera.OriginViewMatrix : camera.ViewMatrix;
+        public Double4x4 ViewInverse = (CAMERA_RELATIVE ? camera.OriginViewMatrix : camera.ViewMatrix).Invert();
+        public Double4x4 Projection = camera.ProjectionMatrix;
+        public Double4x4 PreviousViewProj = camera.PreviousViewProjectionMatrix;
+        public Frustrum WorldFrustum = Frustrum.FromMatrix(camera.ProjectionMatrix * camera.ViewMatrix);
+        public DepthTextureMode DepthTextureMode = camera.DepthTextureMode; // Flags, Can be None, Normals, MotionVectors
     }
 
     private static void Internal_Render(Camera camera, in RenderingData data)
@@ -471,12 +465,12 @@ public class DefaultRenderPipeline : RenderPipeline
         SetupLightingAndShadows(css, lights, renderables);
 
         // 5.1 Re-Assign camera matrices (The Lighting can modify these)
-        AssignCameraMatrices(css.view, css.projection);
+        AssignCameraMatrices(css.View, css.Projection);
 
         // =======================================================
         // 6. Pre-Depth Pass
         // We draw objects to get the DepthBuffer but we also draw it into a ColorBuffer so we upload it as a Sampleable Texture
-        RenderTexture preDepth = RenderTexture.GetTemporaryRT((int)css.pixelWidth, (int)css.pixelHeight, true, []);
+        RenderTexture preDepth = RenderTexture.GetTemporaryRT((int)css.PixelWidth, (int)css.PixelHeight, true, []);
 
         // Bind depth texture as the target
         Graphics.Device.BindFramebuffer(preDepth.frameBuffer);
@@ -610,10 +604,10 @@ public class DefaultRenderPipeline : RenderPipeline
         ShadowAtlas.TryInitialize();
         ShadowAtlas.Clear();
 
-        CreateLightBuffer(css.cameraPosition, css.cullingMask, lights, renderables);
+        CreateLightBuffer(css.CameraPosition, css.CullingMask, lights, renderables);
 
-        if (ShadowMap != null)
-            PropertyState.SetGlobalTexture("_ShadowAtlas", ShadowMap.InternalDepth);
+        if (s_shadowMap != null)
+            PropertyState.SetGlobalTexture("_ShadowAtlas", s_shadowMap.InternalDepth);
         //PropertyState.SetGlobalBuffer("_Lights", LightBuffer, 0);
         //PropertyState.SetGlobalInt("_LightCount", LightCount);
         GlobalUniforms.SetShadowAtlasSize(new Double2(ShadowAtlas.GetSize(), ShadowAtlas.GetSize()));
@@ -752,7 +746,7 @@ public class DefaultRenderPipeline : RenderPipeline
         // Calculate resolution based on distance (already calculated)
         int res = CalculateResolution(distance);
         if (light is DirectionalLight dir)
-            res = (int)dir.shadowResolution;
+            res = (int)dir.ShadowResolution;
 
         if (light.DoCastShadows())
         {
@@ -775,15 +769,15 @@ public class DefaultRenderPipeline : RenderPipeline
                 AtlasWidth = res;
 
                 // Draw the shadow map
-                ShadowMap = ShadowAtlas.GetAtlas();
+                s_shadowMap = ShadowAtlas.GetAtlas();
 
                 // For point lights, render 6 faces
                 if (isPointLight && light is PointLight pointLight)
                 {
                     // Set point light uniforms for shadow rendering
-                    PropertyState.SetGlobalVector("_PointLightPosition", pointLight.Transform.position);
-                    PropertyState.SetGlobalFloat("_PointLightRange", pointLight.range);
-                    PropertyState.SetGlobalFloat("_PointLightShadowBias", pointLight.shadowBias);
+                    PropertyState.SetGlobalVector("_PointLightPosition", pointLight.Transform.Position);
+                    PropertyState.SetGlobalFloat("_PointLightRange", pointLight.Range);
+                    PropertyState.SetGlobalFloat("_PointLightShadowBias", pointLight.ShadowBias);
 
                     for (int face = 0; face < 6; face++)
                     {
@@ -812,11 +806,11 @@ public class DefaultRenderPipeline : RenderPipeline
                 }
                 else
                 {
-                    Double3 forward = ((MonoBehaviour)light).Transform.forward;
+                    Double3 forward = ((MonoBehaviour)light).Transform.Forward;
                     if (light is DirectionalLight)
                         forward = -forward; // directional light is inverted atm
-                    Double3 right = ((MonoBehaviour)light).Transform.right;
-                    Double3 up = ((MonoBehaviour)light).Transform.up;
+                    Double3 right = ((MonoBehaviour)light).Transform.Right;
+                    Double3 up = ((MonoBehaviour)light).Transform.Up;
 
                     // Regular directional/spot light rendering
                     // Set range to -1 to indicate this is not a point light
@@ -908,14 +902,14 @@ public class DefaultRenderPipeline : RenderPipeline
 
     private static void RenderSkybox(CameraSnapshot css)
     {
-        s_skybox.SetMatrix("prowl_MatVP", css.projection * css.originView);
+        s_skybox.SetMatrix("prowl_MatVP", css.Projection * css.OriginView);
         Graphics.DrawMeshNow(s_skyDome, s_skybox);
     }
 
     private static void RenderGizmos(CameraSnapshot css)
     {
-        Double4x4 vp = css.projection * css.view;
-        (Mesh? wire, Mesh? solid) = Debug.GetGizmoDrawData(CAMERA_RELATIVE, css.cameraPosition);
+        Double4x4 vp = css.Projection * css.View;
+        (Mesh? wire, Mesh? solid) = Debug.GetGizmoDrawData(CAMERA_RELATIVE, css.CameraPosition);
 
         if (wire != null || solid != null)
         {

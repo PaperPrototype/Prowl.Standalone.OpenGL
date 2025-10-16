@@ -28,19 +28,19 @@ public class MeshRenderer : MonoBehaviour, IRenderable
     }
 
     public Material GetMaterial() => Material;
-    public int GetLayer() => GameObject.layerIndex;
+    public int GetLayer() => GameObject.LayerIndex;
 
     public void GetRenderingData(ViewerData viewer, out PropertyState properties, out Mesh drawData, out Double4x4 model)
     {
         drawData = Mesh;
         properties = _properties;
-        model = Transform.localToWorldMatrix;
+        model = Transform.LocalToWorldMatrix;
     }
 
     public void GetCullingData(out bool isRenderable, out AABB bounds)
     {
         isRenderable = true;
         //bounds = Bounds.CreateFromMinMax(new Vector3(999999), new Vector3(999999));
-        bounds = Mesh.bounds.TransformBy(Transform.localToWorldMatrix);
+        bounds = Mesh.bounds.TransformBy(Transform.LocalToWorldMatrix);
     }
 }

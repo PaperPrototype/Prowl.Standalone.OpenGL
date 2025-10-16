@@ -65,16 +65,16 @@ public abstract class Game
             // Fixed update loop
             fixedTimeAccumulator += delta;
             int count = 0;
-            while (fixedTimeAccumulator >= Time.fixedDeltaTime && count++ < 10)
+            while (fixedTimeAccumulator >= Time.FixedDeltaTime && count++ < 10)
             {
                 FixedUpdate();
 
-                fixedTimeAccumulator -= Time.fixedDeltaTime;
+                fixedTimeAccumulator -= Time.FixedDeltaTime;
             }
 
             Update();
 
-            Console.Title = $"{title} - {Window.InternalWindow.FramebufferSize.X}x{Window.InternalWindow.FramebufferSize.Y} - FPS: {1.0 / Time.deltaTime}";
+            Console.Title = $"{title} - {Window.InternalWindow.FramebufferSize.X}x{Window.InternalWindow.FramebufferSize.Y} - FPS: {1.0 / Time.DeltaTime}";
         };
 
         Window.Render += (delta) =>

@@ -11,18 +11,18 @@ public struct RasterizerState
     public enum PolyFace { None, Front, Back, FrontAndBack }
     public enum WindingOrder { CW, CCW }
 
-    public bool depthTest = true;
-    public bool depthWrite = true;
-    public DepthMode depthMode = DepthMode.Lequal;
+    public bool DepthTest = true;
+    public bool DepthWrite = true;
+    public DepthMode Depth = DepthMode.Lequal;
 
-    public bool doBlend = true;
-    public Blending blendSrc = Blending.SrcAlpha;
-    public Blending blendDst = Blending.OneMinusSrcAlpha;
-    public BlendMode blendMode = BlendMode.Add;
+    public bool DoBlend = true;
+    public Blending BlendSrc = Blending.SrcAlpha;
+    public Blending BlendDst = Blending.OneMinusSrcAlpha;
+    public BlendMode Blend = BlendMode.Add;
 
-    public PolyFace cullFace = PolyFace.Back;
+    public PolyFace CullFace = PolyFace.Back;
 
-    public WindingOrder winding = WindingOrder.CW;
+    public WindingOrder Winding = WindingOrder.CW;
 
     public RasterizerState()
     {

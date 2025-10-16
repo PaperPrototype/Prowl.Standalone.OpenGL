@@ -17,6 +17,9 @@ namespace Prowl.Runtime.Rendering;
 [StructLayout(LayoutKind.Sequential, Pack = 16)]
 public struct GlobalUniformsData
 {
+    // Suppress IDE0130 warning about naming rule violation, as these are meant to match the naming of the Shader code
+#pragma warning disable IDE1006 // Naming Styles
+
     // Camera matrices (each mat4 = 64 bytes)
     public Float4x4 prowl_MatV;               // 64 bytes
     public Float4x4 prowl_MatIV;              // 64 bytes
@@ -112,6 +115,8 @@ public struct GlobalUniformsData
     public int prowl_PointLightCount;         // 4 bytes
     public int prowl_SpotLightCount;          // 4 bytes
     public Float2 _padding4;                  // 8 bytes padding
+
+#pragma warning restore IDE1006 // Naming Styles
 }
 
 /// <summary>

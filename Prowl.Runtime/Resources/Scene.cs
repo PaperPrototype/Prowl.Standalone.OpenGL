@@ -92,16 +92,16 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     public IEnumerable<GameObject> AllObjects => _allObj.Where(o => !o.IsDestroyed);
 
     /// <summary> Enumerates all registered objects that are currently active and saveable. </summary>
-    public IEnumerable<GameObject> SaveableObjects => _allObj.Where(o => !o.IsDestroyed && !o.hideFlags.HasFlag(HideFlags.DontSave) && !o.hideFlags.HasFlag(HideFlags.HideAndDontSave));
+    public IEnumerable<GameObject> SaveableObjects => _allObj.Where(o => !o.IsDestroyed && !o.HideFlags.HasFlag(HideFlags.DontSave) && !o.HideFlags.HasFlag(HideFlags.HideAndDontSave));
 
     /// <summary> Enumerates all registered objects that are currently active. </summary>
-    public IEnumerable<GameObject> ActiveObjects => _allObj.Where(o => !o.IsDestroyed && o.enabledInHierarchy);
+    public IEnumerable<GameObject> ActiveObjects => _allObj.Where(o => !o.IsDestroyed && o.EnabledInHierarchy);
 
     /// <summary> Enumerates all root GameObjects, i.e. all GameObjects without a parent object. </summary>
-    public IEnumerable<GameObject> RootObjects => _allObj.Where(o => !o.IsDestroyed && o.Transform.parent == null);
+    public IEnumerable<GameObject> RootObjects => _allObj.Where(o => !o.IsDestroyed && o.Transform.Parent == null);
 
     /// <summary> Enumerates all <see cref="RootObjects"/> that are currently active. </summary>
-    public IEnumerable<GameObject> ActiveRootObjects => _allObj.Where(o => !o.IsDestroyed && o.Transform.parent == null && o.enabledInHierarchy);
+    public IEnumerable<GameObject> ActiveRootObjects => _allObj.Where(o => !o.IsDestroyed && o.Transform.Parent == null && o.EnabledInHierarchy);
 
     /// <summary> Returns whether this Scene is completely empty. </summary>
     public bool IsEmpty => !AllObjects.Any();
@@ -153,7 +153,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     public void Remove(GameObject obj)
     {
         if (obj.Scene != this) return;
-        if (obj.parent != null && obj.parent.Scene == this)
+        if (obj.Parent != null && obj.Parent.Scene == this)
         {
             obj.SetParent(null);
         }
@@ -173,7 +173,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
             }
 
             // Call OnEnable for enabled components
-            if (obj.enabledInHierarchy)
+            if (obj.EnabledInHierarchy)
             {
                 foreach (MonoBehaviour component in obj.GetComponents<MonoBehaviour>())
                 {
@@ -182,19 +182,19 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
                 }
             }
         }
-        foreach (GameObject child in obj.children)
+        foreach (GameObject child in obj.Children)
             AddObject(child);
     }
 
     private void RemoveObject(GameObject obj)
     {
-        foreach (GameObject child in obj.children)
+        foreach (GameObject child in obj.Children)
             RemoveObject(child);
 
         if (_allObj.Remove(obj))
         {
             // Call OnDisable for currently enabled components
-            if (obj.enabledInHierarchy)
+            if (obj.EnabledInHierarchy)
             {
                 foreach (MonoBehaviour component in obj.GetComponents<MonoBehaviour>())
                 {
