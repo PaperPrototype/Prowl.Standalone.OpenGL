@@ -47,21 +47,6 @@ public abstract class EngineObject
 
     public virtual void OnDispose() { }
 
-
-    public static bool operator ==(EngineObject left, EngineObject right)
-    {
-        if (left is null)
-            return right is null || right.IsDestroyed;
-        if (right is null)
-            return left.IsDestroyed;
-        return ReferenceEquals(left, right) || (left.IsDestroyed && right.IsDestroyed);
-    }
-
-    public static bool operator !=(EngineObject left, EngineObject right) => !(left == right);
-    public override int GetHashCode() => IsDestroyed ? 0 : base.GetHashCode();
-    public override bool Equals(object? obj) => this == (obj as EngineObject);
-
-
     public override string ToString() => Name;
 
     protected void SerializeHeader(EchoObject compound)
