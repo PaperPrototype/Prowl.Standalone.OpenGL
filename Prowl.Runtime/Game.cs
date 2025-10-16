@@ -34,6 +34,8 @@ public abstract class Game
     private PaperRenderer _paperRenderer;
     private Paper _paper;
 
+    public Paper PaperInstance => _paper;
+
     public void Run(string title, int width, int height)
     {
 
