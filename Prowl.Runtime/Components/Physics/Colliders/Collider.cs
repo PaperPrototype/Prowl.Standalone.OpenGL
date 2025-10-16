@@ -29,12 +29,12 @@ public abstract class Collider : MonoBehaviour
         RigidBodyShape[] shapes = CreateShapes();
         if (shapes == null)
             return null;
-        var rb = RigidBody;
+        Rigidbody3D rb = RigidBody;
         if (rb == null) return shapes;
 
         // Get the cumulative scale from this object up to (but not including) the rigidbody
         Double3 cumulativeScale = Double3.One;
-        Transform current = this.Transform;
+        Transform current = Transform;
         Transform rbTransform = rb.Transform;
 
         while (current != null)
@@ -47,11 +47,11 @@ public abstract class Collider : MonoBehaviour
 
         // Get the local rotation and position in world space
         Quaternion localRotation = Quaternion.FromEuler(rotation);
-        Double3 scaledCenter = this.center * cumulativeScale;
+        Double3 scaledCenter = center * cumulativeScale;
 
         // Transform local position and rotation to world space
-        Double3 worldCenter = this.Transform.TransformPoint(scaledCenter);
-        Quaternion worldRotation = this.Transform.rotation * localRotation;
+        Double3 worldCenter = Transform.TransformPoint(scaledCenter);
+        Quaternion worldRotation = Transform.rotation * localRotation;
 
         // Transform from world space to rigid body's local space
         Double3 rbLocalCenter = rb.Transform.InverseTransformPoint(worldCenter);

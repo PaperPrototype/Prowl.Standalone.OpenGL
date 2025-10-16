@@ -58,8 +58,8 @@ public class ModelImporter
         using (var importer = new AssimpContext())
         {
             importer.SetConfig(new Assimp.Configs.VertexBoneWeightLimitConfig(4));
-            var steps = GetPostProcessSteps(settings.Value);
-            var scene = importer.ImportFile(filePath, steps);
+            PostProcessSteps steps = GetPostProcessSteps(settings.Value);
+            Assimp.Scene? scene = importer.ImportFile(filePath, steps);
             if (scene == null) Failed("Assimp returned null object.");
 
             if (!scene.HasMeshes) Failed("Model has no Meshes.");
@@ -78,10 +78,10 @@ public class ModelImporter
         using (var importer = new AssimpContext())
         {
             importer.SetConfig(new Assimp.Configs.VertexBoneWeightLimitConfig(4));
-            var steps = GetPostProcessSteps(settings.Value);
+            PostProcessSteps steps = GetPostProcessSteps(settings.Value);
 
             // Use ImportFileFromStream for embedded resources
-            var scene = importer.ImportFileFromStream(stream, steps, Path.GetExtension(virtualPath));
+            Assimp.Scene? scene = importer.ImportFileFromStream(stream, steps, Path.GetExtension(virtualPath));
             if (scene == null) Failed("Assimp returned null object.");
 
             if (!scene.HasMeshes) Failed("Model has no Meshes.");
@@ -94,7 +94,7 @@ public class ModelImporter
 
     private PostProcessSteps GetPostProcessSteps(ModelImporterSettings settings)
     {
-        var steps = PostProcessSteps.LimitBoneWeights | PostProcessSteps.GenerateUVCoords | PostProcessSteps.RemoveRedundantMaterials;
+        PostProcessSteps steps = PostProcessSteps.LimitBoneWeights | PostProcessSteps.GenerateUVCoords | PostProcessSteps.RemoveRedundantMaterials;
         steps |= PostProcessSteps.Triangulate;
         if (settings.GenerateNormals && settings.GenerateSmoothNormals) steps |= PostProcessSteps.GenerateSmoothNormals;
         else if (settings.GenerateNormals) steps |= PostProcessSteps.GenerateNormals;
@@ -126,8 +126,8 @@ public class ModelImporter
         // Build the model structure
         model.RootNode = BuildModelNode(scene.RootNode, scale);
 
-        var rootTransform = scene.RootNode.Transform;
-        Double4x4 rootMatrix = new Double4x4(
+        Matrix4x4 rootTransform = scene.RootNode.Transform;
+        Double4x4 rootMatrix = new(
             rootTransform.A1, rootTransform.A2, rootTransform.A3, rootTransform.A4,
             rootTransform.B1, rootTransform.B2, rootTransform.B3, rootTransform.B4,
             rootTransform.C1, rootTransform.C2, rootTransform.C3, rootTransform.C4,
@@ -154,9 +154,9 @@ public class ModelImporter
 
     private void LoadMaterials(Assimp.Scene? scene, DirectoryInfo? parentDir, List<Material> mats)
     {
-        foreach (var m in scene.Materials)
+        foreach (Assimp.Material? m in scene.Materials)
         {
-            Material mat = new Material(Shader.LoadDefault(DefaultShader.Standard));
+            Material mat = new(Shader.LoadDefault(DefaultShader.Standard));
             string? name = m.HasName ? m.Name : null;
 
             // Albedo
@@ -181,7 +181,7 @@ public class ModelImporter
             if (m.HasTextureDiffuse)
             {
                 name ??= "Mat_" + Path.GetFileNameWithoutExtension(m.TextureDiffuse.FilePath);
-                if (FindTextureFromPath(m.TextureDiffuse.FilePath, parentDir, out var file))
+                if (FindTextureFromPath(m.TextureDiffuse.FilePath, parentDir, out FileInfo? file))
                     LoadTextureIntoMesh("_MainTex", file, mat);
                 else
                     mat.SetTexture("_MainTex", Texture2D.LoadDefault(DefaultTexture.Grid));
@@ -193,7 +193,7 @@ public class ModelImporter
             if (m.HasTextureNormal)
             {
                 name ??= "Mat_" + Path.GetFileNameWithoutExtension(m.TextureNormal.FilePath);
-                if (FindTextureFromPath(m.TextureNormal.FilePath, parentDir, out var file))
+                if (FindTextureFromPath(m.TextureNormal.FilePath, parentDir, out FileInfo? file))
                     LoadTextureIntoMesh("_NormalTex", file, mat);
                 else
                     mat.SetTexture("_NormalTex", Texture2D.LoadDefault(DefaultTexture.Normal));
@@ -202,10 +202,10 @@ public class ModelImporter
                 mat.SetTexture("_NormalTex", Texture2D.LoadDefault(DefaultTexture.Normal));
 
             //AO, Roughness, Metallic Texture Attempt 1
-            if (m.GetMaterialTexture(TextureType.Unknown, 0, out var surface))
+            if (m.GetMaterialTexture(TextureType.Unknown, 0, out TextureSlot surface))
             {
                 name ??= "Mat_" + Path.GetFileNameWithoutExtension(surface.FilePath);
-                if (FindTextureFromPath(surface.FilePath, parentDir, out var file))
+                if (FindTextureFromPath(surface.FilePath, parentDir, out FileInfo? file))
                     LoadTextureIntoMesh("_SurfaceTex", file, mat);
                 else
                     mat.SetTexture("_SurfaceTex", Texture2D.LoadDefault(DefaultTexture.Surface));
@@ -217,7 +217,7 @@ public class ModelImporter
             if (m.HasTextureSpecular)
             {
                 name ??= "Mat_" + Path.GetFileNameWithoutExtension(m.TextureSpecular.FilePath);
-                if (FindTextureFromPath(m.TextureSpecular.FilePath, parentDir, out var file))
+                if (FindTextureFromPath(m.TextureSpecular.FilePath, parentDir, out FileInfo? file))
                     LoadTextureIntoMesh("_SurfaceTex", file, mat);
                 else
                     mat.SetTexture("_SurfaceTex", Texture2D.LoadDefault(DefaultTexture.Surface));
@@ -229,7 +229,7 @@ public class ModelImporter
             if (m.HasTextureEmissive)
             {
                 name ??= "Mat_" + Path.GetFileNameWithoutExtension(m.TextureEmissive.FilePath);
-                if (FindTextureFromPath(m.TextureEmissive.FilePath, parentDir, out var file))
+                if (FindTextureFromPath(m.TextureEmissive.FilePath, parentDir, out FileInfo? file))
                 {
                     mat.SetFloat("_EmissionIntensity", 1f);
                     LoadTextureIntoMesh("_EmissionTex", file, mat);
@@ -248,7 +248,7 @@ public class ModelImporter
 
     private void LoadMeshes(string assetPath, ModelImporterSettings settings, Assimp.Scene? scene, double scale, List<Material> mats, List<ModelMesh> meshMats)
     {
-        foreach (var m in scene.Meshes)
+        foreach (Assimp.Mesh? m in scene.Meshes)
         {
             if (m.PrimitiveType != PrimitiveType.Triangle)
             {
@@ -262,14 +262,14 @@ public class ModelImporter
             mesh.IndexFormat = vertexCount >= ushort.MaxValue ? IndexFormat.UInt32 : IndexFormat.UInt16;
 
             Float3[] vertices = new Float3[vertexCount];
-            for (var i = 0; i < vertices.Length; i++)
+            for (int i = 0; i < vertices.Length; i++)
                 vertices[i] = new Float3(m.Vertices[i].X, m.Vertices[i].Y, m.Vertices[i].Z) * (float)scale;
             mesh.Vertices = vertices;
 
             if (m.HasNormals)
             {
                 Float3[] normals = new Float3[vertexCount];
-                for (var i = 0; i < normals.Length; i++)
+                for (int i = 0; i < normals.Length; i++)
                 {
                     normals[i] = new Float3(m.Normals[i].X, m.Normals[i].Y, m.Normals[i].Z);
                     if (settings.InvertNormals)
@@ -281,7 +281,7 @@ public class ModelImporter
             if (m.HasTangentBasis)
             {
                 Float3[] tangents = new Float3[vertexCount];
-                for (var i = 0; i < tangents.Length; i++)
+                for (int i = 0; i < tangents.Length; i++)
                     tangents[i] = new Float3(m.Tangents[i].X, m.Tangents[i].Y, m.Tangents[i].Z);
                 mesh.Tangents = tangents;
             }
@@ -289,7 +289,7 @@ public class ModelImporter
             if (m.HasTextureCoords(0))
             {
                 Float2[] texCoords1 = new Float2[vertexCount];
-                for (var i = 0; i < texCoords1.Length; i++)
+                for (int i = 0; i < texCoords1.Length; i++)
                     texCoords1[i] = new Float2(m.TextureCoordinateChannels[0][i].X, m.TextureCoordinateChannels[0][i].Y);
                 mesh.UV = texCoords1;
             }
@@ -297,7 +297,7 @@ public class ModelImporter
             if (m.HasTextureCoords(1))
             {
                 Float2[] texCoords2 = new Float2[vertexCount];
-                for (var i = 0; i < texCoords2.Length; i++)
+                for (int i = 0; i < texCoords2.Length; i++)
                     texCoords2[i] = new Float2(m.TextureCoordinateChannels[1][i].X, m.TextureCoordinateChannels[1][i].Y);
                 mesh.UV2 = texCoords2;
             }
@@ -305,7 +305,7 @@ public class ModelImporter
             if (m.HasVertexColors(0))
             {
                 Color[] colors = new Color[vertexCount];
-                for (var i = 0; i < colors.Length; i++)
+                for (int i = 0; i < colors.Length; i++)
                     colors[i] = new Color(m.VertexColorChannels[0][i].R, m.VertexColorChannels[0][i].G, m.VertexColorChannels[0][i].B, m.VertexColorChannels[0][i].A);
                 mesh.Colors = colors;
             }
@@ -320,15 +320,15 @@ public class ModelImporter
                 mesh.BoneIndices = new Float4[vertexCount];
                 mesh.BoneWeights = new Float4[vertexCount];
 
-                for (var i = 0; i < m.Bones.Count; i++)
+                for (int i = 0; i < m.Bones.Count; i++)
                 {
-                    var bone = m.Bones[i];
+                    Bone bone = m.Bones[i];
 
                     // Store bone name
                     mesh.boneNames[i] = bone.Name;
 
-                    var offsetMatrix = bone.OffsetMatrix;
-                    Float4x4 bindPose = new Float4x4(
+                    Matrix4x4 offsetMatrix = bone.OffsetMatrix;
+                    Float4x4 bindPose = new(
                         offsetMatrix.A1, offsetMatrix.A2, offsetMatrix.A3, offsetMatrix.A4,
                         offsetMatrix.B1, offsetMatrix.B2, offsetMatrix.B3, offsetMatrix.B4,
                         offsetMatrix.C1, offsetMatrix.C2, offsetMatrix.C3, offsetMatrix.C4,
@@ -345,9 +345,9 @@ public class ModelImporter
                     // foreach weight
                     for (int j = 0; j < bone.VertexWeightCount; j++)
                     {
-                        var weight = bone.VertexWeights[j];
-                        var b = mesh.BoneIndices[weight.VertexID];
-                        var w = mesh.BoneWeights[weight.VertexID];
+                        VertexWeight weight = bone.VertexWeights[j];
+                        Float4 b = mesh.BoneIndices[weight.VertexID];
+                        Float4 w = mesh.BoneWeights[weight.VertexID];
                         if (b.X == 0 || weight.Weight > w.X)
                         {
                             b.X = boneIndex;
@@ -379,8 +379,8 @@ public class ModelImporter
 
                 for (int i = 0; i < vertices.Length; i++)
                 {
-                    var w = mesh.BoneWeights[i];
-                    var totalWeight = w.X + w.Y + w.Z + w.W;
+                    Float4 w = mesh.BoneWeights[i];
+                    float totalWeight = w.X + w.Y + w.Z + w.W;
                     if (totalWeight == 0) continue;
                     w.X /= totalWeight;
                     w.Y /= totalWeight;
@@ -399,8 +399,8 @@ public class ModelImporter
         var modelNode = new ModelNode(assimpNode.Name);
 
         // Transform
-        var t = assimpNode.Transform;
-        t.Decompose(out var aSca, out var aRot, out var aPos);
+        Matrix4x4 t = assimpNode.Transform;
+        t.Decompose(out Vector3D aSca, out Assimp.Quaternion aRot, out Vector3D aPos);
 
         modelNode.LocalPosition = new Vector.Double3(aPos.X, aPos.Y, aPos.Z) * scale;
         modelNode.LocalRotation = new(aRot.X, aRot.Y, aRot.Z, aRot.W);
@@ -417,7 +417,7 @@ public class ModelImporter
         // Build children
         if (assimpNode.HasChildren)
         {
-            foreach (var child in assimpNode.Children)
+            foreach (Node? child in assimpNode.Children)
             {
                 modelNode.Children.Add(BuildModelNode(child, scale));
             }
@@ -428,16 +428,16 @@ public class ModelImporter
 
     private static void LoadAnimations(Assimp.Scene? scene, double scale, List<AnimationClip> animations)
     {
-        foreach (var anim in scene.Animations)
+        foreach (Animation? anim in scene.Animations)
         {
             // Create Animation
-            AnimationClip animation = new AnimationClip();
+            AnimationClip animation = new();
             animation.Name = anim.Name;
             animation.Duration = anim.DurationInTicks / (anim.TicksPerSecond != 0 ? anim.TicksPerSecond : 25.0);
             animation.TicksPerSecond = anim.TicksPerSecond;
             animation.DurationInTicks = anim.DurationInTicks;
 
-            foreach (var channel in anim.NodeAnimationChannels)
+            foreach (NodeAnimationChannel? channel in anim.NodeAnimationChannels)
             {
                 Assimp.Node boneNode = scene.RootNode.FindNode(channel.NodeName);
 
@@ -454,7 +454,7 @@ public class ModelImporter
                     yCurve.Keys.Clear();
                     zCurve.Keys.Clear();
 
-                    foreach (var posKey in channel.PositionKeys)
+                    foreach (VectorKey posKey in channel.PositionKeys)
                     {
                         double time = (posKey.Time / anim.DurationInTicks) * animation.Duration;
                         xCurve.Keys.Add(new KeyFrame(time, posKey.Value.X * scale));
@@ -478,7 +478,7 @@ public class ModelImporter
                     zCurve.Keys.Clear();
                     wCurve.Keys.Clear();
 
-                    foreach (var rotKey in channel.RotationKeys)
+                    foreach (QuaternionKey rotKey in channel.RotationKeys)
                     {
                         double time = (rotKey.Time / anim.DurationInTicks) * animation.Duration;
                         xCurve.Keys.Add(new KeyFrame(time, rotKey.Value.X));
@@ -502,7 +502,7 @@ public class ModelImporter
                     yCurve.Keys.Clear();
                     zCurve.Keys.Clear();
 
-                    foreach (var scaleKey in channel.ScalingKeys)
+                    foreach (VectorKey scaleKey in channel.ScalingKeys)
                     {
                         double time = (scaleKey.Time / anim.DurationInTicks) * animation.Duration;
                         xCurve.Keys.Add(new KeyFrame(time, scaleKey.Value.X));
@@ -531,10 +531,10 @@ public class ModelImporter
         // so first check if the File name exists inside parentDir, if so return, if not then check the file with its parent exists so like
         // if the file is at C:\Users\Me\Documents\MyModel\Textures\MyTexture.png
         // we first check if Path.Combine(parentDir, MyTexture.png) exists, if not we check if Path.Combine(parentDir, Textures\MyTexture.png) exists and so on
-        var nodes = filePath.Split(Path.DirectorySeparatorChar);
+        string[] nodes = filePath.Split(Path.DirectorySeparatorChar);
         for (int i = nodes.Length - 1; i >= 0; i--)
         {
-            var path = Path.Combine(parentDir.FullName, string.Join(Path.DirectorySeparatorChar, nodes.Skip(i)));
+            string path = Path.Combine(parentDir.FullName, string.Join(Path.DirectorySeparatorChar, nodes.Skip(i)));
             file = new FileInfo(path);
             if (file.Exists) return true;
         }

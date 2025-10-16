@@ -48,7 +48,7 @@ public enum DepthTextureMode
 
 public class Camera : MonoBehaviour
 {
-    public List<ImageEffect> Effects = new();
+    public List<ImageEffect> Effects = [];
 
     public CameraClearFlags ClearFlags = CameraClearFlags.Skybox;
     public Color ClearColor = new(0f, 0f, 0f, 1f);
@@ -184,7 +184,7 @@ public class Camera : MonoBehaviour
     public Ray ScreenPointToRay(Double2 screenPoint, Double2 screenSize)
     {
         // Normalize screen coordinates to [-1, 1]
-        Double2 ndc = new Double2(
+        Double2 ndc = new(
             (screenPoint.X / screenSize.X) * 2.0f - 1.0f,
             1.0f - (screenPoint.Y / screenSize.Y) * 2.0f
         );
@@ -196,7 +196,7 @@ public class Camera : MonoBehaviour
         // Calculate the inverse view-projection matrix
         double aspect = screenSize.X / screenSize.Y;
         Double4x4 viewProjectionMatrix = GetProjectionMatrix(aspect) * GetViewMatrix();
-        var inverseViewProjectionMatrix = viewProjectionMatrix.Invert();
+        Double4x4 inverseViewProjectionMatrix = viewProjectionMatrix.Invert();
 
         // Unproject the near and far points to world space
         Double4 nearPointWorld = Double4x4.TransformPoint(nearPointNDC, inverseViewProjectionMatrix);
@@ -207,7 +207,7 @@ public class Camera : MonoBehaviour
         farPointWorld /= farPointWorld.W;
 
         // Create the ray
-        Double3 rayOrigin = new Double3(nearPointWorld.X, nearPointWorld.Y, nearPointWorld.Z);
+        Double3 rayOrigin = new(nearPointWorld.X, nearPointWorld.Y, nearPointWorld.Z);
         Double3 rayDirection = Double3.Normalize(new Double3(farPointWorld.X, farPointWorld.Y, farPointWorld.Z) - rayOrigin);
 
         return new Ray(rayOrigin, rayDirection);

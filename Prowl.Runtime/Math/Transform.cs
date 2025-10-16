@@ -66,7 +66,7 @@ public class Transform
         }
         set
         {
-            var newVale = Quaternion.Identity;
+            Quaternion newVale = Quaternion.Identity;
             if (parent != null)
                 newVale = MakeSafe(Quaternion.NormalizeSafe(Quaternion.Inverse(parent.rotation) * value));
             else
@@ -198,21 +198,21 @@ public class Transform
     }
 
     private double MakeSafe(double v) => double.IsNaN(v) ? 0 : v;
-    private Double3 MakeSafe(Double3 v) => new Double3(MakeSafe(v.X), MakeSafe(v.Y), MakeSafe(v.Z));
-    private Quaternion MakeSafe(Quaternion v) => new Quaternion(MakeSafe(v.X), MakeSafe(v.Y), MakeSafe(v.Z), MakeSafe(v.W));
+    private Double3 MakeSafe(Double3 v) => new(MakeSafe(v.X), MakeSafe(v.Y), MakeSafe(v.Z));
+    private Quaternion MakeSafe(Quaternion v) => new(MakeSafe(v.X), MakeSafe(v.Y), MakeSafe(v.Z), MakeSafe(v.W));
 
     public Transform? Find(string path)
     {
         ArgumentException.ThrowIfNullOrEmpty(path, nameof(path));
 
-        var names = path.Split('/');
-        var currentTransform = this;
+        string[] names = path.Split('/');
+        Transform currentTransform = this;
 
-        foreach (var name in names)
+        foreach (string name in names)
         {
             ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
 
-            var childTransform = FindImmediateChild(currentTransform, name);
+            Transform? childTransform = FindImmediateChild(currentTransform, name);
             if (childTransform == null)
                 return null;
 
@@ -224,7 +224,7 @@ public class Transform
 
     private Transform? FindImmediateChild(Transform parent, string name)
     {
-        foreach (var child in parent.gameObject.children)
+        foreach (GameObject child in parent.gameObject.children)
             if (child.Name == name)
                 return child.Transform;
         return null;
@@ -234,9 +234,9 @@ public class Transform
     {
         if (name == null) return null;
         if (name == gameObject.Name) return this;
-        foreach (var child in gameObject.children)
+        foreach (GameObject child in gameObject.children)
         {
-            var t = child.Transform.DeepFind(name);
+            Transform? t = child.Transform.DeepFind(name);
             if (t != null) return t;
         }
         return null;
@@ -365,5 +365,5 @@ public class Transform
     }
 
     static double InverseSafe(double f) => Maths.Abs(f) > double.Epsilon ? 1.0F / f : 0.0F;
-    static Double3 InverseSafe(Double3 v) => new Double3(InverseSafe(v.X), InverseSafe(v.Y), InverseSafe(v.Z));
+    static Double3 InverseSafe(Double3 v) => new(InverseSafe(v.X), InverseSafe(v.Y), InverseSafe(v.Z));
 }

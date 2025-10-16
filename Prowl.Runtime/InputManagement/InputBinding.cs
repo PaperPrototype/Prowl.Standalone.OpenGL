@@ -91,12 +91,12 @@ public class InputBinding
     /// <summary>
     /// Optional processors to apply to the input value (e.g., normalize, clamp, invert).
     /// </summary>
-    public List<IInputProcessor> Processors { get; set; } = new();
+    public List<IInputProcessor> Processors { get; set; } = [];
 
     /// <summary>
     /// For composite bindings, references to the component bindings.
     /// </summary>
-    public Dictionary<string, InputBinding> CompositeParts { get; set; } = new();
+    public Dictionary<string, InputBinding> CompositeParts { get; set; } = [];
 
     /// <summary>
     /// Indicates if this binding is part of a composite.

@@ -37,18 +37,18 @@ public class PaperRenderer : ICanvasRenderer
         _elementBuffer = Graphics.Device.CreateBuffer<uint>(BufferType.ElementsBuffer, Array.Empty<uint>(), true);
 
         // Create a VertexArray
-        var vertexFormat = new VertexFormat(new VertexFormat.Element[]
-        {
-                new VertexFormat.Element((VertexFormat.VertexSemantic)0, VertexFormat.VertexType.Float, 2, 0),
-                new VertexFormat.Element((VertexFormat.VertexSemantic)1, VertexFormat.VertexType.Float, 2, 0),
-                new VertexFormat.Element((VertexFormat.VertexSemantic)2, VertexFormat.VertexType.Float, 4, 0)
-        });
+        var vertexFormat = new VertexFormat(
+        [
+                new((VertexFormat.VertexSemantic)0, VertexFormat.VertexType.Float, 2, 0),
+                new((VertexFormat.VertexSemantic)1, VertexFormat.VertexType.Float, 2, 0),
+                new((VertexFormat.VertexSemantic)2, VertexFormat.VertexType.Float, 4, 0)
+        ]);
 
         _vertexArrayObject = Graphics.Device.CreateVertexArray(vertexFormat, _vertexBuffer, _elementBuffer);
 
         // Set the default texture
         _defaultTexture = new Texture2D(1, 1);
-        byte[] pixelData = new byte[] { 255, 255, 255, 255 };
+        byte[] pixelData = [255, 255, 255, 255];
         _defaultTexture.SetData(new Memory<byte>(pixelData), 0, 0, 1, 1);
 
         UpdateProjection(width, height);
@@ -78,7 +78,7 @@ public class PaperRenderer : ICanvasRenderer
             return;
         }
 
-        var pass = shader.GetPass(0);
+        Rendering.Shaders.ShaderPass pass = shader.GetPass(0);
         if (!pass.TryGetVariantProgram(null, out _shaderProgram))
         {
             Debug.LogError("Failed to compile UI shader.");
@@ -143,7 +143,7 @@ public class PaperRenderer : ICanvasRenderer
             float[] packedVertexData = new float[canvas.Vertices.Count * 8];
             for (int i = 0; i < canvas.Vertices.Count; i++)
             {
-                var vertex = canvas.Vertices[i];
+                Vertex vertex = canvas.Vertices[i];
                 packedVertexData[i * 8 + 0] = vertex.x;
                 packedVertexData[i * 8 + 1] = vertex.y;
                 packedVertexData[i * 8 + 2] = vertex.u;
@@ -163,14 +163,14 @@ public class PaperRenderer : ICanvasRenderer
 
         // Process draw calls
         int indexOffset = 0;
-        foreach (var drawCall in drawCalls)
+        foreach (DrawCall drawCall in drawCalls)
         {
             // Handle texture binding
-            var texture = (drawCall.Texture as Texture2D) ?? _defaultTexture;
+            Texture2D texture = (drawCall.Texture as Texture2D) ?? _defaultTexture;
             Graphics.Device.SetUniformTexture(_shaderProgram, "texture0", 0, texture.Handle);
 
             // Set scissor rectangle
-            drawCall.GetScissor(out var scissor, out var extent);
+            drawCall.GetScissor(out Double4x4 scissor, out Double2 extent);
             Graphics.Device.SetUniformMatrix(_shaderProgram, "scissorMat", false, (Float4x4)scissor);
             Graphics.Device.SetUniformV2(_shaderProgram, "scissorExt", (Float2)extent);
 

@@ -25,8 +25,8 @@ public sealed class Shader : EngineObject, ISerializationCallbackReceiver
     public IEnumerable<ShaderPass> Passes => _passes;
 
 
-    private Dictionary<string, int> _nameIndexLookup = new();
-    private Dictionary<string, List<int>> _tagIndexLookup = new();
+    private Dictionary<string, int> _nameIndexLookup = [];
+    private Dictionary<string, List<int>> _tagIndexLookup = [];
 
 
     internal Shader() : base("New Shader") { }
@@ -89,7 +89,7 @@ public sealed class Shader : EngineObject, ISerializationCallbackReceiver
         {
             foreach (int index in passesWithTag)
             {
-                ShaderPass pass = this._passes[index];
+                ShaderPass pass = _passes[index];
 
                 if (pass.HasTag(tag, tagValue))
                     passes.Add(index);

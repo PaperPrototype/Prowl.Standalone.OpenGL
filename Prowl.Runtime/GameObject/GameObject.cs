@@ -21,8 +21,8 @@ public class GameObject : EngineObject, ISerializable
 {
     #region Private Fields/Properties
 
-    internal List<MonoBehaviour> _components = new();
-    private MultiValueDictionary<Type, MonoBehaviour> _componentCache = new();
+    internal List<MonoBehaviour> _components = [];
+    private MultiValueDictionary<Type, MonoBehaviour> _componentCache = [];
 
     private Guid _identifier = Guid.NewGuid();
 
@@ -148,7 +148,7 @@ public class GameObject : EngineObject, ISerializable
     {
         if (parent == null) return false;
 
-        GameObject child = this._parent;
+        GameObject child = _parent;
         while (child != null)
         {
             if (child == parent)
@@ -182,9 +182,9 @@ public class GameObject : EngineObject, ISerializable
         }
 
         // Save the old position in worldspace
-        Double3 worldPosition = new Double3();
-        Quaternion worldRotation = new Quaternion();
-        Double4x4 worldScale = new Double4x4();
+        Double3 worldPosition = new();
+        Quaternion worldRotation = new();
+        Double4x4 worldScale = new();
 
         if (worldPositionStays)
         {
@@ -269,21 +269,21 @@ public class GameObject : EngineObject, ISerializable
     /// <param name="otherName">The name of the GameObject to find.</param>
     /// <param name="ignoreCase">If true, the search is case-insensitive.</param>
     /// <returns>The first GameObject with the given name, or null if not found.</returns>
-    public GameObject Find(string otherName, bool ignoreCase = false) => this.Scene?.AllObjects.FirstOrDefault(gameObject => gameObject.Name.Equals(otherName, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
+    public GameObject Find(string otherName, bool ignoreCase = false) => Scene?.AllObjects.FirstOrDefault(gameObject => gameObject.Name.Equals(otherName, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
 
     /// <summary>
     /// Finds a GameObject with the specified tag in the same scene.
     /// </summary>
     /// <param name="otherTag">The tag to search for.</param>
     /// <returns>The first GameObject with the given tag, or null if not found.</returns>
-    public GameObject FindGameObjectWithTag(string otherTag) => this.Scene?.AllObjects.FirstOrDefault(gameObject => gameObject.CompareTag(otherTag));
+    public GameObject FindGameObjectWithTag(string otherTag) => Scene?.AllObjects.FirstOrDefault(gameObject => gameObject.CompareTag(otherTag));
 
     /// <summary>
     /// Finds all GameObjects with the specified tag in the same scene.
     /// </summary>
     /// <param name="otherTag">The tag to search for.</param>
     /// <returns>An array of GameObjects with the given tag.</returns>
-    public GameObject[] FindGameObjectsWithTag(string otherTag) => this.Scene?.AllObjects.Where(gameObject => gameObject.CompareTag(otherTag)).ToArray() ?? [];
+    public GameObject[] FindGameObjectsWithTag(string otherTag) => Scene?.AllObjects.Where(gameObject => gameObject.CompareTag(otherTag)).ToArray() ?? [];
 
 
     /// <summary>
@@ -406,7 +406,7 @@ public class GameObject : EngineObject, ISerializable
     /// </summary>
     internal void PreUpdate()
     {
-        foreach (var component in _components)
+        foreach (MonoBehaviour component in _components)
         {
             if (!component.HasStarted)
                 if (component.EnabledInHierarchy)
@@ -500,7 +500,7 @@ public class GameObject : EngineObject, ISerializable
     /// <typeparam name="T">The type of components to remove.</typeparam>
     public void RemoveAll<T>() where T : MonoBehaviour
     {
-        if (_componentCache.TryGetValue(typeof(T), out var components))
+        if (_componentCache.TryGetValue(typeof(T), out IReadOnlyCollection<MonoBehaviour>? components))
         {
             // Create a copy to avoid potential collection modification issues
             var componentList = components.ToList();
@@ -578,10 +578,10 @@ public class GameObject : EngineObject, ISerializable
     public MonoBehaviour? GetComponent(Type type)
     {
         if (type == null) return null;
-        if (_componentCache.TryGetValue(type, out var components))
+        if (_componentCache.TryGetValue(type, out IReadOnlyCollection<MonoBehaviour>? components))
             return components.FirstOrDefault();
         else
-            foreach (var comp in _components)
+            foreach (MonoBehaviour comp in _components)
                 if (comp.GetType().IsAssignableTo(type))
                     return comp;
         return null;
@@ -637,11 +637,11 @@ public class GameObject : EngineObject, ISerializable
         }
         else
         {
-            if (_componentCache.TryGetValue(type, out var components))
-                foreach (var comp in components)
+            if (_componentCache.TryGetValue(type, out IReadOnlyCollection<MonoBehaviour>? components))
+                foreach (MonoBehaviour comp in components)
                     yield return comp;
             else
-                foreach (var comp in _components)
+                foreach (MonoBehaviour comp in _components)
                     if (comp.GetType().IsAssignableTo(type))
                         yield return comp;
         }
@@ -942,7 +942,7 @@ public class GameObject : EngineObject, ISerializable
     /// </summary>
     public void Print()
     {
-        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        System.Text.StringBuilder sb = new();
         sb.AppendLine("========================================");
         sb.AppendLine($"GameObject Hierarchy: {Name}");
         sb.AppendLine("========================================");
@@ -966,7 +966,7 @@ public class GameObject : EngineObject, ISerializable
             sb.AppendLine($"{detailIndent}Layer: {obj.layer}");
 
         // Print Transform info
-        var t = obj.Transform;
+        Transform t = obj.Transform;
         sb.AppendLine($"{detailIndent}Position: {FormatVector(t.localPosition)} (World: {FormatVector(t.position)})");
         sb.AppendLine($"{detailIndent}Rotation: {FormatVector(t.localEulerAngles)} (World: {FormatVector(t.eulerAngles)})");
         sb.AppendLine($"{detailIndent}Scale: {FormatVector(t.localScale)} (Lossy: {FormatVector(t.lossyScale)})");
@@ -976,7 +976,7 @@ public class GameObject : EngineObject, ISerializable
         if (components.Count > 0)
         {
             sb.AppendLine($"{detailIndent}Components ({components.Count}):");
-            foreach (var comp in components)
+            foreach (MonoBehaviour? comp in components)
             {
                 string compEnabled = comp.Enabled ? "" : " [DISABLED]";
                 sb.AppendLine($"{detailIndent}  - {comp.GetType().Name}{compEnabled}");
@@ -1048,7 +1048,7 @@ public class GameObject : EngineObject, ISerializable
     {
         DeserializeHeader(value);
 
-        if (Guid.TryParse(value["Identifier"]?.StringValue ?? "", out var identifier))
+        if (Guid.TryParse(value["Identifier"]?.StringValue ?? "", out Guid identifier))
             _identifier = identifier;
         _static = value["Static"]?.ByteValue == 1;
         _enabled = value["Enabled"]?.ByteValue == 1;
@@ -1084,7 +1084,7 @@ public class GameObject : EngineObject, ISerializable
                 if (oType == null)
                 {
                     Debug.LogWarning("Missing Monobehaviour Type: " + typeProperty.StringValue + " On " + Name);
-                    MissingMonobehaviour missing = new MissingMonobehaviour();
+                    MissingMonobehaviour missing = new();
                     missing.ComponentData = compTag;
                     _components.Add(missing);
                     continue;

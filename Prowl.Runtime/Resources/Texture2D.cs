@@ -243,8 +243,8 @@ public sealed class Texture2D : Texture, ISerializable
         var MagFilter = (TextureMag)value["MagFilter"].IntValue;
         var Wrap = (TextureWrap)value["Wrap"].IntValue;
 
-        var param = new[] { typeof(uint), typeof(uint), typeof(bool), typeof(TextureImageFormat) };
-        var values = new object[] { Width, Height, false, imageFormat };
+        Type[] param = new[] { typeof(uint), typeof(uint), typeof(bool), typeof(TextureImageFormat) };
+        object[] values = new object[] { Width, Height, false, imageFormat };
         typeof(Texture2D).GetConstructor(param).Invoke(this, values);
 
         Memory<byte> memory = value["Data"].ByteArrayValue;
@@ -267,8 +267,7 @@ public sealed class Texture2D : Texture, ISerializable
     /// <param name="generateMipmaps">Whether to generate mipmaps for the <see cref="Texture2D"/>.</param>
     public static Texture2D FromImage(MagickImage image, bool generateMipmaps = false)
     {
-        if (image == null)
-            throw new ArgumentNullException(nameof(image));
+        ArgumentNullException.ThrowIfNull(image);
 
         image.Flip();
 
@@ -276,9 +275,9 @@ public sealed class Texture2D : Texture, ISerializable
         image.ColorSpace = ColorSpace.sRGB;
         image.ColorType = ColorType.TrueColorAlpha;
 
-        var pixels = image.GetPixelsUnsafe().GetAreaPointer(0, 0, image.Width, image.Height);
+        nint pixels = image.GetPixelsUnsafe().GetAreaPointer(0, 0, image.Width, image.Height);
 
-        Texture2D texture = new Texture2D(image.Width, image.Height, false, format);
+        Texture2D texture = new(image.Width, image.Height, false, format);
         try
         {
 
@@ -326,7 +325,7 @@ public sealed class Texture2D : Texture, ISerializable
     /// </summary>
     public static Texture2D LoadFromFile(string filePath, bool generateMipmaps = false)
     {
-        var texture = FromFile(filePath, generateMipmaps);
+        Texture2D texture = FromFile(filePath, generateMipmaps);
         texture.AssetPath = filePath;
         return texture;
     }
@@ -357,9 +356,9 @@ public sealed class Texture2D : Texture, ISerializable
         };
 
         string resourcePath = $"Assets/Defaults/{fileName}";
-        using (var stream = EmbeddedResources.GetStream(resourcePath))
+        using (Stream stream = EmbeddedResources.GetStream(resourcePath))
         {
-            var result = FromStream(stream, true);
+            Texture2D result = FromStream(stream, true);
             result.AssetPath = $"$Default:{texture}";
             return result;
         }

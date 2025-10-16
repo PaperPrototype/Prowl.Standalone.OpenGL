@@ -25,13 +25,13 @@ public abstract class GraphicsProgram : IDisposable
     // Uniform cache - tracks what values are currently set in this shader program
     internal class UniformCache
     {
-        public Dictionary<string, float> floats = new();
-        public Dictionary<string, int> ints = new();
-        public Dictionary<string, Float2> vectors2 = new();
-        public Dictionary<string, Float3> vectors3 = new();
-        public Dictionary<string, Float4> vectors4 = new();
-        public Dictionary<string, Float4x4> matrices = new();
-        public Dictionary<string, GraphicsBuffer> buffers = new();
+        public Dictionary<string, float> floats = [];
+        public Dictionary<string, int> ints = [];
+        public Dictionary<string, Float2> vectors2 = [];
+        public Dictionary<string, Float3> vectors3 = [];
+        public Dictionary<string, Float4> vectors4 = [];
+        public Dictionary<string, Float4x4> matrices = [];
+        public Dictionary<string, GraphicsBuffer> buffers = [];
 
         public void Clear()
         {

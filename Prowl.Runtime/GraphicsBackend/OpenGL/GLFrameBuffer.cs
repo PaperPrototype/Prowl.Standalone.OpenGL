@@ -15,7 +15,7 @@ public sealed unsafe class GLFrameBuffer : GraphicsFrameBuffer
     public override uint Height { get; protected set; }
 
     public static readonly GLEnum[] buffers =
-    {
+    [
         GLEnum.ColorAttachment0,  GLEnum.ColorAttachment1,  GLEnum.ColorAttachment2,
         GLEnum.ColorAttachment3,  GLEnum.ColorAttachment4,  GLEnum.ColorAttachment5,
         GLEnum.ColorAttachment6,  GLEnum.ColorAttachment7,  GLEnum.ColorAttachment8,
@@ -27,7 +27,7 @@ public sealed unsafe class GLFrameBuffer : GraphicsFrameBuffer
         GLEnum.ColorAttachment23, GLEnum.ColorAttachment24, GLEnum.ColorAttachment25,
         GLEnum.ColorAttachment26, GLEnum.ColorAttachment27, GLEnum.ColorAttachment28,
         GLEnum.ColorAttachment29, GLEnum.ColorAttachment30, GLEnum.ColorAttachment31
-    };
+    ];
 
     public GLFrameBuffer(Attachment[] attachments, uint width, uint height)
     {

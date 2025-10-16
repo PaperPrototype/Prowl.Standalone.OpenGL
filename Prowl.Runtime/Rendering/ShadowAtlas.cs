@@ -45,8 +45,8 @@ public static class ShadowAtlas
         }
     }
 
-    private static List<SkylineSegment> skyline = new();
-    private static List<PackedRect> packedRects = new();
+    private static List<SkylineSegment> skyline = [];
+    private static List<PackedRect> packedRects = [];
 
     public static void TryInitialize()
     {
@@ -137,7 +137,7 @@ public static class ShadowAtlas
         // Check all segments we would overlap
         while (currentX < x + width && segmentIdx < skyline.Count)
         {
-            var segment = skyline[segmentIdx];
+            SkylineSegment segment = skyline[segmentIdx];
             maxY = Math.Max(maxY, segment.Y);
 
             // Check if height fits
@@ -168,7 +168,7 @@ public static class ShadowAtlas
         // Handle segment that starts before rectangle
         if (skyline[i].X < x)
         {
-            var segment = skyline[i];
+            SkylineSegment segment = skyline[i];
             int leftWidth = x - segment.X;
             skyline[i] = new SkylineSegment(segment.X, segment.Y, leftWidth);
             i++;
@@ -184,7 +184,7 @@ public static class ShadowAtlas
         // Remove or trim segments covered by rectangle
         while (i < skyline.Count && skyline[i].X < rectRight)
         {
-            var segment = skyline[i];
+            SkylineSegment segment = skyline[i];
 
             if (segment.X + segment.Width <= rectRight)
             {

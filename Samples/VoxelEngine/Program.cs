@@ -32,7 +32,7 @@ public sealed class VoxelGame : Game
 
         // Create directional light
         GameObject lightGO = new("Directional Light");
-        var light = lightGO.AddComponent<DirectionalLight>();
+        DirectionalLight light = lightGO.AddComponent<DirectionalLight>();
         lightGO.Transform.position = new Double3(0, 64, 0);
         lightGO.Transform.localEulerAngles = new Double3(-45, 45, 0);
         light.shadowResolution = DirectionalLight.Resolution._4096;
@@ -48,23 +48,23 @@ public sealed class VoxelGame : Game
         camera.HDR = true;
 
         spot = new GameObject("Spot Light");
-        var sl = spot.AddComponent<PointLight>();
+        PointLight sl = spot.AddComponent<PointLight>();
         sl.range = 50f;
         sl.intensity = 256f;
         scene.Add(spot);
 
-        camera.Effects = new List<ImageEffect>()
-        {
+        camera.Effects =
+        [
             new ScreenSpaceReflectionEffect(),
             new KawaseBloomEffect(),
             new BokehDepthOfFieldEffect(),
             new TonemapperEffect(),
-        };
+        ];
 
         scene.Add(cameraGO);
 
         // Create voxel world
-        GameObject worldGO = new GameObject("VoxelWorld");
+        GameObject worldGO = new("VoxelWorld");
         world = worldGO.AddComponent<VoxelWorld>();
         scene.Add(worldGO);
 
@@ -115,12 +115,12 @@ public sealed class VoxelGame : Game
         // Voxel editing
         if (Input.GetMouseButtonDown(0)) // Left click to destroy
         {
-            var ray = camera.ScreenPointToRay((Double2)Input.MousePosition, new Double2(Window.Size.X, Window.Size.Y));
+            Ray ray = camera.ScreenPointToRay((Double2)Input.MousePosition, new Double2(Window.Size.X, Window.Size.Y));
             world.RaycastVoxel(ray, 10f, true);
         }
         else if (Input.GetMouseButtonDown(2)) // Middle click to place
         {
-            var ray = camera.ScreenPointToRay((Double2)Input.MousePosition, new Double2(Window.Size.X, Window.Size.Y));
+            Ray ray = camera.ScreenPointToRay((Double2)Input.MousePosition, new Double2(Window.Size.X, Window.Size.Y));
             world.RaycastVoxel(ray, 10f, false);
         }
 
@@ -139,7 +139,7 @@ public class VoxelWorld : MonoBehaviour
     private const int ChunkDepth = 16;
     private const int RenderDistance = 3; // Chunks in each direction
 
-    private Dictionary<Int3, VoxelChunk> chunks = new Dictionary<Int3, VoxelChunk>();
+    private Dictionary<Int3, VoxelChunk> chunks = [];
 
     public void GenerateWorld()
     {
@@ -155,14 +155,14 @@ public class VoxelWorld : MonoBehaviour
 
     private void CreateChunk(Int3 chunkPos)
     {
-        GameObject chunkGO = new GameObject($"Chunk_{chunkPos.X}_{chunkPos.Y}_{chunkPos.Z}");
+        GameObject chunkGO = new($"Chunk_{chunkPos.X}_{chunkPos.Y}_{chunkPos.Z}");
         chunkGO.Transform.position = new Double3(
             chunkPos.X * ChunkWidth,
             chunkPos.Y * ChunkHeight,
             chunkPos.Z * ChunkDepth
         );
 
-        var chunk = chunkGO.AddComponent<VoxelChunk>();
+        VoxelChunk chunk = chunkGO.AddComponent<VoxelChunk>();
         chunk.Initialize(chunkPos, this);
         chunk.GenerateChunk();
 
@@ -173,7 +173,7 @@ public class VoxelWorld : MonoBehaviour
     public byte GetVoxel(Int3 worldPos)
     {
         Int3 chunkPos = WorldToChunkPos(worldPos);
-        if (!chunks.TryGetValue(chunkPos, out var chunk))
+        if (!chunks.TryGetValue(chunkPos, out VoxelChunk? chunk))
             return 0;
 
         Int3 localPos = WorldToLocalPos(worldPos);
@@ -183,20 +183,20 @@ public class VoxelWorld : MonoBehaviour
     public void SetVoxel(Int3 worldPos, byte value)
     {
         Int3 chunkPos = WorldToChunkPos(worldPos);
-        if (!chunks.TryGetValue(chunkPos, out var chunk))
+        if (!chunks.TryGetValue(chunkPos, out VoxelChunk? chunk))
             return;
 
         Int3 localPos = WorldToLocalPos(worldPos);
         chunk.SetVoxel(localPos.X, localPos.Y, localPos.Z, value);
 
         // Update neighboring chunks if on edge
-        if (localPos.X == 0 && chunks.TryGetValue(chunkPos + new Int3(-1, 0, 0), out var leftChunk))
+        if (localPos.X == 0 && chunks.TryGetValue(chunkPos + new Int3(-1, 0, 0), out VoxelChunk? leftChunk))
             leftChunk.RegenerateMesh();
-        if (localPos.X == ChunkWidth - 1 && chunks.TryGetValue(chunkPos + new Int3(1, 0, 0), out var rightChunk))
+        if (localPos.X == ChunkWidth - 1 && chunks.TryGetValue(chunkPos + new Int3(1, 0, 0), out VoxelChunk? rightChunk))
             rightChunk.RegenerateMesh();
-        if (localPos.Z == 0 && chunks.TryGetValue(chunkPos + new Int3(0, 0, -1), out var backChunk))
+        if (localPos.Z == 0 && chunks.TryGetValue(chunkPos + new Int3(0, 0, -1), out VoxelChunk? backChunk))
             backChunk.RegenerateMesh();
-        if (localPos.Z == ChunkDepth - 1 && chunks.TryGetValue(chunkPos + new Int3(0, 0, 1), out var frontChunk))
+        if (localPos.Z == ChunkDepth - 1 && chunks.TryGetValue(chunkPos + new Int3(0, 0, 1), out VoxelChunk? frontChunk))
             frontChunk.RegenerateMesh();
     }
 
@@ -207,28 +207,28 @@ public class VoxelWorld : MonoBehaviour
         Double3 rayDir = Double3.Normalize(ray.Direction);
 
         // Current voxel position
-        Int3 voxelPos = new Int3(
+        Int3 voxelPos = new(
             (int)Math.Floor(rayPos.X),
             (int)Math.Floor(rayPos.Y),
             (int)Math.Floor(rayPos.Z)
         );
 
         // Step direction for each axis
-        Int3 step = new Int3(
+        Int3 step = new(
             rayDir.X > 0 ? 1 : -1,
             rayDir.Y > 0 ? 1 : -1,
             rayDir.Z > 0 ? 1 : -1
         );
 
         // Distance to next voxel boundary on each axis
-        Double3 tDelta = new Double3(
+        Double3 tDelta = new(
             Math.Abs(1.0 / rayDir.X),
             Math.Abs(1.0 / rayDir.Y),
             Math.Abs(1.0 / rayDir.Z)
         );
 
         // Initial t values to reach next voxel boundary
-        Double3 tMax = new Double3(
+        Double3 tMax = new(
             rayDir.X > 0 ? (voxelPos.X + 1 - rayPos.X) / rayDir.X : (rayPos.X - voxelPos.X) / -rayDir.X,
             rayDir.Y > 0 ? (voxelPos.Y + 1 - rayPos.Y) / rayDir.Y : (rayPos.Y - voxelPos.Y) / -rayDir.Y,
             rayDir.Z > 0 ? (voxelPos.Z + 1 - rayPos.Z) / rayDir.Z : (rayPos.Z - voxelPos.Z) / -rayDir.Z
@@ -400,9 +400,9 @@ public class VoxelChunk : MonoBehaviour
 
     private void GenerateMesh()
     {
-        List<Double3> vertices = new List<Double3>();
-        List<int> triangles = new List<int>();
-        List<Color> colors = new List<Color>();
+        List<Double3> vertices = [];
+        List<int> triangles = [];
+        List<Color> colors = [];
 
         for (int x = 0; x < ChunkWidth; x++)
         {
@@ -453,10 +453,10 @@ public class VoxelChunk : MonoBehaviour
         }
 
         // Create mesh
-        Mesh mesh = new Mesh();
-        mesh.Vertices = vertices.Select(v => new Float3((float)v.X, (float)v.Y, (float)v.Z)).ToArray();
-        mesh.Indices = triangles.Select(i => (uint)i).ToArray();
-        mesh.Colors = colors.ToArray();
+        Mesh mesh = new();
+        mesh.Vertices = [.. vertices.Select(v => new Float3((float)v.X, (float)v.Y, (float)v.Z))];
+        mesh.Indices = [.. triangles.Select(i => (uint)i)];
+        mesh.Colors = [.. colors];
 
         // Generate normals for proper lighting
         mesh.RecalculateNormals();
@@ -524,7 +524,7 @@ public class VoxelChunk : MonoBehaviour
         };
 
         // Add vertices
-        foreach (var vertex in faceVertices)
+        foreach (Double3 vertex in faceVertices)
         {
             vertices.Add(vertex);
             colors.Add(color);

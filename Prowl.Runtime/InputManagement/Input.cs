@@ -113,9 +113,9 @@ public static class Input
     /// </summary>
     public static InputAction? FindAction(string actionName)
     {
-        foreach (var map in _actionMaps)
+        foreach (InputActionMap map in _actionMaps)
         {
-            var action = map.FindAction(actionName);
+            InputAction? action = map.FindAction(actionName);
             if (action != null)
                 return action;
         }
@@ -127,7 +127,7 @@ public static class Input
     /// </summary>
     public static InputAction? FindAction(string mapName, string actionName)
     {
-        var map = _actionMaps.FirstOrDefault(m => m.Name == mapName);
+        InputActionMap? map = _actionMaps.FirstOrDefault(m => m.Name == mapName);
         return map?.FindAction(actionName);
     }
 
@@ -141,7 +141,7 @@ public static class Input
         if (_handlers.Count == 0)
             return;
 
-        foreach (var map in _actionMaps)
+        foreach (InputActionMap map in _actionMaps)
         {
             if (map.Enabled)
                 map.UpdateActions(Current, _currentTime);

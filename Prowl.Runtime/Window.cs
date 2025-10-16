@@ -82,6 +82,7 @@ public static class Window
         InternalWindow.FocusChanged += OnFocusChanged;
         InternalWindow.Resize += OnResize;
         InternalWindow.FramebufferResize += OnFramebufferResize;
+        InternalWindow.Move += OnMove;
         InternalWindow.Closing += OnClose;
 
         InternalWindow.StateChanged += (state) => { StateChanged?.Invoke(state); };
@@ -90,6 +91,7 @@ public static class Window
         InternalWindow.FocusChanged += (focused) => { isFocused = focused; };
     }
 
+    private static void OnMove(Vector2D<int> d) => Move?.Invoke(d);
     public static void Start() => InternalWindow.Run();
     public static void Stop() => InternalWindow.Close();
 

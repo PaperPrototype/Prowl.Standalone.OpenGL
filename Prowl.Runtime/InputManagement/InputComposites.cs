@@ -16,13 +16,13 @@ public abstract class InputCompositeBinding
     /// <summary>
     /// The component bindings that make up this composite.
     /// </summary>
-    public Dictionary<string, InputBinding> Parts { get; set; } = new();
+    public Dictionary<string, InputBinding> Parts { get; set; } = [];
 
     /// <summary>
     /// Optional processors to apply to the final composite value.
     /// These are applied after combining the individual parts.
     /// </summary>
-    public List<IInputProcessor> Processors { get; set; } = new();
+    public List<IInputProcessor> Processors { get; set; } = [];
 
     /// <summary>
     /// Reads the composite value based on the current state of its component parts.
@@ -85,7 +85,7 @@ public class Vector2CompositeBinding : InputCompositeBinding
         }
 
         // Apply processors to the final composite value
-        foreach (var processor in Processors)
+        foreach (IInputProcessor processor in Processors)
         {
             value = processor.Process(value);
         }
@@ -129,10 +129,10 @@ public class DualAxisCompositeBinding : InputCompositeBinding
     {
         double x = ReadSingleAxisValue(inputHandler, Parts[X_AXIS]);
         double y = ReadSingleAxisValue(inputHandler, Parts[Y_AXIS]);
-        Double2 value = new Double2(x, y);
+        Double2 value = new(x, y);
 
         // Apply processors to the final composite value
-        foreach (var processor in Processors)
+        foreach (IInputProcessor processor in Processors)
         {
             value = processor.Process(value);
         }
@@ -189,7 +189,7 @@ public class AxisCompositeBinding : InputCompositeBinding
             value -= 1f;
 
         // Apply processors to the final composite value
-        foreach (var processor in Processors)
+        foreach (IInputProcessor processor in Processors)
         {
             value = processor.Process(value);
         }

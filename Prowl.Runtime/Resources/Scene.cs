@@ -18,9 +18,9 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     private GameObject[] serializeObj = null;
 
     [SerializeIgnore]
-    private HashSet<GameObject> _allObj = new HashSet<GameObject>(ReferenceEqualityComparer.Instance);
+    private HashSet<GameObject> _allObj = new(ReferenceEqualityComparer.Instance);
 
-    private PhysicsWorld _physics = new PhysicsWorld();
+    private PhysicsWorld _physics = new();
 
     public PhysicsWorld Physics => _physics;
 
@@ -167,7 +167,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
             obj.Scene = this;
 
             // Call OnAddedToScene for all components
-            foreach (var component in obj.GetComponents<MonoBehaviour>())
+            foreach (MonoBehaviour component in obj.GetComponents<MonoBehaviour>())
             {
                 component.OnAddedToScene();
             }
@@ -175,7 +175,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
             // Call OnEnable for enabled components
             if (obj.enabledInHierarchy)
             {
-                foreach (var component in obj.GetComponents<MonoBehaviour>())
+                foreach (MonoBehaviour component in obj.GetComponents<MonoBehaviour>())
                 {
                     if (component.Enabled)
                         component.OnEnable();
@@ -196,7 +196,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
             // Call OnDisable for currently enabled components
             if (obj.enabledInHierarchy)
             {
-                foreach (var component in obj.GetComponents<MonoBehaviour>())
+                foreach (MonoBehaviour component in obj.GetComponents<MonoBehaviour>())
                 {
                     if (component.Enabled && component.EnabledInHierarchy)
                         component.OnDisable();
@@ -204,7 +204,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
             }
 
             // Call OnRemovedFromScene for all components
-            foreach (var component in obj.GetComponents<MonoBehaviour>())
+            foreach (MonoBehaviour component in obj.GetComponents<MonoBehaviour>())
             {
                 component.OnRemovedFromScene();
             }
@@ -225,7 +225,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
                 if (comp is T t2)
                     objects.Add(t2);
         }
-        return objects.ToArray();
+        return [.. objects];
     }
 
     public T? FindObjectByID<T>(int id) where T : EngineObject
@@ -258,7 +258,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     public void Clear()
     {
         // Create a copy to iterate over since RemoveObject modifies the collection
-        List<GameObject> rootObjects = RootObjects.ToList();
+        List<GameObject> rootObjects = [.. RootObjects];
         foreach (GameObject obj in rootObjects)
         {
             Remove(obj);
@@ -286,7 +286,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
         base.OnDispose();
 
         // Dispose all GameObjects which will also remove them from the scene
-        List<GameObject> allObjects = AllObjects.ToList();
+        List<GameObject> allObjects = [.. AllObjects];
         foreach (GameObject g in allObjects)
             g.OnDispose();
 
@@ -296,7 +296,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
 
     public void OnBeforeSerialize()
     {
-        serializeObj = AllObjects.ToArray();
+        serializeObj = [.. AllObjects];
     }
 
     public void OnAfterDeserialize()
@@ -315,7 +315,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
         // Clear render tracking at the start of each update
         ClearRenderTracking();
 
-        List<GameObject> activeGOs = new List<GameObject>(ActiveObjects);
+        List<GameObject> activeGOs = [.. ActiveObjects];
         foreach (GameObject go in activeGOs)
             go.PreUpdate();
 
@@ -334,7 +334,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     {
         Physics.Update();
 
-        List<GameObject> activeGOs = new List<GameObject>(ActiveObjects);
+        List<GameObject> activeGOs = [.. ActiveObjects];
         ForeachComponent(activeGOs, (x) => x.FixedUpdate());
 
         Flush();
@@ -342,7 +342,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
 
     public void DrawGizmos()
     {
-        List<GameObject> activeGOs = new List<GameObject>(ActiveObjects);
+        List<GameObject> activeGOs = [.. ActiveObjects];
         ForeachComponent(activeGOs, (x) =>
         {
             x.DrawGizmos();
@@ -357,7 +357,7 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     /// </summary>
     public void OnGUI(Paper paper)
     {
-        List<GameObject> activeGOs = new List<GameObject>(ActiveObjects);
+        List<GameObject> activeGOs = [.. ActiveObjects];
         ForeachComponent(activeGOs, (x) =>
         {
             x.OnGUI(paper);
@@ -407,10 +407,10 @@ public class Scene : EngineObject, ISerializationCallbackReceiver
     /// </summary>
     public void ForeachComponent(IEnumerable<GameObject> objs, Action<MonoBehaviour> action)
     {
-        foreach (var go in objs)
+        foreach (GameObject go in objs)
         {
-            var components = go.GetComponents<MonoBehaviour>().ToArray();
-            foreach (var comp in components)
+            MonoBehaviour[] components = [.. go.GetComponents<MonoBehaviour>()];
+            foreach (MonoBehaviour? comp in components)
                 if (comp.EnabledInHierarchy)
                     action.Invoke(comp);
         }

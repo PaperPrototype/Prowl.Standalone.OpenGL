@@ -30,7 +30,7 @@ public sealed class ShapeCastDemoGame : Game
 
         // Create directional light
         GameObject lightGO = new("Directional Light");
-        var light = lightGO.AddComponent<DirectionalLight>();
+        DirectionalLight light = lightGO.AddComponent<DirectionalLight>();
         light.shadowQuality = ShadowQuality.Soft;
         light.shadowBias = 0.5f;
         lightGO.Transform.localEulerAngles = new Double3(-45, 45, 0);
@@ -41,18 +41,18 @@ public sealed class ShapeCastDemoGame : Game
         cam.tag = "Main Camera";
         cam.Transform.position = new(0, 5, -10);
         cam.Transform.localEulerAngles = new Double3(20, 0, 0);
-        var camera = cam.AddComponent<Camera>();
+        Camera camera = cam.AddComponent<Camera>();
         camera.Depth = -1;
         camera.HDR = true;
         cameraGO = cam;
 
-        camera.Effects = new List<ImageEffect>()
-        {
+        camera.Effects =
+        [
             new ScreenSpaceReflectionEffect(),
             new FXAAEffect(),
             new KawaseBloomEffect(),
             new TonemapperEffect(),
-        };
+        ];
 
         scene.Add(cam);
 
@@ -80,16 +80,16 @@ public sealed class ShapeCastDemoGame : Game
 
     private void CreateFloor()
     {
-        GameObject floor = new GameObject("Floor");
-        var floorRenderer = floor.AddComponent<MeshRenderer>();
+        GameObject floor = new("Floor");
+        MeshRenderer floorRenderer = floor.AddComponent<MeshRenderer>();
         floorRenderer.Mesh = Mesh.CreateCube(new Double3(40, 1, 40));
         floorRenderer.Material = standardMaterial;
         floorRenderer.MainColor = new Color(0.7f, 0.7f, 0.7f, 1.0f);
         floor.Transform.position = new Double3(0, -0.5f, 0);
 
-        var floorRigidbody = floor.AddComponent<Rigidbody3D>();
+        Rigidbody3D floorRigidbody = floor.AddComponent<Rigidbody3D>();
         floorRigidbody.IsStatic = true;
-        var floorCollider = floor.AddComponent<BoxCollider>();
+        BoxCollider floorCollider = floor.AddComponent<BoxCollider>();
         floorCollider.Size = new Double3(40, 1, 40);
 
         scene.Add(floor);
@@ -104,8 +104,8 @@ public sealed class ShapeCastDemoGame : Game
 
         for (int i = 0; i < stepCount; i++)
         {
-            GameObject step = new GameObject($"Step {i}");
-            var stepRenderer = step.AddComponent<MeshRenderer>();
+            GameObject step = new($"Step {i}");
+            MeshRenderer stepRenderer = step.AddComponent<MeshRenderer>();
             stepRenderer.Mesh = Mesh.CreateCube(new Double3(stepWidth, stepHeight, stepDepth));
             stepRenderer.Material = standardMaterial;
             stepRenderer.MainColor = new Color(0.6f, 0.6f, 0.8f, 1.0f);
@@ -116,9 +116,9 @@ public sealed class ShapeCastDemoGame : Game
                 i * stepDepth
             );
 
-            var stepRb = step.AddComponent<Rigidbody3D>();
+            Rigidbody3D stepRb = step.AddComponent<Rigidbody3D>();
             stepRb.IsStatic = true;
-            var stepCollider = step.AddComponent<BoxCollider>();
+            BoxCollider stepCollider = step.AddComponent<BoxCollider>();
             stepCollider.Size = new Double3(stepWidth, stepHeight, stepDepth);
 
             scene.Add(step);
@@ -127,8 +127,8 @@ public sealed class ShapeCastDemoGame : Game
 
     private void CreateSlope(Double3 position, double width, double length, double angleDegrees)
     {
-        GameObject slope = new GameObject("Slope");
-        var slopeRenderer = slope.AddComponent<MeshRenderer>();
+        GameObject slope = new("Slope");
+        MeshRenderer slopeRenderer = slope.AddComponent<MeshRenderer>();
         slopeRenderer.Mesh = Mesh.CreateCube(new Double3(width, 0.5, length));
         slopeRenderer.Material = standardMaterial;
         slopeRenderer.MainColor = new Color(0.8f, 0.6f, 0.6f, 1.0f);
@@ -136,9 +136,9 @@ public sealed class ShapeCastDemoGame : Game
         slope.Transform.position = position;
         slope.Transform.localEulerAngles = new Double3(angleDegrees, 0, 0);
 
-        var slopeRb = slope.AddComponent<Rigidbody3D>();
+        Rigidbody3D slopeRb = slope.AddComponent<Rigidbody3D>();
         slopeRb.IsStatic = true;
-        var slopeCollider = slope.AddComponent<BoxCollider>();
+        BoxCollider slopeCollider = slope.AddComponent<BoxCollider>();
         slopeCollider.Size = new Double3(width, 0.5, length);
 
         scene.Add(slope);
@@ -149,8 +149,8 @@ public sealed class ShapeCastDemoGame : Game
         // Create some boxes as obstacles
         for (int i = 0; i < 5; i++)
         {
-            GameObject box = new GameObject($"Obstacle {i}");
-            var boxRenderer = box.AddComponent<MeshRenderer>();
+            GameObject box = new($"Obstacle {i}");
+            MeshRenderer boxRenderer = box.AddComponent<MeshRenderer>();
             double height = 0.5 + i * 0.5;
             boxRenderer.Mesh = Mesh.CreateCube(new Double3(1, height, 1));
             boxRenderer.Material = standardMaterial;
@@ -162,9 +162,9 @@ public sealed class ShapeCastDemoGame : Game
                 -5
             );
 
-            var boxRb = box.AddComponent<Rigidbody3D>();
+            Rigidbody3D boxRb = box.AddComponent<Rigidbody3D>();
             boxRb.IsStatic = true;
-            var boxCollider = box.AddComponent<BoxCollider>();
+            BoxCollider boxCollider = box.AddComponent<BoxCollider>();
             boxCollider.Size = new Double3(1, height, 1);
 
             scene.Add(box);

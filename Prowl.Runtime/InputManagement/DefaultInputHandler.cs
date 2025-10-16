@@ -46,20 +46,20 @@ public class DefaultInputHandler : IInputHandler, IDisposable
     {
         get
         {
-            var delta = _currentMousePos - _prevMousePos;
+            Int2 delta = _currentMousePos - _prevMousePos;
             return new Double2(delta.X, delta.Y); // Invert Y to match gamepad (up = positive)
         }
     }
     public double MouseWheelDelta => Mice[0].ScrollWheels[0].Y;
 
-    private Dictionary<KeyCode, bool> wasKeyPressed = new Dictionary<KeyCode, bool>();
-    private Dictionary<KeyCode, bool> isKeyPressed = new Dictionary<KeyCode, bool>();
-    private Dictionary<MouseButton, bool> wasMousePressed = new Dictionary<MouseButton, bool>();
-    private Dictionary<MouseButton, bool> isMousePressed = new Dictionary<MouseButton, bool>();
+    private Dictionary<KeyCode, bool> wasKeyPressed = [];
+    private Dictionary<KeyCode, bool> isKeyPressed = [];
+    private Dictionary<MouseButton, bool> wasMousePressed = [];
+    private Dictionary<MouseButton, bool> isMousePressed = [];
 
     // Gamepad state tracking (per device)
-    private Dictionary<int, Dictionary<GamepadButton, bool>> wasGamepadButtonPressed = new();
-    private Dictionary<int, Dictionary<GamepadButton, bool>> isGamepadButtonPressed = new();
+    private Dictionary<int, Dictionary<GamepadButton, bool>> wasGamepadButtonPressed = [];
+    private Dictionary<int, Dictionary<GamepadButton, bool>> isGamepadButtonPressed = [];
 
     private Queue<char> pressedChars { get; set; } = new();
 
@@ -75,7 +75,7 @@ public class DefaultInputHandler : IInputHandler, IDisposable
         _currentMousePos = (Int2)(Float2)Mice[0].Position;
 
         // initialize key states
-        foreach (KeyCode key in Enum.GetValues(typeof(KeyCode)))
+        foreach (KeyCode key in Enum.GetValues<KeyCode>())
         {
             if (key != KeyCode.Unknown)
             {
@@ -84,7 +84,7 @@ public class DefaultInputHandler : IInputHandler, IDisposable
             }
         }
 
-        foreach (MouseButton button in Enum.GetValues(typeof(MouseButton)))
+        foreach (MouseButton button in Enum.GetValues<MouseButton>())
         {
             if (button != MouseButton.Unknown)
             {
@@ -99,7 +99,7 @@ public class DefaultInputHandler : IInputHandler, IDisposable
             InitializeGamepadState(i);
         }
 
-        foreach (var keyboard in Keyboards)
+        foreach (IKeyboard keyboard in Keyboards)
             keyboard.KeyChar += (keyboard, c) => pressedChars.Enqueue(c);
 
         UpdateKeyStates();
@@ -107,10 +107,10 @@ public class DefaultInputHandler : IInputHandler, IDisposable
 
     private void InitializeGamepadState(int gamepadIndex)
     {
-        wasGamepadButtonPressed[gamepadIndex] = new Dictionary<GamepadButton, bool>();
-        isGamepadButtonPressed[gamepadIndex] = new Dictionary<GamepadButton, bool>();
+        wasGamepadButtonPressed[gamepadIndex] = [];
+        isGamepadButtonPressed[gamepadIndex] = [];
 
-        foreach (GamepadButton button in Enum.GetValues(typeof(GamepadButton)))
+        foreach (GamepadButton button in Enum.GetValues<GamepadButton>())
         {
             if (button != GamepadButton.Unknown)
             {
@@ -141,13 +141,13 @@ public class DefaultInputHandler : IInputHandler, IDisposable
     // Update the state of each key
     private void UpdateKeyStates()
     {
-        foreach (KeyCode key in Enum.GetValues(typeof(KeyCode)))
+        foreach (KeyCode key in Enum.GetValues<KeyCode>())
         {
             if (key != KeyCode.Unknown)
             {
                 wasKeyPressed[key] = isKeyPressed[key];
                 isKeyPressed[key] = false;
-                foreach (var keyboard in Keyboards)
+                foreach (IKeyboard keyboard in Keyboards)
                     if (keyboard.IsKeyPressed((Silk.NET.Input.Key)key))
                     {
                         isKeyPressed[key] = true;
@@ -159,13 +159,13 @@ public class DefaultInputHandler : IInputHandler, IDisposable
             }
         }
 
-        foreach (MouseButton button in Enum.GetValues(typeof(MouseButton)))
+        foreach (MouseButton button in Enum.GetValues<MouseButton>())
         {
             if (button != MouseButton.Unknown)
             {
                 wasMousePressed[button] = isMousePressed[button];
                 isMousePressed[button] = false;
-                foreach (var mouse in Mice)
+                foreach (IMouse mouse in Mice)
                     if (mouse.IsButtonPressed((Silk.NET.Input.MouseButton)button))
                     {
                         isMousePressed[button] = true;
@@ -186,8 +186,8 @@ public class DefaultInputHandler : IInputHandler, IDisposable
             if (!isGamepadButtonPressed.ContainsKey(gamepadIndex))
                 InitializeGamepadState(gamepadIndex);
 
-            var gamepad = Context.Gamepads[gamepadIndex];
-            foreach (GamepadButton button in Enum.GetValues(typeof(GamepadButton)))
+            IGamepad gamepad = Context.Gamepads[gamepadIndex];
+            foreach (GamepadButton button in Enum.GetValues<GamepadButton>())
             {
                 if (button != GamepadButton.Unknown)
                 {
@@ -195,7 +195,7 @@ public class DefaultInputHandler : IInputHandler, IDisposable
                     isGamepadButtonPressed[gamepadIndex][button] = false;
 
                     // Check if button is pressed
-                    var buttonIndex = (int)button;
+                    int buttonIndex = (int)button;
                     if (buttonIndex < gamepad.Buttons.Count && gamepad.Buttons[buttonIndex].Pressed)
                     {
                         isGamepadButtonPressed[gamepadIndex][button] = true;
@@ -262,11 +262,11 @@ public class DefaultInputHandler : IInputHandler, IDisposable
         if (!IsGamepadConnected(gamepadIndex))
             return Double2.Zero;
 
-        var gamepad = Context.Gamepads[gamepadIndex];
+        IGamepad gamepad = Context.Gamepads[gamepadIndex];
         if (axisIndex < 0 || axisIndex >= gamepad.Thumbsticks.Count)
             return Double2.Zero;
 
-        var thumbstick = gamepad.Thumbsticks[axisIndex];
+        Thumbstick thumbstick = gamepad.Thumbsticks[axisIndex];
         return new Double2(thumbstick.X, thumbstick.Y); // We flip y to make UP on the stick positive
     }
 
@@ -275,7 +275,7 @@ public class DefaultInputHandler : IInputHandler, IDisposable
         if (!IsGamepadConnected(gamepadIndex))
             return 0f;
 
-        var gamepad = Context.Gamepads[gamepadIndex];
+        IGamepad gamepad = Context.Gamepads[gamepadIndex];
         if (triggerIndex < 0 || triggerIndex >= gamepad.Triggers.Count)
             return 0f;
 
@@ -287,7 +287,7 @@ public class DefaultInputHandler : IInputHandler, IDisposable
         if (!IsGamepadConnected(gamepadIndex))
             return;
 
-        var gamepad = Context.Gamepads[gamepadIndex];
+        IGamepad gamepad = Context.Gamepads[gamepadIndex];
         if (gamepad.VibrationMotors.Count >= 2)
         {
             gamepad.VibrationMotors[0].Speed = (float)leftMotor;

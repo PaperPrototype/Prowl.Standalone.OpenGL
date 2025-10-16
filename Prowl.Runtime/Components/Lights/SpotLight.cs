@@ -47,11 +47,11 @@ public class SpotLight : Light
     public void UploadToGPU(bool cameraRelative, Double3 cameraPosition, int atlasX, int atlasY, int atlasWidth, int lightIndex)
     {
         Double3 position = cameraRelative ? Transform.position - cameraPosition : Transform.position;
-        Double3 colorVec = new Double3(color.R, color.G, color.B);
+        Double3 colorVec = new(color.R, color.G, color.B);
         float innerAngleCos = (float)Maths.Cos(innerAngle * 0.5f * Maths.Deg2Rad);
         float outerAngleCos = (float)Maths.Cos(outerAngle * 0.5f * Maths.Deg2Rad);
 
-        GetShadowMatrix(out var view, out var proj);
+        GetShadowMatrix(out Double4x4 view, out Double4x4 proj);
 
         if (cameraRelative)
             view.Translation -= new Double4(cameraPosition.X, cameraPosition.Y, cameraPosition.Z, 0.0f);

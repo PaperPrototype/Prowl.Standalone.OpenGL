@@ -68,7 +68,7 @@ public abstract class GraphicsDevice
     public abstract void SetUniformV4(GraphicsProgram program, string name, Float4 value);
     public void SetUniformMatrix(GraphicsProgram program, string name, bool transpose, Float4x4 matrix)
     {
-        var fMat = matrix;
+        Float4x4 fMat = matrix;
         SetUniformMatrix(program, name, 1, transpose, in fMat.c0.X);
     }
     public void SetUniformMatrix(GraphicsProgram program, string name, bool transpose, in float matrix) => SetUniformMatrix(program, name, 1, transpose, in matrix);

@@ -111,7 +111,7 @@ public class ConeLimitConstraint : PhysicsConstraint
 
     protected override void CreateConstraint(World world, RigidBody body1, RigidBody body2)
     {
-        var worldAxis = LocalDirToWorld(axis, Body1.Transform);
+        Jitter2.LinearMath.JVector worldAxis = LocalDirToWorld(axis, Body1.Transform);
 
         constraint = world.CreateConstraint<ConeLimit>(body1, body2);
 

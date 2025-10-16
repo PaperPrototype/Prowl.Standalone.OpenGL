@@ -21,7 +21,7 @@ public class OpenALEngine : AudioEngine, IDisposable
         al = AL.GetApi();
         unsafe
         {
-            var device = alContext.OpenDevice("");
+            Device* device = alContext.OpenDevice("");
             if (device == null)
             {
                 Console.WriteLine("Could not create device");
@@ -32,7 +32,7 @@ public class OpenALEngine : AudioEngine, IDisposable
             alContext.MakeContextCurrent(context);
         }
 
-        var err = al.GetError();
+        AudioError err = al.GetError();
         if (err != AudioError.NoError)
         {
             Console.WriteLine("OpenAL error: " + err);

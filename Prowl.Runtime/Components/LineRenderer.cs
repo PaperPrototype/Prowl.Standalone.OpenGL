@@ -16,7 +16,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
     public Material Material;
     public double StartWidth = 0.1f;
     public double EndWidth = 0.1f;
-    public List<Double3> Points = new();
+    public List<Double3> Points = [];
     public bool Loop = false;
     public Color StartColor = Color.White;
     public Color EndColor = Color.White;
@@ -25,8 +25,6 @@ public class LineRenderer : MonoBehaviour, IRenderable
     public bool RecalculateNormals = false;
 
     private Mesh? _cachedMesh;
-    private ViewerData _lastViewer;
-    private bool _meshGenerated;
     private bool _isDirty = true;
     private AABB _bounds;
 
@@ -42,7 +40,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
 
     public override void OnEnable()
     {
-        _lastPoints = new List<Double3>();
+        _lastPoints = [];
         _lastStartColor = StartColor;
         _lastEndColor = EndColor;
         _lastStartWidth = StartWidth;
@@ -70,7 +68,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
             if (needsUpdate)
             {
                 // Update cached state
-                _lastPoints = new List<Double3>(Points);
+                _lastPoints = [.. Points];
                 _lastStartWidth = StartWidth;
                 _lastEndWidth = EndWidth;
                 _lastLoop = Loop;
@@ -112,7 +110,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
         Double3 min = Transform.TransformPoint(Points[0]);
         Double3 max = min;
 
-        foreach (var point in Points)
+        foreach (Double3 point in Points)
         {
             Double3 worldPoint = Transform.TransformPoint(point);
             min = Maths.Min(min, worldPoint);
@@ -121,7 +119,7 @@ public class LineRenderer : MonoBehaviour, IRenderable
 
         // Expand bounds by maximum line width
         double maxWidth = Math.Max(StartWidth, EndWidth);
-        Double3 expansion = new Double3(maxWidth, maxWidth, maxWidth);
+        Double3 expansion = new(maxWidth, maxWidth, maxWidth);
         min -= expansion;
         max += expansion;
 
@@ -152,13 +150,13 @@ public class LineRenderer : MonoBehaviour, IRenderable
 
     public void SetPositions(List<Double3> positions)
     {
-        Points = new List<Double3>(positions);
+        Points = [.. positions];
         _isDirty = true;
     }
 
     public void SetPositions(Double3[] positions)
     {
-        Points = new List<Double3>(positions);
+        Points = [.. positions];
         _isDirty = true;
     }
 
@@ -185,8 +183,6 @@ public class LineRenderer : MonoBehaviour, IRenderable
         // Always regenerate for smooth billboarding (billboard lines always face camera)
         UpdateBillboardedMesh(_cachedMesh, viewer);
 
-        _lastViewer = viewer;
-        _meshGenerated = true;
         _isDirty = false;
 
         // Setup properties
@@ -213,8 +209,8 @@ public class LineRenderer : MonoBehaviour, IRenderable
             return;
 
         // Transform points to world space
-        List<Double3> worldPoints = new List<Double3>(Points.Count);
-        foreach (var point in Points)
+        List<Double3> worldPoints = new(Points.Count);
+        foreach (Double3 point in Points)
         {
             worldPoints.Add(Transform.TransformPoint(point));
         }

@@ -58,8 +58,8 @@ public static class Graphics
     public static int MaxArrayTextureLayers { get; internal set; }
     public static int MaxFramebufferColorAttachments { get; internal set; }
 
-    public static Double2 ScreenSize => new Double2(Window.InternalWindow.FramebufferSize.X, Window.InternalWindow.FramebufferSize.Y);
-    public static IntRect ScreenRect => new IntRect(0, 0, Window.InternalWindow.FramebufferSize.X, Window.InternalWindow.FramebufferSize.Y);
+    public static Double2 ScreenSize => new(Window.InternalWindow.FramebufferSize.X, Window.InternalWindow.FramebufferSize.Y);
+    public static IntRect ScreenRect => new(0, 0, Window.InternalWindow.FramebufferSize.X, Window.InternalWindow.FramebufferSize.Y);
 
     private static Shader? s_blitShader;
     private static Material? s_blitMaterial;
@@ -131,9 +131,9 @@ public static class Graphics
         mat.SetKeyword("HAS_BONEWEIGHTS", mesh.HasBoneWeights);
         mat.SetKeyword("SKINNED", mesh.HasBoneIndices && mesh.HasBoneWeights);
 
-        var pass = mat.Shader.GetPass(passIndex);
+        Rendering.Shaders.ShaderPass pass = mat.Shader.GetPass(passIndex);
 
-        if (!pass.TryGetVariantProgram(mat._localKeywords, out var variant))
+        if (!pass.TryGetVariantProgram(mat._localKeywords, out GraphicsProgram? variant))
             throw new Exception($"Failed to set shader pass {pass.Name}. No variant found for the current keyword state.");
 
         Device.SetState(pass.State);

@@ -128,9 +128,9 @@ public class PointOnPlaneConstraint : PhysicsConstraint
 
     protected override void CreateConstraint(World world, RigidBody body1, RigidBody body2)
     {
-        var worldNormal = LocalDirToWorld(planeNormal, Body1.Transform);
-        var worldAnchor1 = LocalToWorld(anchor1, Body1.Transform);
-        var worldAnchor2 = connectedBody != null
+        JVector worldNormal = LocalDirToWorld(planeNormal, Body1.Transform);
+        JVector worldAnchor1 = LocalToWorld(anchor1, Body1.Transform);
+        JVector worldAnchor2 = connectedBody != null
             ? LocalToWorld(anchor2, connectedBody.Transform)
             : new JVector(anchor2.X, anchor2.Y, anchor2.Z);
 

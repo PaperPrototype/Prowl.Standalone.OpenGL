@@ -32,7 +32,7 @@ internal static class EmbeddedResources
     /// </summary>
     public static string ReadAllText(string resourcePath)
     {
-        using var stream = GetStream(resourcePath);
+        using Stream stream = GetStream(resourcePath);
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }

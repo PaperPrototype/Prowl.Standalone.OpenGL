@@ -205,8 +205,8 @@ public class Boolean32MatrixTests
         original.SetSymmetric(0, 1, true);
         original.SetSymmetric(5, 10, true);
 
-        var tags = Serializer.Serialize(original);
-        var deserialized = Serializer.Deserialize<Boolean32Matrix>(tags);
+        EchoObject tags = Serializer.Serialize(original);
+        Boolean32Matrix deserialized = Serializer.Deserialize<Boolean32Matrix>(tags);
 
         Assert.Equal(original, deserialized);
     }

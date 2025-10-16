@@ -30,26 +30,26 @@ public sealed class RenderTexture : EngineObject, ISerializable
         Height = 0;
         numTextures = 0;
         hasDepthAttachment = false;
-        textureFormats = new TextureImageFormat[0];
+        textureFormats = [];
     }
 
     public RenderTexture(int Width, int Height, bool hasDepthAttachment, TextureImageFormat[] formats) : base("RenderTexture")
     {
         this.Width = Width;
         this.Height = Height;
-        this.numTextures = formats?.Length ?? throw new ArgumentNullException(nameof(formats), "Texture formats cannot be null.");
+        numTextures = formats?.Length ?? throw new ArgumentNullException(nameof(formats), "Texture formats cannot be null.");
         this.hasDepthAttachment = hasDepthAttachment;
 
         if (numTextures < 0 || numTextures > Graphics.MaxFramebufferColorAttachments)
             throw new Exception("Invalid number of textures! [0-" + Graphics.MaxFramebufferColorAttachments + "]");
 
-        this.textureFormats = formats;
+        textureFormats = formats;
 
         GraphicsFrameBuffer.Attachment[] attachments = new GraphicsFrameBuffer.Attachment[numTextures + (hasDepthAttachment ? 1 : 0)];
         InternalTextures = new Texture2D[numTextures];
         for (int i = 0; i < numTextures; i++)
         {
-            InternalTextures[i] = new Texture2D((uint)Width, (uint)Height, false, this.textureFormats[i]);
+            InternalTextures[i] = new Texture2D((uint)Width, (uint)Height, false, textureFormats[i]);
             InternalTextures[i].SetTextureFilters(TextureMin.Linear, TextureMag.Linear);
             InternalTextures[i].SetWrapModes(TextureWrap.ClampToEdge, TextureWrap.ClampToEdge);
             attachments[i] = new GraphicsFrameBuffer.Attachment { texture = InternalTextures[i].Handle, isDepth = false };
@@ -77,7 +77,7 @@ public sealed class RenderTexture : EngineObject, ISerializable
     public override void OnDispose()
     {
         if (frameBuffer == null) return;
-        foreach (var texture in InternalTextures)
+        foreach (Texture2D texture in InternalTextures)
             texture.Dispose();
 
         //if(hasDepthAttachment) // Should auto dispose of Depth
@@ -92,7 +92,7 @@ public sealed class RenderTexture : EngineObject, ISerializable
         compoundTag.Add("NumTextures", new(numTextures));
         compoundTag.Add("HasDepthAttachment", new((byte)(hasDepthAttachment ? 1 : 0)));
         EchoObject textureFormatsTag = EchoObject.NewList();
-        foreach (var format in textureFormats)
+        foreach (TextureImageFormat format in textureFormats)
             textureFormatsTag.ListAdd(new((byte)format));
         compoundTag.Add("TextureFormats", textureFormatsTag);
     }
@@ -104,12 +104,12 @@ public sealed class RenderTexture : EngineObject, ISerializable
         numTextures = value["NumTextures"].IntValue;
         hasDepthAttachment = value["HasDepthAttachment"].ByteValue == 1;
         textureFormats = new TextureImageFormat[numTextures];
-        var textureFormatsTag = value.Get("TextureFormats");
+        EchoObject? textureFormatsTag = value.Get("TextureFormats");
         for (int i = 0; i < numTextures; i++)
             textureFormats[i] = (TextureImageFormat)textureFormatsTag[i].ByteValue;
 
-        var param = new[] { typeof(int), typeof(int), typeof(int), typeof(bool), typeof(TextureImageFormat[]) };
-        var values = new object[] { Width, Height, numTextures, hasDepthAttachment, textureFormats };
+        Type[] param = new[] { typeof(int), typeof(int), typeof(int), typeof(bool), typeof(TextureImageFormat[]) };
+        object[] values = new object[] { Width, Height, numTextures, hasDepthAttachment, textureFormats };
         typeof(RenderTexture).GetConstructor(param).Invoke(this, values);
     }
 
@@ -142,7 +142,7 @@ public sealed class RenderTexture : EngineObject, ISerializable
             hash = hash * 23 + Width.GetHashCode();
             hash = hash * 23 + Height.GetHashCode();
             hash = hash * 23 + HasDepth.GetHashCode();
-            foreach (var format in Format)
+            foreach (TextureImageFormat format in Format)
                 hash = hash * 23 + ((int)format).GetHashCode();
             return hash;
         }
@@ -157,7 +157,7 @@ public sealed class RenderTexture : EngineObject, ISerializable
     {
         var key = new RenderTextureKey(width, height, hasDepth, format);
 
-        if (pool.TryGetValue(key, out var list) && list.Count > 0)
+        if (pool.TryGetValue(key, out List<(RenderTexture, long frameCreated)>? list) && list.Count > 0)
         {
             int i = list.Count - 1;
             RenderTexture renderTexture = list[i].Item1;
@@ -170,9 +170,9 @@ public sealed class RenderTexture : EngineObject, ISerializable
 
     public static void ReleaseTemporaryRT(RenderTexture renderTexture)
     {
-        var key = new RenderTextureKey(renderTexture.Width, renderTexture.Height, renderTexture.hasDepthAttachment, renderTexture.InternalTextures.Select(t => t.ImageFormat).ToArray());
+        var key = new RenderTextureKey(renderTexture.Width, renderTexture.Height, renderTexture.hasDepthAttachment, [.. renderTexture.InternalTextures.Select(t => t.ImageFormat)]);
 
-        if (!pool.TryGetValue(key, out var list))
+        if (!pool.TryGetValue(key, out List<(RenderTexture, long frameCreated)>? list))
         {
             list = [];
             pool[key] = list;
@@ -184,11 +184,11 @@ public sealed class RenderTexture : EngineObject, ISerializable
     public static void UpdatePool()
     {
         var disposableTextures = new List<RenderTexture>();
-        foreach (var pair in pool)
+        foreach (KeyValuePair<RenderTextureKey, List<(RenderTexture, long frameCreated)>> pair in pool)
         {
             for (int i = pair.Value.Count - 1; i >= 0; i--)
             {
-                var (renderTexture, frameCreated) = pair.Value[i];
+                (RenderTexture renderTexture, long frameCreated) = pair.Value[i];
                 if (Time.frameCount - frameCreated > MaxUnusedFrames)
                 {
                     disposableTextures.Add(renderTexture);
@@ -197,7 +197,7 @@ public sealed class RenderTexture : EngineObject, ISerializable
             }
         }
 
-        foreach (var renderTexture in disposableTextures)
+        foreach (RenderTexture renderTexture in disposableTextures)
             renderTexture.Destroy();
     }
 

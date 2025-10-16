@@ -45,7 +45,7 @@ public class KeywordState : ISerializationCallbackReceiver, IEquatable<KeywordSt
     public KeywordState()
     {
         _hasValidHash = false;
-        _keyValuePairs = new();
+        _keyValuePairs = [];
     }
 
     public KeywordState(KeywordState other)
@@ -59,7 +59,7 @@ public class KeywordState : ISerializationCallbackReceiver, IEquatable<KeywordSt
     {
         KeywordState result = new(source);
 
-        foreach (var pair in add.KeyValuePairs)
+        foreach (KeyValuePair<string, string> pair in add.KeyValuePairs)
             result.SetKey(pair.Key, pair.Value);
 
         return result;
@@ -115,7 +115,7 @@ public class KeywordState : ISerializationCallbackReceiver, IEquatable<KeywordSt
 
         var valueCounts = new Dictionary<T, int>();
 
-        foreach (var element in source)
+        foreach (T? element in source)
         {
             curHash = comparer.GetHashCode(element);
 
@@ -132,13 +132,13 @@ public class KeywordState : ISerializationCallbackReceiver, IEquatable<KeywordSt
 
     public void OnBeforeSerialize()
     {
-        keys = _keyValuePairs.Keys.ToArray();
-        values = _keyValuePairs.Values.ToArray();
+        keys = [.. _keyValuePairs.Keys];
+        values = [.. _keyValuePairs.Values];
     }
 
     public void OnAfterDeserialize()
     {
-        _keyValuePairs = new();
+        _keyValuePairs = [];
 
         for (int i = 0; i < keys.Length; i++)
             _keyValuePairs.Add(keys[i], values[i]);

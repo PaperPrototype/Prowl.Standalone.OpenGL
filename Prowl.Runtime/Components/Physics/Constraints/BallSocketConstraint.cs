@@ -70,7 +70,7 @@ public class BallSocketConstraint : PhysicsConstraint
         get
         {
             if (constraint == null) return Double3.Zero;
-            var impulse = constraint.Impulse;
+            Jitter2.LinearMath.JVector impulse = constraint.Impulse;
             return new Double3(impulse.X, impulse.Y, impulse.Z);
         }
     }
@@ -79,7 +79,7 @@ public class BallSocketConstraint : PhysicsConstraint
 
     protected override void CreateConstraint(World world, RigidBody body1, RigidBody body2)
     {
-        var worldAnchor = LocalToWorld(anchor, Body1.Transform);
+        Jitter2.LinearMath.JVector worldAnchor = LocalToWorld(anchor, Body1.Transform);
 
         constraint = world.CreateConstraint<BallSocket>(body1, body2);
         constraint.Initialize(worldAnchor);
@@ -100,7 +100,7 @@ public class BallSocketConstraint : PhysicsConstraint
     {
         if (constraint != null && !constraint.Handle.IsZero)
         {
-            var worldAnchor = LocalToWorld(anchor, Body1.Transform);
+            Jitter2.LinearMath.JVector worldAnchor = LocalToWorld(anchor, Body1.Transform);
             constraint.Anchor1 = worldAnchor;
         }
     }

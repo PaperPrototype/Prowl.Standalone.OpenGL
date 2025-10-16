@@ -136,8 +136,8 @@ public class HingeJoint : PhysicsJoint
 
     protected override void CreateConstraint(World world, RigidBody body1, RigidBody body2)
     {
-        var worldAnchor = LocalToWorld(anchor, Body1.Transform);
-        var worldAxis = LocalDirToWorld(axis, Body1.Transform);
+        Jitter2.LinearMath.JVector worldAnchor = LocalToWorld(anchor, Body1.Transform);
+        Jitter2.LinearMath.JVector worldAxis = LocalDirToWorld(axis, Body1.Transform);
 
         var angleLimit = AngularLimit.FromDegree(minAngleDegrees, maxAngleDegrees);
 

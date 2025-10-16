@@ -37,8 +37,8 @@ public sealed class AudioSource : MonoBehaviour
         _source = AudioSystem.Engine.CreateAudioSource();
         _source.PositionKind = AudioPositionKind.ListenerRelative;
         // position relative to listener
-        var listener = AudioSystem.Listener.GameObject.Transform;
-        var thisPos = GameObject.Transform.position;
+        Vector.Transform listener = AudioSystem.Listener.GameObject.Transform;
+        Vector.Double3 thisPos = GameObject.Transform.position;
         _source.Position = listener.InverseTransformPoint(thisPos);
         _source.Direction = GameObject.Transform.forward;
         _source.Gain = Volume;
@@ -58,8 +58,8 @@ public sealed class AudioSource : MonoBehaviour
     {
         //if (_lastVersion != GameObject.transform.version)
         {
-            var listener = AudioSystem.Listener.GameObject.Transform;
-            var thisPos = GameObject.Transform.position;
+            Vector.Transform listener = AudioSystem.Listener.GameObject.Transform;
+            Vector.Double3 thisPos = GameObject.Transform.position;
             _source.Position = listener.InverseTransformPoint(thisPos);
             _source.Direction = GameObject.Transform.forward;
             //_lastVersion = GameObject.transform.version;

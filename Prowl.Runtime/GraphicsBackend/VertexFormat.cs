@@ -20,7 +20,7 @@ public class VertexFormat
 
         Elements = elements;
 
-        foreach (var element in Elements)
+        foreach (Element element in Elements)
         {
             element.Offset = (short)Size;
             int s = 0;

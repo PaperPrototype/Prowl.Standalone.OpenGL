@@ -24,8 +24,8 @@ public class ModelRenderer : MonoBehaviour
 
     private double _animationTime = 0.0;
     private bool _isPlaying = false;
-    private Dictionary<string, ModelNodeTransform> _nodeTransforms = new();
-    private Dictionary<string, int> _boneNameToIndex = new();
+    private Dictionary<string, ModelNodeTransform> _nodeTransforms = [];
+    private Dictionary<string, int> _boneNameToIndex = [];
 
     private class ModelNodeTransform
     {
@@ -116,7 +116,7 @@ public class ModelRenderer : MonoBehaviour
     {
         // Calculate this node's matrices
         var localMatrix = Double4x4.CreateTRS(node.LocalPosition, node.LocalRotation, node.LocalScale);
-        var worldMatrix = parentWorldMatrix * localMatrix;
+        Double4x4 worldMatrix = parentWorldMatrix * localMatrix;
 
         _nodeTransforms[node.Name] = new ModelNodeTransform
         {
@@ -128,7 +128,7 @@ public class ModelRenderer : MonoBehaviour
         };
 
         // Recursively process children
-        foreach (var child in node.Children)
+        foreach (ModelNode child in node.Children)
         {
             BuildNodeTransformCache(child, worldMatrix);
         }
@@ -140,14 +140,14 @@ public class ModelRenderer : MonoBehaviour
         BuildNodeTransformCache(Model.RootNode, Double4x4.Identity);
 
         // Apply animation to each bone
-        foreach (var bone in clip.Bones)
+        foreach (AnimationClip.AnimBone bone in clip.Bones)
         {
-            if (_nodeTransforms.TryGetValue(bone.BoneName, out var nodeTransform))
+            if (_nodeTransforms.TryGetValue(bone.BoneName, out ModelNodeTransform? nodeTransform))
             {
                 // Evaluate animation curves at current time
-                var position = bone.EvaluatePositionAt(time);
-                var rotation = bone.EvaluateRotationAt(time);
-                var scale = bone.EvaluateScaleAt(time);
+                Double3 position = bone.EvaluatePositionAt(time);
+                Quaternion rotation = bone.EvaluateRotationAt(time);
+                Double3 scale = bone.EvaluateScaleAt(time);
 
                 // Update the node transform
                 nodeTransform.Position = position;
@@ -163,12 +163,12 @@ public class ModelRenderer : MonoBehaviour
 
     private void UpdateWorldMatrices(ModelNode node, Double4x4 parentWorldMatrix)
     {
-        if (_nodeTransforms.TryGetValue(node.Name, out var nodeTransform))
+        if (_nodeTransforms.TryGetValue(node.Name, out ModelNodeTransform? nodeTransform))
         {
             nodeTransform.WorldMatrix = parentWorldMatrix * nodeTransform.LocalMatrix;
 
             // Recursively update children
-            foreach (var child in node.Children)
+            foreach (ModelNode child in node.Children)
             {
                 UpdateWorldMatrices(child, nodeTransform.WorldMatrix);
             }
@@ -189,11 +189,11 @@ public class ModelRenderer : MonoBehaviour
         // Calculate bone transformation matrices
         for (int i = 0; i < boneCount; i++)
         {
-            var boneName = modelMesh.Mesh.boneNames[i];
-            var bindPose = modelMesh.Mesh.bindPoses[i];
+            string boneName = modelMesh.Mesh.boneNames[i];
+            Float4x4 bindPose = modelMesh.Mesh.bindPoses[i];
 
             // Try to find the bone transform from our cache
-            if (_nodeTransforms.TryGetValue(boneName, out var boneTransform))
+            if (_nodeTransforms.TryGetValue(boneName, out ModelNodeTransform? boneTransform))
             {
                 // The final bone matrix formula for GPU skinning is:
                 // boneMatrix = meshLocalMatrix * boneWorldMatrix * bindPose
@@ -215,7 +215,7 @@ public class ModelRenderer : MonoBehaviour
     {
         // Get the node's world matrix (from animation or bind pose)
         Double4x4 nodeWorldMatrix;
-        if (_nodeTransforms.TryGetValue(node.Name, out var nodeTransform))
+        if (_nodeTransforms.TryGetValue(node.Name, out ModelNodeTransform? nodeTransform))
         {
             // Use the animated/cached transform
             nodeWorldMatrix = parentMatrix * nodeTransform.LocalMatrix;
@@ -228,24 +228,24 @@ public class ModelRenderer : MonoBehaviour
         }
 
         // Render all meshes on this node
-        foreach (var meshIndex in node.MeshIndices)
+        foreach (int meshIndex in node.MeshIndices)
         {
-            var modelMesh = Model.Meshes[meshIndex];
+            ModelMesh modelMesh = Model.Meshes[meshIndex];
 
             if (modelMesh.Material != null)
             {
-                PropertyState properties = new PropertyState();
+                PropertyState properties = new();
                 properties.SetInt("_ObjectID", InstanceID);
                 properties.SetColor("_MainColor", MainColor);
 
                 // Add bone matrices for skinned meshes
                 if (modelMesh.HasBones)
                 {
-                    var boneMatrices = CalculateBoneMatrices(modelMesh, nodeWorldMatrix);
+                    Float4x4[] boneMatrices = CalculateBoneMatrices(modelMesh, nodeWorldMatrix);
                     if (boneMatrices != null && boneMatrices.Length > 0)
                     {
                         // Convert to Double4x4 array for PropertyState
-                        var boneMatricesDouble = boneMatrices.Select(m => (Double4x4)m).ToArray();
+                        Double4x4[] boneMatricesDouble = [.. boneMatrices.Select(m => (Double4x4)m)];
                         properties.SetMatrices("boneTransforms", boneMatricesDouble);
                     }
                 }
@@ -254,13 +254,13 @@ public class ModelRenderer : MonoBehaviour
                     modelMesh.Mesh,
                     modelMesh.Material,
                     nodeWorldMatrix,
-                    this.GameObject.layerIndex,
+                    GameObject.layerIndex,
                     properties));
             }
         }
 
         // Render child nodes
-        foreach (var child in node.Children)
+        foreach (ModelNode child in node.Children)
         {
             RenderModelNode(child, nodeWorldMatrix);
         }
@@ -282,7 +282,7 @@ public class ModelRenderer : MonoBehaviour
 
         // Get the node's world matrix
         Double4x4 nodeWorldMatrix;
-        if (_nodeTransforms.TryGetValue(node.Name, out var nodeTransform))
+        if (_nodeTransforms.TryGetValue(node.Name, out ModelNodeTransform? nodeTransform))
         {
             nodeWorldMatrix = parentMatrix * nodeTransform.LocalMatrix;
         }
@@ -293,21 +293,21 @@ public class ModelRenderer : MonoBehaviour
         }
 
         // Test all meshes on this node
-        foreach (var meshIndex in node.MeshIndices)
+        foreach (int meshIndex in node.MeshIndices)
         {
-            var modelMesh = Model.Meshes[meshIndex];
+            ModelMesh modelMesh = Model.Meshes[meshIndex];
 
             if (modelMesh.Mesh == null)
                 continue;
 
-            var mesh = modelMesh.Mesh;
+            Mesh mesh = modelMesh.Mesh;
 
             // Transform ray to this mesh's local space
-            var worldToLocalMatrix = nodeWorldMatrix.Invert();
+            Double4x4 worldToLocalMatrix = nodeWorldMatrix.Invert();
 
             Double3 localOrigin = Double4x4.TransformPoint(ray.Origin, worldToLocalMatrix);
             Double3 localDirection = Double4x4.TransformNormal(ray.Direction, worldToLocalMatrix);
-            Ray localRay = new Ray(localOrigin, localDirection);
+            Ray localRay = new(localOrigin, localDirection);
 
             if (mesh.Raycast(localRay, out double localDistance))
             {
@@ -325,7 +325,7 @@ public class ModelRenderer : MonoBehaviour
         }
 
         // Test child nodes
-        foreach (var child in node.Children)
+        foreach (ModelNode child in node.Children)
         {
             if (RaycastModelNode(child, nodeWorldMatrix, ray, ref closestDistance))
                 hit = true;

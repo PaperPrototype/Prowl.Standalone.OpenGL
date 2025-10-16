@@ -41,7 +41,7 @@ public class Mesh : EngineObject, ISerializable
             if (isWritable == false) return;
             changed = true;
             indexFormat = value;
-            indices = new uint[0];
+            indices = [];
         }
     }
 
@@ -60,7 +60,7 @@ public class Mesh : EngineObject, ISerializable
     private T[] CopyArray<T>(T[] source)
     {
         if (source == null)
-            return new T[0];
+            return [];
         var copy = new T[source.Length];
         for (int i = 0; i < source.Length; i++)
             copy[i] = source[i];
@@ -74,12 +74,12 @@ public class Mesh : EngineObject, ISerializable
     /// </summary>
     public Float3[] Vertices
     {
-        get => vertices ?? new Float3[0];
+        get => vertices ?? [];
         set
         {
             if (isWritable == false)
                 return;
-            var needsReset = vertices == null || vertices.Length != value.Length;
+            bool needsReset = vertices == null || vertices.Length != value.Length;
 
             // Copy Vertices
             vertices = CopyArray(value);
@@ -100,55 +100,55 @@ public class Mesh : EngineObject, ISerializable
 
     public Float3[] Normals
     {
-        get => ReadVertexData(normals ?? new Float3[0]);
+        get => ReadVertexData(normals ?? []);
         set => WriteVertexData(ref normals, CopyArray(value), value.Length);
     }
 
     public Float3[] Tangents
     {
-        get => ReadVertexData(tangents ?? new Float3[0]);
+        get => ReadVertexData(tangents ?? []);
         set => WriteVertexData(ref tangents, CopyArray(value), value.Length);
     }
 
     public Color[] Colors
     {
-        get => ReadVertexData(colors ?? new Color[0]);
+        get => ReadVertexData(colors ?? []);
         set => WriteVertexData(ref colors, CopyArray(value), value.Length);
     }
 
     public Color32[] Colors32
     {
-        get => ReadVertexData(colors32 ?? new Color32[0]);
+        get => ReadVertexData(colors32 ?? []);
         set => WriteVertexData(ref colors32, CopyArray(value), value.Length);
     }
 
     public Float2[] UV
     {
-        get => ReadVertexData(uv ?? new Float2[0]);
+        get => ReadVertexData(uv ?? []);
         set => WriteVertexData(ref uv, CopyArray(value), value.Length);
     }
 
     public Float2[] UV2
     {
-        get => ReadVertexData(uv2 ?? new Float2[0]);
+        get => ReadVertexData(uv2 ?? []);
         set => WriteVertexData(ref uv2, CopyArray(value), value.Length);
     }
 
     public uint[] Indices
     {
-        get => ReadVertexData(indices ?? new uint[0]);
+        get => ReadVertexData(indices ?? []);
         set => WriteVertexData(ref indices, CopyArray(value), value.Length, false);
     }
 
     public Float4[] BoneIndices
     {
-        get => ReadVertexData(boneIndices ?? new Float4[0]);
+        get => ReadVertexData(boneIndices ?? []);
         set => WriteVertexData(ref boneIndices, CopyArray(value), value.Length);
     }
 
     public Float4[] BoneWeights
     {
-        get => ReadVertexData(boneWeights ?? new Float4[0]);
+        get => ReadVertexData(boneWeights ?? []);
         set => WriteVertexData(ref boneWeights, CopyArray(value), value.Length);
     }
 
@@ -253,7 +253,7 @@ public class Mesh : EngineObject, ISerializable
                 break;
         }
 
-        var layout = GetVertexLayout(this);
+        VertexFormat layout = GetVertexLayout(this);
 
         if (layout == null)
         {
@@ -261,7 +261,7 @@ public class Mesh : EngineObject, ISerializable
             return;
         }
 
-        var vertexBlob = MakeVertexDataBlob(layout);
+        byte[] vertexBlob = MakeVertexDataBlob(layout);
         if (vertexBlob == null)
             return;
 
@@ -288,7 +288,7 @@ public class Mesh : EngineObject, ISerializable
         if (indexFormat == IndexFormat.UInt16)
         {
             ushort[] data = new ushort[indices.Length];
-            for (var i = 0; i < indices.Length; i++)
+            for (int i = 0; i < indices.Length; i++)
             {
                 if (indices[i] >= ushort.MaxValue)
                     throw new InvalidOperationException($"[Mesh] Invalid value {indices[i]} for 16-bit indices");
@@ -339,8 +339,8 @@ public class Mesh : EngineObject, ISerializable
 
         for (int i = 0; i < a.Elements.Length; i++)
         {
-            var elemA = a.Elements[i];
-            var elemB = b.Elements[i];
+            Element elemA = a.Elements[i];
+            Element elemB = b.Elements[i];
             if (elemA.Semantic != elemB.Semantic ||
                 elemA.Type != elemB.Type ||
                 elemA.Count != elemB.Count)
@@ -355,10 +355,10 @@ public class Mesh : EngineObject, ISerializable
         if (vertices == null)
             throw new ArgumentNullException();
 
-        var empty = true;
-        var minVec = Float3.One * 99999f;
-        var maxVec = Float3.One * -99999f;
-        foreach (var ptVector in vertices)
+        bool empty = true;
+        Float3 minVec = Float3.One * 99999f;
+        Float3 maxVec = Float3.One * -99999f;
+        foreach (Float3 ptVector in vertices)
         {
             minVec = Maths.Min(minVec, ptVector);
             maxVec = Maths.Max(maxVec, ptVector);
@@ -484,7 +484,7 @@ public class Mesh : EngineObject, ISerializable
             Float3 v3 = vertices[i3];
 
             // Test ray-triangle intersection
-            if (ray.Intersects(new Triangle(v1, v2, v3), out var distance, out _, out _) && distance < hitDistance)
+            if (ray.Intersects(new Triangle(v1, v2, v3), out double distance, out _, out _) && distance < hitDistance)
             {
                 hit = true;
                 hitDistance = distance;
@@ -516,8 +516,7 @@ public class Mesh : EngineObject, ISerializable
     /// <returns>True if the ray intersects with the mesh, false otherwise</returns>
     public bool Raycast(Ray ray, out double hitDistance)
     {
-        Float3 hitNormal;
-        var result = Raycast(ray, out hitDistance, out hitNormal);
+        bool result = Raycast(ray, out hitDistance, out Float3 hitNormal);
         return result;
     }
 
@@ -528,8 +527,7 @@ public class Mesh : EngineObject, ISerializable
     /// <returns>True if the ray intersects with the mesh, false otherwise</returns>
     public bool Raycast(Ray ray)
     {
-        double hitDistance;
-        return Raycast(ray, out hitDistance);
+        return Raycast(ray, out double hitDistance);
     }
 
     #endregion
@@ -540,7 +538,7 @@ public class Mesh : EngineObject, ISerializable
     public static Mesh GetFullscreenQuad()
     {
         if (fullScreenQuad != null) return fullScreenQuad;
-        Mesh mesh = new Mesh();
+        Mesh mesh = new();
         mesh.vertices = new Float3[4];
         mesh.vertices[0] = new Float3(-1, -1, 0);
         mesh.vertices[1] = new Float3(1, -1, 0);
@@ -561,11 +559,11 @@ public class Mesh : EngineObject, ISerializable
 
     public static Mesh CreateSphere(float radius, int rings, int slices)
     {
-        Mesh mesh = new Mesh();
+        Mesh mesh = new();
 
-        List<Float3> vertices = new List<Float3>();
-        List<Float2> uvs = new List<Float2>();
-        List<uint> indices = new List<uint>();
+        List<Float3> vertices = [];
+        List<Float2> uvs = [];
+        List<uint> indices = [];
 
         for (int i = 0; i <= rings; i++)
         {
@@ -603,9 +601,9 @@ public class Mesh : EngineObject, ISerializable
             }
         }
 
-        mesh.vertices = vertices.ToArray();
-        mesh.uv = uvs.ToArray();
-        mesh.indices = indices.ToArray();
+        mesh.vertices = [.. vertices];
+        mesh.uv = [.. uvs];
+        mesh.indices = [.. indices];
 
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
@@ -616,13 +614,13 @@ public class Mesh : EngineObject, ISerializable
 
     public static Mesh CreateCube(Double3 size)
     {
-        Mesh mesh = new Mesh();
+        Mesh mesh = new();
         float x = (float)size.X / 2f;
         float y = (float)size.Y / 2f;
         float z = (float)size.Z / 2f;
 
         Float3[] vertices =
-        {
+        [
             // Front face
             new(-x, -y, z), new(x, -y, z), new(x, y, z), new(-x, y, z),
             
@@ -640,10 +638,10 @@ public class Mesh : EngineObject, ISerializable
             
             // Bottom face
             new(-x, -y, -z), new(x, -y, -z), new(x, -y, z), new(-x, -y, z)
-        };
+        ];
 
         Float2[] uvs =
-        {
+        [
             // Front face
             new(0, 0), new(1, 0), new(1, 1), new(0, 1),
             // Back face
@@ -656,17 +654,17 @@ public class Mesh : EngineObject, ISerializable
             new(0, 1), new(1, 1), new(1, 0), new(0, 0),
             // Bottom face
             new(0, 0), new(1, 0), new(1, 1), new(0, 1)
-        };
+        ];
 
         uint[] indices =
-        {
+        [
             0, 1, 2, 0, 2, 3,       // Front face
             4, 6, 5, 4, 7, 6,       // Back face
             8, 10, 9, 8, 11, 10,    // Left face
             12, 14, 13, 12, 15, 14, // Right face
             16, 17, 18, 16, 18, 19, // Top face
             20, 21, 22, 20, 22, 23  // Bottom face
-        };
+        ];
 
         mesh.vertices = vertices;
         mesh.uv = uvs;
@@ -682,11 +680,11 @@ public class Mesh : EngineObject, ISerializable
     public static Mesh CreateCylinder(float radius, float length, int sliceCount)
     {
 #warning TODO: Test, This hasent been tested like at all just assumed it will work
-        Mesh mesh = new Mesh();
+        Mesh mesh = new();
 
-        List<Float3> vertices = new List<Float3>();
-        List<Float2> uvs = new List<Float2>();
-        List<uint> indices = new List<uint>();
+        List<Float3> vertices = [];
+        List<Float2> uvs = [];
+        List<uint> indices = [];
 
         float halfLength = length / 2.0f;
 
@@ -757,9 +755,9 @@ public class Mesh : EngineObject, ISerializable
             indices.Add((uint)bottomCenterIndex);
         }
 
-        mesh.vertices = vertices.ToArray();
-        mesh.uv = uvs.ToArray();
-        mesh.indices = indices.ToArray();
+        mesh.vertices = [.. vertices];
+        mesh.uv = [.. uvs];
+        mesh.indices = [.. indices];
 
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
@@ -778,11 +776,11 @@ public class Mesh : EngineObject, ISerializable
     /// <returns>A new capsule mesh.</returns>
     public static Mesh CreateCapsule(float radius, float height, int slices = 16, int stacks = 4)
     {
-        Mesh mesh = new Mesh();
+        Mesh mesh = new();
 
-        List<Float3> vertices = new List<Float3>();
-        List<Float2> uvs = new List<Float2>();
-        List<uint> indices = new List<uint>();
+        List<Float3> vertices = [];
+        List<Float2> uvs = [];
+        List<uint> indices = [];
 
         // Calculate cylinder height (total height minus the two hemisphere radii)
         float cylinderHeight = MathF.Max(0, height - 2 * radius);
@@ -906,9 +904,9 @@ public class Mesh : EngineObject, ISerializable
             }
         }
 
-        mesh.vertices = vertices.ToArray();
-        mesh.uv = uvs.ToArray();
-        mesh.indices = indices.ToArray();
+        mesh.vertices = [.. vertices];
+        mesh.uv = [.. uvs];
+        mesh.indices = [.. indices];
 
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
@@ -919,9 +917,9 @@ public class Mesh : EngineObject, ISerializable
 
     public static Mesh CreateTriangle(Float3 a, Float3 b, Float3 c)
     {
-        Mesh mesh = new Mesh();
-        mesh.vertices = new Float3[] { a, b, c };
-        mesh.indices = new uint[] { 0, 1, 2 };
+        Mesh mesh = new();
+        mesh.vertices = [a, b, c];
+        mesh.indices = [0, 1, 2];
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();
@@ -957,8 +955,7 @@ public class Mesh : EngineObject, ISerializable
 
     internal static VertexFormat GetVertexLayout(Mesh mesh)
     {
-        List<Element> elements = new();
-        elements.Add(new Element(VertexSemantic.Position, VertexType.Float, 3));
+        List<Element> elements = [new Element(VertexSemantic.Position, VertexType.Float, 3)];
 
         if (mesh.HasUV)
             elements.Add(new Element(VertexSemantic.TexCoord0, VertexType.Float, 2));
@@ -981,12 +978,12 @@ public class Mesh : EngineObject, ISerializable
         if (mesh.HasBoneWeights)
             elements.Add(new Element(VertexSemantic.BoneWeight, VertexType.Float, 4));
 
-        return new VertexFormat(elements.ToArray());
+        return new VertexFormat([.. elements]);
     }
 
     internal byte[] MakeVertexDataBlob(VertexFormat layout)
     {
-        var buffer = new byte[layout.Size * vertices.Length];
+        byte[] buffer = new byte[layout.Size * vertices.Length];
 
         void Copy(byte[] source, ref int index)
         {
@@ -1079,14 +1076,14 @@ public class Mesh : EngineObject, ISerializable
 
     public void Serialize(ref EchoObject compoundTag, SerializationContext ctx)
     {
-        using (MemoryStream memoryStream = new MemoryStream())
-        using (BinaryWriter writer = new BinaryWriter(memoryStream))
+        using (MemoryStream memoryStream = new())
+        using (BinaryWriter writer = new(memoryStream))
         {
             writer.Write((byte)indexFormat);
             writer.Write((byte)meshTopology);
 
             writer.Write(vertices.Length);
-            foreach (var vertex in vertices)
+            foreach (Float3 vertex in vertices)
             {
                 writer.Write(vertex.X);
                 writer.Write(vertex.Y);
@@ -1096,7 +1093,7 @@ public class Mesh : EngineObject, ISerializable
             writer.Write(normals?.Length ?? 0);
             if (normals != null)
             {
-                foreach (var normal in normals)
+                foreach (Float3 normal in normals)
                 {
                     writer.Write(normal.X);
                     writer.Write(normal.Y);
@@ -1107,7 +1104,7 @@ public class Mesh : EngineObject, ISerializable
             writer.Write(tangents?.Length ?? 0);
             if (tangents != null)
             {
-                foreach (var tangent in tangents)
+                foreach (Float3 tangent in tangents)
                 {
                     writer.Write(tangent.X);
                     writer.Write(tangent.Y);
@@ -1118,7 +1115,7 @@ public class Mesh : EngineObject, ISerializable
             writer.Write(colors?.Length ?? 0);
             if (colors != null)
             {
-                foreach (var color in colors)
+                foreach (Color color in colors)
                 {
                     writer.Write(color.R);
                     writer.Write(color.G);
@@ -1130,7 +1127,7 @@ public class Mesh : EngineObject, ISerializable
             writer.Write(colors32?.Length ?? 0);
             if (colors32 != null)
             {
-                foreach (var color in colors32)
+                foreach (Color32 color in colors32)
                 {
                     writer.Write(color.R);
                     writer.Write(color.G);
@@ -1142,7 +1139,7 @@ public class Mesh : EngineObject, ISerializable
             writer.Write(uv?.Length ?? 0);
             if (uv != null)
             {
-                foreach (var uv in uv)
+                foreach (Float2 uv in uv)
                 {
                     writer.Write(uv.X);
                     writer.Write(uv.Y);
@@ -1152,7 +1149,7 @@ public class Mesh : EngineObject, ISerializable
             writer.Write(uv2?.Length ?? 0);
             if (uv2 != null)
             {
-                foreach (var uv in uv2)
+                foreach (Float2 uv in uv2)
                 {
                     writer.Write(uv.X);
                     writer.Write(uv.Y);
@@ -1162,14 +1159,14 @@ public class Mesh : EngineObject, ISerializable
             writer.Write(indices?.Length ?? 0);
             if (indices != null)
             {
-                foreach (var index in indices)
+                foreach (uint index in indices)
                     writer.Write(index);
             }
 
             writer.Write(boneIndices?.Length ?? 0);
             if (boneIndices != null)
             {
-                foreach (var boneIndex in boneIndices)
+                foreach (Float4 boneIndex in boneIndices)
                 {
                     //writer.Write(boneIndex.red);
                     //writer.Write(boneIndex.green);
@@ -1185,7 +1182,7 @@ public class Mesh : EngineObject, ISerializable
             writer.Write(boneWeights?.Length ?? 0);
             if (boneWeights != null)
             {
-                foreach (var boneWeight in boneWeights)
+                foreach (Float4 boneWeight in boneWeights)
                 {
                     writer.Write(boneWeight.X);
                     writer.Write(boneWeight.Y);
@@ -1197,7 +1194,7 @@ public class Mesh : EngineObject, ISerializable
             writer.Write(bindPoses?.Length ?? 0);
             if (bindPoses != null)
             {
-                foreach (var bindPose in bindPoses)
+                foreach (Float4x4 bindPose in bindPoses)
                 {
                     writer.Write(bindPose[0, 0]);
                     writer.Write(bindPose[0, 1]);
@@ -1224,7 +1221,7 @@ public class Mesh : EngineObject, ISerializable
             writer.Write(boneNames?.Length ?? 0);
             if (boneNames != null)
             {
-                foreach (var boneName in boneNames)
+                foreach (string boneName in boneNames)
                     writer.Write(boneName);
             }
 
@@ -1250,18 +1247,18 @@ public class Mesh : EngineObject, ISerializable
             new Double3(value["BoundsMaxX"].DoubleValue, value["BoundsMaxY"].DoubleValue, value["BoundsMaxZ"].DoubleValue)
         );
 
-        using (MemoryStream memoryStream = new MemoryStream(value["MeshData"].ByteArrayValue))
-        using (BinaryReader reader = new BinaryReader(memoryStream))
+        using (MemoryStream memoryStream = new(value["MeshData"].ByteArrayValue))
+        using (BinaryReader reader = new(memoryStream))
         {
             indexFormat = (IndexFormat)reader.ReadByte();
             meshTopology = (Topology)reader.ReadByte();
 
-            var vertexCount = reader.ReadInt32();
+            int vertexCount = reader.ReadInt32();
             vertices = new Float3[vertexCount];
             for (int i = 0; i < vertexCount; i++)
                 vertices[i] = new Float3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 
-            var normalCount = reader.ReadInt32();
+            int normalCount = reader.ReadInt32();
             if (normalCount > 0)
             {
                 normals = new Float3[normalCount];
@@ -1269,7 +1266,7 @@ public class Mesh : EngineObject, ISerializable
                     normals[i] = new Float3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             }
 
-            var tangentCount = reader.ReadInt32();
+            int tangentCount = reader.ReadInt32();
             if (tangentCount > 0)
             {
                 tangents = new Float3[tangentCount];
@@ -1277,7 +1274,7 @@ public class Mesh : EngineObject, ISerializable
                     tangents[i] = new Float3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             }
 
-            var colorCount = reader.ReadInt32();
+            int colorCount = reader.ReadInt32();
             if (colorCount > 0)
             {
                 colors = new Color[colorCount];
@@ -1285,7 +1282,7 @@ public class Mesh : EngineObject, ISerializable
                     colors[i] = new Color(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             }
 
-            var color32Count = reader.ReadInt32();
+            int color32Count = reader.ReadInt32();
             if (color32Count > 0)
             {
                 colors32 = new Color32[color32Count];
@@ -1293,7 +1290,7 @@ public class Mesh : EngineObject, ISerializable
                     colors32[i] = new Color32(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
             }
 
-            var uvCount = reader.ReadInt32();
+            int uvCount = reader.ReadInt32();
             if (uvCount > 0)
             {
                 uv = new Float2[uvCount];
@@ -1301,7 +1298,7 @@ public class Mesh : EngineObject, ISerializable
                     uv[i] = new Float2(reader.ReadSingle(), reader.ReadSingle());
             }
 
-            var uv2Count = reader.ReadInt32();
+            int uv2Count = reader.ReadInt32();
             if (uv2Count > 0)
             {
                 uv2 = new Float2[uv2Count];
@@ -1309,7 +1306,7 @@ public class Mesh : EngineObject, ISerializable
                     uv2[i] = new Float2(reader.ReadSingle(), reader.ReadSingle());
             }
 
-            var indexCount = reader.ReadInt32();
+            int indexCount = reader.ReadInt32();
             if (indexCount > 0)
             {
                 indices = new uint[indexCount];
@@ -1317,7 +1314,7 @@ public class Mesh : EngineObject, ISerializable
                     indices[i] = reader.ReadUInt32();
             }
 
-            var boneIndexCount = reader.ReadInt32();
+            int boneIndexCount = reader.ReadInt32();
             if (boneIndexCount > 0)
             {
                 boneIndices = new Float4[boneIndexCount];
@@ -1328,7 +1325,7 @@ public class Mesh : EngineObject, ISerializable
                 }
             }
 
-            var boneWeightCount = reader.ReadInt32();
+            int boneWeightCount = reader.ReadInt32();
             if (boneWeightCount > 0)
             {
                 boneWeights = new Float4[boneWeightCount];
@@ -1336,7 +1333,7 @@ public class Mesh : EngineObject, ISerializable
                     boneWeights[i] = new Float4(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             }
 
-            var bindPosesCount = reader.ReadInt32();
+            int bindPosesCount = reader.ReadInt32();
             if (bindPosesCount > 0)
             {
                 bindPoses = new Float4x4[bindPosesCount];
@@ -1369,7 +1366,7 @@ public class Mesh : EngineObject, ISerializable
             }
 
             // Try to read bone names
-            var boneNamesCount = reader.ReadInt32();
+            int boneNamesCount = reader.ReadInt32();
             if (boneNamesCount > 0)
             {
                 boneNames = new string[boneNamesCount];

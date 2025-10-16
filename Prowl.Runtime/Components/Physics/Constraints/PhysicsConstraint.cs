@@ -49,7 +49,7 @@ public abstract class PhysicsConstraint : MonoBehaviour
         get => GetConstraint()?.IsEnabled ?? false;
         set
         {
-            var constraint = GetConstraint();
+            Constraint constraint = GetConstraint();
             if (constraint != null) constraint.IsEnabled = value;
         }
     }
@@ -73,7 +73,7 @@ public abstract class PhysicsConstraint : MonoBehaviour
 
     public override void DrawGizmos()
     {
-        var constraint = GetConstraint();
+        Constraint constraint = GetConstraint();
         if (constraint != null && GameObject?.Scene?.Physics?.World != null)
         {
             try
@@ -107,11 +107,11 @@ public abstract class PhysicsConstraint : MonoBehaviour
     {
         DestroyConstraint();
 
-        var body1 = Body1;
+        Rigidbody3D body1 = Body1;
         if (body1 == null || body1._body == null || body1._body.Handle.IsZero)
             return;
 
-        var world = GameObject.Scene.Physics.World;
+        World world = GameObject.Scene.Physics.World;
         if (world == null) return;
 
         // If no connected body is specified, create a static body at the world origin
@@ -130,7 +130,7 @@ public abstract class PhysicsConstraint : MonoBehaviour
         CreateConstraint(world, body1._body, body2);
 
         // Set initial enabled state
-        var constraint = GetConstraint();
+        Constraint constraint = GetConstraint();
         if (constraint != null)
         {
             constraint.IsEnabled = enabledOnStart;
@@ -142,7 +142,7 @@ public abstract class PhysicsConstraint : MonoBehaviour
     /// </summary>
     protected Jitter2.LinearMath.JVector LocalToWorld(Double3 localPos, Transform transform)
     {
-        var worldPos = transform.TransformPoint(localPos);
+        Double3 worldPos = transform.TransformPoint(localPos);
         return new Jitter2.LinearMath.JVector(worldPos.X, worldPos.Y, worldPos.Z);
     }
 
@@ -151,7 +151,7 @@ public abstract class PhysicsConstraint : MonoBehaviour
     /// </summary>
     protected Jitter2.LinearMath.JVector LocalDirToWorld(Double3 localDir, Transform transform)
     {
-        var worldDir = transform.TransformDirection(localDir);
+        Double3 worldDir = transform.TransformDirection(localDir);
         return new Jitter2.LinearMath.JVector(worldDir.X, worldDir.Y, worldDir.Z);
     }
 }

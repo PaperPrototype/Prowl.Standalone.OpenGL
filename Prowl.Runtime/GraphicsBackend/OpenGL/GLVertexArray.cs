@@ -25,10 +25,10 @@ public sealed unsafe class GLVertexArray : GraphicsVertexArray
 
     void BindFormat(VertexFormat format)
     {
-        for (var i = 0; i < format.Elements.Length; i++)
+        for (int i = 0; i < format.Elements.Length; i++)
         {
-            var element = format.Elements[i];
-            var index = element.Semantic;
+            Element element = format.Elements[i];
+            uint index = element.Semantic;
             GLDevice.GL.EnableVertexAttribArray(index);
             int offset = element.Offset;
             unsafe

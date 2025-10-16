@@ -29,8 +29,8 @@ public abstract class Light : MonoBehaviour, IRenderableLight
         GameObject.Scene.PushLight(this);
     }
 
-    public virtual int GetLayer() => this.GameObject.layerIndex;
-    public virtual int GetLightID() => this.InstanceID;
+    public virtual int GetLayer() => GameObject.layerIndex;
+    public virtual int GetLightID() => InstanceID;
     public abstract LightType GetLightType();
     public virtual Double3 GetLightPosition() => Transform.position;
     public virtual Double3 GetLightDirection() => Transform.forward;

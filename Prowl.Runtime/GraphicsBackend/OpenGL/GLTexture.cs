@@ -56,7 +56,7 @@ public sealed unsafe class GLTexture : GraphicsTexture
     public void SetWrapS(TextureWrap wrap)
     {
         Bind(false);
-        var wrapMode = wrap switch
+        GLEnum wrapMode = wrap switch
         {
             TextureWrap.Repeat => GLEnum.Repeat,
             TextureWrap.ClampToEdge => GLEnum.ClampToEdge,
@@ -70,7 +70,7 @@ public sealed unsafe class GLTexture : GraphicsTexture
     public void SetWrapT(TextureWrap wrap)
     {
         Bind(false);
-        var wrapMode = wrap switch
+        GLEnum wrapMode = wrap switch
         {
             TextureWrap.Repeat => GLEnum.Repeat,
             TextureWrap.ClampToEdge => GLEnum.ClampToEdge,
@@ -84,7 +84,7 @@ public sealed unsafe class GLTexture : GraphicsTexture
     public void SetWrapR(TextureWrap wrap)
     {
         Bind(false);
-        var wrapMode = wrap switch
+        GLEnum wrapMode = wrap switch
         {
             TextureWrap.Repeat => GLEnum.Repeat,
             TextureWrap.ClampToEdge => GLEnum.ClampToEdge,
@@ -98,7 +98,7 @@ public sealed unsafe class GLTexture : GraphicsTexture
     public void SetTextureFilters(TextureMin min, TextureMag mag)
     {
         Bind(false);
-        var minFilter = min switch
+        GLEnum minFilter = min switch
         {
             TextureMin.Nearest => GLEnum.Nearest,
             TextureMin.Linear => GLEnum.Linear,
@@ -108,7 +108,7 @@ public sealed unsafe class GLTexture : GraphicsTexture
             TextureMin.LinearMipmapLinear => GLEnum.LinearMipmapLinear,
             _ => throw new ArgumentException("Invalid texture min filter", nameof(min)),
         };
-        var magFilter = mag switch
+        GLEnum magFilter = mag switch
         {
             TextureMag.Nearest => GLEnum.Nearest,
             TextureMag.Linear => GLEnum.Linear,

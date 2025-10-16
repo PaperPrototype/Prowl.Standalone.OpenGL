@@ -25,7 +25,7 @@ public class EchoLogger : IEchoLogger
 
 public abstract class Game
 {
-    private TimeData time = new TimeData();
+    private TimeData time = new();
     private double fixedTimeAccumulator = 0.0;
 
     private PaperRenderer _paperRenderer;

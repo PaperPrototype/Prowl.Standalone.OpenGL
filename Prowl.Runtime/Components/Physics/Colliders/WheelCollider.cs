@@ -35,8 +35,8 @@ public sealed class WheelCollider : MonoBehaviour
     private double _angularVelocityForGrip = 0f;
     private double _torque = 0f;
 
-    private List<Double3> _debugRayStart = new();
-    private List<Double3> _debugRayEnd = new();
+    private List<Double3> _debugRayStart = [];
+    private List<Double3> _debugRayEnd = [];
 
     private bool _hasPreStepped = false;
 
@@ -220,7 +220,7 @@ public sealed class WheelCollider : MonoBehaviour
 
         Double3 groundFwd = Double3.Cross(groundLeft, groundUp);
 
-        Double3 wheelCenterVel = Body.LinearVelocity + Double3.Cross(Body.AngularVelocity, (Body.Transform.rotation * this.Transform.localPosition));
+        Double3 wheelCenterVel = Body.LinearVelocity + Double3.Cross(Body.AngularVelocity, (Body.Transform.rotation * Transform.localPosition));
 
         // rimVel=(wxr)*v
         Double3 rimVel = _angularVelocity * Double3.Cross(wheelLeft, groundPos - worldPos);

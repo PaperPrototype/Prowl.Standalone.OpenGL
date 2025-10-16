@@ -186,7 +186,7 @@ public class AnimationCurve : ISerializable
     /// <param name="tangentOutType">The tangent out-type. <see cref="KeyFrame.TangentOut"/> for more details.</param>
     public void SmoothTangents(CurveTangent tangentInType, CurveTangent tangentOutType)
     {
-        for (var i = 0; i < Keys.Count; ++i)
+        for (int i = 0; i < Keys.Count; ++i)
         {
             SmoothTangent(i, tangentInType, tangentOutType);
         }
@@ -209,7 +209,7 @@ public class AnimationCurve : ISerializable
     {
         // See http://msdn.microsoft.com/en-us/library/microsoft.xna.framework.curvetangent.aspx
 
-        var key = Keys[keyIndex];
+        KeyFrame key = Keys[keyIndex];
 
         double p0, p, p1;
         p0 = p = p1 = key.Position;
@@ -238,7 +238,7 @@ public class AnimationCurve : ISerializable
                 key.TangentIn = v - v0;
                 break;
             case CurveTangent.Smooth:
-                var pn = p1 - p0;
+                double pn = p1 - p0;
                 if (Math.Abs(pn) < double.Epsilon)
                     key.TangentIn = 0;
                 else
@@ -255,7 +255,7 @@ public class AnimationCurve : ISerializable
                 key.TangentOut = v1 - v;
                 break;
             case CurveTangent.Smooth:
-                var pn = p1 - p0;
+                double pn = p1 - p0;
                 if (Math.Abs(pn) < double.Epsilon)
                     key.TangentOut = 0;
                 else
@@ -315,7 +315,7 @@ public class AnimationCurve : ISerializable
         value.Add("PostLoop", new EchoObject((int)PostLoop));
 
         var keyList = EchoObject.NewList();
-        foreach (var key in Keys)
+        foreach (KeyFrame key in Keys)
         {
             var keyProp = EchoObject.NewCompound();
             keyProp.Add("Position", new EchoObject(key.Position));
@@ -333,10 +333,10 @@ public class AnimationCurve : ISerializable
         PreLoop = (CurveLoopType)value.Get("PreLoop").IntValue;
         PostLoop = (CurveLoopType)value.Get("PostLoop").IntValue;
 
-        var keyList = value.Get("Keys").List;
-        foreach (var key in keyList)
+        List<EchoObject> keyList = value.Get("Keys").List;
+        foreach (EchoObject key in keyList)
         {
-            var position = key.Get("Position").DoubleValue;
+            double position = key.Get("Position").DoubleValue;
             var curveKey = new KeyFrame(position, key.Get("Value").DoubleValue, key.Get("TangentIn").DoubleValue, key.Get("TangentOut").DoubleValue, (CurveContinuity)key.Get("Continuity").IntValue);
             Keys.Add(curveKey);
         }

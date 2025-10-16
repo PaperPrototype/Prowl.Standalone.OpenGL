@@ -64,7 +64,7 @@ public sealed class ShaderPass
         string keywords = string.Empty;
         if (keywordID != null)
         {
-            foreach (var kvp in keywordID)
+            foreach (KeyValuePair<string, bool> kvp in keywordID)
             {
                 if (kvp.Value)
                     keywords += $"{kvp.Key};";
@@ -84,7 +84,7 @@ public sealed class ShaderPass
 
         if (keywordID != null)
         {
-            foreach (var kvp in keywordID)
+            foreach (KeyValuePair<string, bool> kvp in keywordID)
             {
                 if (!kvp.Value) continue;
 

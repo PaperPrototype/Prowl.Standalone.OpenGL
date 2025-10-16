@@ -87,7 +87,7 @@ public class PointLight : Light
     public void UploadToGPU(bool cameraRelative, Double3 cameraPosition, int atlasX, int atlasY, int atlasWidth, int lightIndex)
     {
         Double3 position = cameraRelative ? Transform.position - cameraPosition : Transform.position;
-        Double3 colorVec = new Double3(color.R, color.G, color.B);
+        Double3 colorVec = new(color.R, color.G, color.B);
 
         // Use GlobalUniforms to set packed point light data
         if (castShadows && atlasX >= 0)

@@ -215,11 +215,11 @@ public static class RuntimeUtils
 
     public static FieldInfo[] GetSerializableFields(this object target)
     {
-        FieldInfo[] fields = GetAllFields(target.GetType()).ToArray();
+        FieldInfo[] fields = [.. GetAllFields(target.GetType())];
         // Only allow Publics or ones with SerializeField
-        fields = fields.Where(field => (field.IsPublic || field.GetCustomAttribute<SerializeFieldAttribute>() != null) && field.GetCustomAttribute<SerializeIgnoreAttribute>() == null).ToArray();
+        fields = [.. fields.Where(field => (field.IsPublic || field.GetCustomAttribute<SerializeFieldAttribute>() != null) && field.GetCustomAttribute<SerializeIgnoreAttribute>() == null)];
         // Remove Public NonSerialized fields
-        fields = fields.Where(field => !field.IsPublic || field.GetCustomAttribute<NonSerializedAttribute>() == null).ToArray();
+        fields = [.. fields.Where(field => !field.IsPublic || field.GetCustomAttribute<NonSerializedAttribute>() == null)];
         return fields;
     }
 
@@ -258,7 +258,7 @@ public static class RuntimeUtils
             label = label.Substring(1);
 
         // Use a StringBuilder to avoid modifying the original string in the loop
-        StringBuilder result = new StringBuilder(label.Length * 2);
+        StringBuilder result = new(label.Length * 2);
         result.Append(char.ToUpper(label[0]));
 
         // Add space before each Capital letter (except the first)
@@ -284,9 +284,9 @@ public static class RuntimeUtils
 
     public static IEnumerable<Type> GetTypesWithAttribute<T>()
     {
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-        foreach (var assembly in assemblies)
-            foreach (var type in assembly.GetTypes())
+        Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        foreach (Assembly assembly in assemblies)
+            foreach (Type type in assembly.GetTypes())
                 if (type.GetCustomAttributes(typeof(T), true).Length > 0)
                     yield return type;
     }
@@ -354,8 +354,7 @@ public static class RuntimeUtils
         lock (s_deepCopyByAssignmentCache)
         {
             // If we have no evidence so far, check the cache and iterate fields
-            bool isPlainOldData;
-            if (s_deepCopyByAssignmentCache.TryGetValue(typeInfo, out isPlainOldData))
+            if (s_deepCopyByAssignmentCache.TryGetValue(typeInfo, out bool isPlainOldData))
             {
                 return isPlainOldData;
             }

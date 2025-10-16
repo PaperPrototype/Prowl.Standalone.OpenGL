@@ -24,7 +24,7 @@ public class OpenALActiveAudio : ActiveAudio
     {
         get
         {
-            OpenALEngine.al.GetSourceProperty(ID, SourceFloat.Gain, out var gain);
+            OpenALEngine.al.GetSourceProperty(ID, SourceFloat.Gain, out float gain);
             return gain;
         }
         set
@@ -37,13 +37,13 @@ public class OpenALActiveAudio : ActiveAudio
     {
         get
         {
-            OpenALEngine.al.GetSourceProperty(ID, SourceFloat.Pitch, out var pitch);
+            OpenALEngine.al.GetSourceProperty(ID, SourceFloat.Pitch, out float pitch);
             return pitch;
         }
         set
         {
             if (value < 0.5 || value > 2.0f)
-                throw new ArgumentOutOfRangeException("Pitch must be between 0.5 and 2.0.");
+                throw new ArgumentOutOfRangeException(null, "Pitch must be between 0.5 and 2.0.");
 
             OpenALEngine.al.SetSourceProperty(ID, SourceFloat.Pitch, (float)value);
         }
@@ -53,7 +53,7 @@ public class OpenALActiveAudio : ActiveAudio
     {
         get
         {
-            OpenALEngine.al.GetSourceProperty(ID, SourceFloat.ReferenceDistance, out var maxDistance);
+            OpenALEngine.al.GetSourceProperty(ID, SourceFloat.ReferenceDistance, out float maxDistance);
             return maxDistance;
         }
         set
@@ -66,7 +66,7 @@ public class OpenALActiveAudio : ActiveAudio
     {
         get
         {
-            OpenALEngine.al.GetSourceProperty(ID, SourceBoolean.Looping, out var looping);
+            OpenALEngine.al.GetSourceProperty(ID, SourceBoolean.Looping, out bool looping);
             return looping;
         }
         set
@@ -79,13 +79,13 @@ public class OpenALActiveAudio : ActiveAudio
     {
         get
         {
-            OpenALEngine.al.GetSourceProperty(ID, SourceVector3.Position, out var vec3);
+            OpenALEngine.al.GetSourceProperty(ID, SourceVector3.Position, out System.Numerics.Vector3 vec3);
             return new Double3(vec3.X, vec3.Y, vec3.Z);
         }
         set
         {
             System.Numerics.Vector3 vec3 = (Float3)value;
-            OpenALEngine.al.SetSourceProperty(ID, SourceVector3.Position, ref vec3);
+            OpenALEngine.al.SetSourceProperty(ID, SourceVector3.Position, in vec3);
         }
     }
 
@@ -93,13 +93,13 @@ public class OpenALActiveAudio : ActiveAudio
     {
         get
         {
-            OpenALEngine.al.GetSourceProperty(ID, SourceVector3.Direction, out var vec3);
+            OpenALEngine.al.GetSourceProperty(ID, SourceVector3.Direction, out System.Numerics.Vector3 vec3);
             return new Double3(vec3.X, vec3.Y, vec3.Z);
         }
         set
         {
             System.Numerics.Vector3 vec3 = (Float3)value;
-            OpenALEngine.al.SetSourceProperty(ID, SourceVector3.Direction, ref vec3);
+            OpenALEngine.al.SetSourceProperty(ID, SourceVector3.Direction, in vec3);
         }
     }
 
@@ -107,7 +107,7 @@ public class OpenALActiveAudio : ActiveAudio
     {
         get
         {
-            OpenALEngine.al.GetSourceProperty(ID, SourceBoolean.SourceRelative, out var sourceRelative);
+            OpenALEngine.al.GetSourceProperty(ID, SourceBoolean.SourceRelative, out bool sourceRelative);
             return sourceRelative ? AudioPositionKind.ListenerRelative : AudioPositionKind.AbsoluteWorld;
         }
         set
@@ -123,15 +123,15 @@ public class OpenALActiveAudio : ActiveAudio
     {
         get
         {
-            OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.ByteOffset, out var playbackBytes);
-            OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.Buffer, out var bufferID);
-            OpenALEngine.al.GetBufferProperty((uint)bufferID, GetBufferInteger.Size, out var totalBufferBytes);
+            OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.ByteOffset, out int playbackBytes);
+            OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.Buffer, out int bufferID);
+            OpenALEngine.al.GetBufferProperty((uint)bufferID, GetBufferInteger.Size, out int totalBufferBytes);
             return playbackBytes / totalBufferBytes;
         }
         set
         {
-            OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.Buffer, out var bufferID);
-            OpenALEngine.al.GetBufferProperty((uint)bufferID, GetBufferInteger.Size, out var totalBufferBytes);
+            OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.Buffer, out int bufferID);
+            OpenALEngine.al.GetBufferProperty((uint)bufferID, GetBufferInteger.Size, out int totalBufferBytes);
             int newByteOffset = (int)(totalBufferBytes * value);
             OpenALEngine.al.SetSourceProperty(ID, SourceInteger.ByteOffset, newByteOffset);
         }
@@ -141,7 +141,7 @@ public class OpenALActiveAudio : ActiveAudio
     {
         get
         {
-            OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.SourceState, out var state);
+            OpenALEngine.al.GetSourceProperty(ID, GetSourceInteger.SourceState, out int state);
             return state == (int)SourceState.Playing;
         }
     }

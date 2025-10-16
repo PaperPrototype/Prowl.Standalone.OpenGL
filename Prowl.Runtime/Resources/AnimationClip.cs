@@ -27,7 +27,7 @@ public sealed class AnimationClip : EngineObject, ISerializable
 
     public List<AnimBone> Bones { get; private set; } = [];
 
-    private Dictionary<string, AnimBone> _boneMap = new Dictionary<string, AnimBone>();
+    private Dictionary<string, AnimBone> _boneMap = [];
 
     public void AddBone(AnimBone bone)
     {
@@ -37,7 +37,7 @@ public sealed class AnimationClip : EngineObject, ISerializable
 
     public AnimBone? GetBone(string name)
     {
-        if (_boneMap.TryGetValue(name, out var bone))
+        if (_boneMap.TryGetValue(name, out AnimBone? bone))
             return bone;
         return null;
     }
@@ -48,7 +48,7 @@ public sealed class AnimationClip : EngineObject, ISerializable
         foreach (AnimBone bone in Bones)
         {
             // Store the previous quaternion value
-            Quaternion prev = new Quaternion(
+            Quaternion prev = new(
                 bone.RotX.Keys[0].Value,
                 bone.RotY.Keys[0].Value,
                 bone.RotZ.Keys[0].Value,
@@ -59,7 +59,7 @@ public sealed class AnimationClip : EngineObject, ISerializable
             for (int i = 1; i < bone.RotX.Keys.Count; i++)
             {
                 // Get the current quaternion value
-                Quaternion cur = new Quaternion(
+                Quaternion cur = new(
                     bone.RotX.Keys[i].Value,
                     bone.RotY.Keys[i].Value,
                     bone.RotZ.Keys[i].Value,
@@ -94,8 +94,8 @@ public sealed class AnimationClip : EngineObject, ISerializable
         DurationInTicks = value.Get("DurationInTicks").DoubleValue;
         Wrap = (AnimationWrapMode)value.Get("Wrap").IntValue;
 
-        var boneList = value.Get("Bones");
-        foreach (var boneProp in boneList.List)
+        EchoObject? boneList = value.Get("Bones");
+        foreach (EchoObject boneProp in boneList.List)
         {
             var bone = new AnimBone();
             bone.BoneName = boneProp.Get("BoneName").StringValue;
@@ -129,7 +129,7 @@ public sealed class AnimationClip : EngineObject, ISerializable
         value.Add("Wrap", new EchoObject((int)Wrap));
 
         var boneList = EchoObject.NewList();
-        foreach (var bone in Bones)
+        foreach (AnimBone bone in Bones)
         {
             var boneProp = EchoObject.NewCompound();
             boneProp.Add("BoneName", new EchoObject(bone.BoneName));
@@ -162,7 +162,7 @@ public sealed class AnimationClip : EngineObject, ISerializable
         public AnimationCurve ScaleX, ScaleY, ScaleZ;
 
         public Double3 EvaluatePositionAt(double time)
-            => new Double3(PosX.Evaluate(time), PosY.Evaluate(time), PosZ.Evaluate(time));
+            => new(PosX.Evaluate(time), PosY.Evaluate(time), PosZ.Evaluate(time));
 
         public Quaternion EvaluateRotationAt(double time)
         {
@@ -212,8 +212,8 @@ public sealed class AnimationClip : EngineObject, ISerializable
                 }
             }
 
-            var key0 = RotX.Keys[idx0];
-            var key1 = RotX.Keys[idx1];
+            KeyFrame key0 = RotX.Keys[idx0];
+            KeyFrame key1 = RotX.Keys[idx1];
 
             Quaternion q0 = new(
                 RotX.Keys[idx0].Value,
@@ -240,7 +240,7 @@ public sealed class AnimationClip : EngineObject, ISerializable
         }
 
         public Double3 EvaluateScaleAt(double time)
-            => new Double3(ScaleX.Evaluate(time), ScaleY.Evaluate(time), ScaleZ.Evaluate(time));
+            => new(ScaleX.Evaluate(time), ScaleY.Evaluate(time), ScaleZ.Evaluate(time));
 
         /// <summary>
         /// Normalize a quaternion

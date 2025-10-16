@@ -14,7 +14,7 @@ public class MeshRenderer : MonoBehaviour, IRenderable
     public Material Material;
     public Color MainColor = Color.White;
 
-    private PropertyState _properties = new PropertyState();
+    private PropertyState _properties = new();
 
     public override void Update()
     {
@@ -28,7 +28,7 @@ public class MeshRenderer : MonoBehaviour, IRenderable
     }
 
     public Material GetMaterial() => Material;
-    public int GetLayer() => this.GameObject.layerIndex;
+    public int GetLayer() => GameObject.layerIndex;
 
     public void GetRenderingData(ViewerData viewer, out PropertyState properties, out Mesh drawData, out Double4x4 model)
     {

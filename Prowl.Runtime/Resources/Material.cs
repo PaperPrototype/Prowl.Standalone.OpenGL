@@ -50,16 +50,15 @@ public sealed class Material : EngineObject, ISerializationCallbackReceiver
     internal Material() : base("New Material")
     {
         _properties = new();
-        _localKeywords = new();
+        _localKeywords = [];
     }
 
     public Material(Shader shader, PropertyState? properties = null, Dictionary<string, bool>? keywords = null) : base("New Material")
     {
-        if (shader == null)
-            throw new ArgumentNullException(nameof(shader));
+        ArgumentNullException.ThrowIfNull(shader);
 
         _properties = new();
-        _localKeywords = keywords ?? new();
+        _localKeywords = keywords ?? [];
 
         Shader = shader;
         if (properties != null)
@@ -127,14 +126,13 @@ public sealed class Material : EngineObject, ISerializationCallbackReceiver
 
     internal void SetShader(Shader shader)
     {
-        if (shader == null)
-            throw new ArgumentNullException(nameof(shader));
+        ArgumentNullException.ThrowIfNull(shader);
 
         if (shader == _shader)
             return;
 
         _shader = shader;
-        foreach (var prop in shader.Properties)
+        foreach (ShaderProperty prop in shader.Properties)
             UpdatePropertyState(prop);
     }
 

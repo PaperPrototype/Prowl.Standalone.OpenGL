@@ -55,7 +55,7 @@ public class FixedAngleConstraint : PhysicsConstraint
         get
         {
             if (constraint == null) return Double3.Zero;
-            var impulse = constraint.Impulse;
+            Jitter2.LinearMath.JVector impulse = constraint.Impulse;
             return new Double3(impulse.X, impulse.Y, impulse.Z);
         }
     }

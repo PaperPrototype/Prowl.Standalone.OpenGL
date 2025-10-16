@@ -33,9 +33,8 @@ public class WorldCanvas : MonoBehaviour, IRenderable
     private RenderTexture? _renderTexture;
     private PaperRenderer? _paperRenderer;
     private Paper? _paper;
-    private PropertyState _properties = new PropertyState();
+    private PropertyState _properties = new();
     private Mesh? _quadMesh;
-    private bool _isDirty = true;
 
     // Input state
     private Double2? _lastMousePosition;
@@ -69,8 +68,6 @@ public class WorldCanvas : MonoBehaviour, IRenderable
 
         // Create quad mesh for rendering the canvas
         _quadMesh = Mesh.GetFullscreenQuad();
-
-        _isDirty = true;
     }
 
     private void CleanupCanvas()
@@ -120,7 +117,7 @@ public class WorldCanvas : MonoBehaviour, IRenderable
         Int2 mousePos = Input.MousePosition;
 
         // Cast a ray from the camera through the mouse position
-        Double2 screenSize = new Double2(Window.InternalWindow.FramebufferSize.X, Window.InternalWindow.FramebufferSize.Y);
+        Double2 screenSize = new(Window.InternalWindow.FramebufferSize.X, Window.InternalWindow.FramebufferSize.Y);
         Ray ray = TargetCamera.ScreenPointToRay(new Double2(mousePos.X, mousePos.Y), screenSize);
 
         // Check if the ray intersects with the canvas quad
@@ -259,9 +256,9 @@ public class WorldCanvas : MonoBehaviour, IRenderable
         isRenderable = _renderTexture != null && Material != null;
 
         // Create bounds for the fullscreen quad (-1 to 1 in local space)
-        Double3 min = new Double3(-1, -1, 0);
-        Double3 max = new Double3(1, 1, 0);
-        AABB localBounds = new AABB(min, max);
+        Double3 min = new(-1, -1, 0);
+        Double3 max = new(1, 1, 0);
+        AABB localBounds = new(min, max);
         bounds = localBounds.TransformBy(Transform.localToWorldMatrix);
     }
 

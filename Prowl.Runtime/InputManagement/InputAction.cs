@@ -18,8 +18,8 @@ public class InputAction
     private object _previousValue = 0f;
     private InputActionPhase _phase = InputActionPhase.Disabled;
     private double _startTime;
-    private List<InputCompositeBinding> _composites = new();
-    private Dictionary<InputBinding, InteractionState> _interactionStates = new();
+    private List<InputCompositeBinding> _composites = [];
+    private Dictionary<InputBinding, InteractionState> _interactionStates = [];
 
     /// <summary>
     /// The name of this action.
@@ -51,7 +51,7 @@ public class InputAction
     /// <summary>
     /// The list of bindings for this action.
     /// </summary>
-    public List<InputBinding> Bindings { get; set; } = new();
+    public List<InputBinding> Bindings { get; set; } = [];
 
     /// <summary>
     /// The current phase of this action.
@@ -271,13 +271,13 @@ public class InputAction
     private object ReadValueFromBindings(IInputHandler inputHandler, double currentTime)
     {
         // Check composites first - return the first actuated composite
-        foreach (var composite in _composites)
+        foreach (InputCompositeBinding composite in _composites)
         {
             object compositeValue = composite.ReadValue(inputHandler);
             if (IsValueActuated(compositeValue))
             {
                 // Apply processors from the composite
-                foreach (var processor in composite.Processors)
+                foreach (IInputProcessor processor in composite.Processors)
                 {
                     if (compositeValue is double doubleValue)
                         compositeValue = processor.Process(doubleValue);
@@ -289,7 +289,7 @@ public class InputAction
         }
 
         // Then check regular bindings with interaction logic
-        foreach (var binding in Bindings)
+        foreach (InputBinding binding in Bindings)
         {
             // Ensure interaction state exists for this binding
             if (!_interactionStates.ContainsKey(binding))
@@ -298,7 +298,7 @@ public class InputAction
             object rawValue = ReadBinding(binding, inputHandler);
 
             // Apply processors from THIS binding only
-            foreach (var processor in binding.Processors)
+            foreach (IInputProcessor processor in binding.Processors)
             {
                 if (rawValue is double doubleValue)
                     rawValue = processor.Process(doubleValue);
@@ -320,7 +320,7 @@ public class InputAction
 
     private bool EvaluateInteraction(InputBinding binding, bool isActuated, double currentTime, out object value)
     {
-        var state = _interactionStates[binding];
+        InteractionState state = _interactionStates[binding];
         value = GetDefaultValue();
 
         switch (binding.Interaction)

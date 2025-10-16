@@ -247,7 +247,7 @@ public class CharacterController : MonoBehaviour
             position,
             moveDirection,
             moveDistance + SkinWidth,
-            out var hitInfo
+            out ShapeCastHit hitInfo
         );
 
         if (hit)
@@ -294,7 +294,7 @@ public class CharacterController : MonoBehaviour
         newPosition = position;
 
         // Step 1: Extract horizontal direction
-        Double3 forwardDirection = new Double3(moveDirection.X, 0, moveDirection.Z);
+        Double3 forwardDirection = new(moveDirection.X, 0, moveDirection.Z);
         if (Double3.LengthSquared(forwardDirection) < 0.0001)
             return false; // No horizontal movement
 
@@ -319,7 +319,7 @@ public class CharacterController : MonoBehaviour
             upPosition,
             forwardDirection,
             moveDistance + SkinWidth,
-            out var elevatedHit
+            out ShapeCastHit elevatedHit
         );
 
         // If we still hit something at the elevated position, we can't step up
@@ -336,7 +336,7 @@ public class CharacterController : MonoBehaviour
             forwardPosition,
             new Double3(0, -1, 0),
             maxStepDownDistance,
-            out var downHit
+            out ShapeCastHit downHit
         );
 
         if (hasGroundBelow)
@@ -394,7 +394,7 @@ public class CharacterController : MonoBehaviour
             position,
             new Double3(0, -1, 0),
             SnapDownDistance,
-            out var hitInfo
+            out ShapeCastHit hitInfo
         );
 
         if (hit)

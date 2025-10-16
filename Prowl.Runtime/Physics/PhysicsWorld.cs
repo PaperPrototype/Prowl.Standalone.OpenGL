@@ -21,7 +21,7 @@ public class PhysicsWorld
 
     public World World { get; private set; }
 
-    public Double3 Gravity = new Double3(0, -9.81f, 0);
+    public Double3 Gravity = new(0, -9.81f, 0);
     public int SolverIterations = 8;
     public int RelaxIterations = 4;
     public int Substep = 2;
@@ -109,7 +109,7 @@ public class PhysicsWorld
 
         return World.DynamicTree.RayCast(jOrigin, jDirection,
             PreFilter, PostFilter,
-            out _, out _, out var dist) && dist <= maxDistance;
+            out _, out _, out double dist) && dist <= maxDistance;
     }
 
     /// <summary>
@@ -225,7 +225,7 @@ public class PhysicsWorld
 
         var jOrigin = new JVector(origin.X, origin.Y, origin.Z);
         var jDirection = new JVector(direction.X, direction.Y, direction.Z);
-        var sweep = jDirection * maxDistance;
+        JVector sweep = jDirection * maxDistance;
 
         hits.Clear();
 
@@ -233,16 +233,16 @@ public class PhysicsWorld
         var potentialShapes = new List<IDynamicTreeProxy>();
 
         // Create a bounding box that encompasses the entire sweep
-        JBoundingBox sweepBox = new JBoundingBox();
-        shape.CalculateBoundingBox(new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), jOrigin, out var startBox);
-        shape.CalculateBoundingBox(new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), jOrigin + sweep, out var endBox);
+        JBoundingBox sweepBox = new();
+        shape.CalculateBoundingBox(new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), jOrigin, out JBoundingBox startBox);
+        shape.CalculateBoundingBox(new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), jOrigin + sweep, out JBoundingBox endBox);
 
         sweepBox.Min = JVector.Min(startBox.Min, endBox.Min);
         sweepBox.Max = JVector.Max(startBox.Max, endBox.Max);
 
         World.DynamicTree.Query(potentialShapes, in sweepBox);
 
-        foreach (var proxy in potentialShapes)
+        foreach (IDynamicTreeProxy proxy in potentialShapes)
         {
             if (proxy is not RigidBodyShape targetShape) continue;
 
@@ -250,7 +250,7 @@ public class PhysicsWorld
             var userData = targetShape.RigidBody.Tag as Rigidbody3D.RigidBodyUserData;
             if (!layerMask.HasLayer(userData.Layer)) continue;
 
-            var targetBody = targetShape.RigidBody;
+            Jitter2.Dynamics.RigidBody targetBody = targetShape.RigidBody;
 
             // Perform sweep test
             bool hit = NarrowPhase.Sweep(
@@ -462,7 +462,7 @@ public class PhysicsWorld
             return Quaternion.Identity;
 
         Double3 normalizedAxis = capsuleAxis / capsuleLength;
-        Double3 yAxis = new Double3(0, 1, 0);
+        Double3 yAxis = new(0, 1, 0);
 
         // If axis is aligned with Y, no rotation needed
         if (Math.Abs(Double3.Dot(normalizedAxis, yAxis) - 1.0) < 1e-6)
@@ -654,10 +654,10 @@ public class PhysicsWorld
         var potentialShapes = new List<IDynamicTreeProxy>();
 
         // Create a bounding box for the shape
-        shape.CalculateBoundingBox(new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), jPosition, out var shapeBounds);
+        shape.CalculateBoundingBox(new JQuaternion(orientation.X, orientation.Y, orientation.Z, orientation.W), jPosition, out JBoundingBox shapeBounds);
         World.DynamicTree.Query(potentialShapes, in shapeBounds);
 
-        foreach (var proxy in potentialShapes)
+        foreach (IDynamicTreeProxy proxy in potentialShapes)
         {
             if (proxy is not RigidBodyShape targetShape) continue;
 
@@ -665,7 +665,7 @@ public class PhysicsWorld
             var userData = targetShape.RigidBody.Tag as Rigidbody3D.RigidBodyUserData;
             if (!layerMask.HasLayer(userData.Layer)) continue;
 
-            var targetBody = targetShape.RigidBody;
+            Jitter2.Dynamics.RigidBody targetBody = targetShape.RigidBody;
 
             // Perform overlap test using sweep with zero distance
             bool overlaps = NarrowPhase.MprEpa(

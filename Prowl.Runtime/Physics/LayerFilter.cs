@@ -38,7 +38,7 @@ public class LayerFilter : IBroadPhaseFilter
         }
     }
 
-    private static readonly HashSet<Pair> _ignore = new();
+    private static readonly HashSet<Pair> _ignore = [];
 
     internal static void IgnoreCollisionBetween(Rigidbody3D bodyA, Rigidbody3D bodyB)
     {

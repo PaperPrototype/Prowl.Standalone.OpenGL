@@ -140,7 +140,7 @@ public static class Debug
         }
         else
         {
-            StackTrace trace = new StackTrace(2, true);
+            StackTrace trace = new(2, true);
             OnLog?.Invoke(message, (DebugStackTrace)trace, logSeverity);
         }
 
@@ -287,7 +287,7 @@ public class GizmoBuilder
     {
         if (_matrix4X4s.Count > 0)
         {
-            var m = _matrix4X4s.Peek();
+            Double4x4 m = _matrix4X4s.Peek();
             a = Double4x4.TransformPoint(a, m);
             b = Double4x4.TransformPoint(b, m);
         }
@@ -307,7 +307,7 @@ public class GizmoBuilder
     {
         if (_matrix4X4s.Count > 0)
         {
-            var m = _matrix4X4s.Peek();
+            Double4x4 m = _matrix4X4s.Peek();
             a = Double4x4.TransformPoint(a, m);
             b = Double4x4.TransformPoint(b, m);
             c = Double4x4.TransformPoint(c, m);
@@ -719,7 +719,7 @@ public class GizmoBuilder
 
             _wire.Vertices = [.. _wireData.s_vertices.Select(v => (Float3)v)];
             _wire.Colors = [.. _wireData.s_colors];
-            _wire.Indices = _wireData.s_indices.Select(i => (uint)i).ToArray();
+            _wire.Indices = [.. _wireData.s_indices.Select(i => (uint)i)];
 
             if (cameraRelative)
             {
@@ -759,7 +759,7 @@ public class GizmoBuilder
 
             _solid.Colors = [.. _solidData.s_colors];
             _solid.UV = [.. _solidData.s_uvs.Select(v => (Float2)v)];
-            _solid.Indices = _solidData.s_indices.Select(i => (uint)i).ToArray();
+            _solid.Indices = [.. _solidData.s_indices.Select(i => (uint)i)];
         }
 
         return (

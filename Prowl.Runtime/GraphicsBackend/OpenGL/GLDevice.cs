@@ -60,7 +60,7 @@ public sealed unsafe class GLDevice : GraphicsDevice
 
     private static void DebugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
     {
-        var msg = SilkMarshal.PtrToString(message, NativeStringEncoding.UTF8);
+        string? msg = SilkMarshal.PtrToString(message, NativeStringEncoding.UTF8);
         if (type == GLEnum.DebugTypeError || type == GLEnum.DebugTypeUndefinedBehavior)
             Debug.LogError($"OpenGL Error: {msg}");
         else if (type == GLEnum.DebugTypePerformance || type == GLEnum.DebugTypeMarker || type == GLEnum.DebugTypePortability)
@@ -205,7 +205,7 @@ public sealed unsafe class GLDevice : GraphicsDevice
     public override uint GetBlockIndex(GraphicsProgram program, string blockName)
     {
         ulong key = CombineKey(program.ID, blockName);
-        if (cachedBlockLocations.TryGetValue(key, out var loc))
+        if (cachedBlockLocations.TryGetValue(key, out uint loc))
             return loc;
 
         BindProgram(program);
@@ -258,7 +258,7 @@ public sealed unsafe class GLDevice : GraphicsDevice
     public override void UnbindFramebuffer() => GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     public override void BindFramebuffer(GraphicsFrameBuffer frameBuffer, FBOTarget readFramebuffer)
     {
-        var target = readFramebuffer switch
+        FramebufferTarget target = readFramebuffer switch
         {
             FBOTarget.Read => FramebufferTarget.ReadFramebuffer,
             FBOTarget.Draw => FramebufferTarget.DrawFramebuffer,
@@ -292,7 +292,7 @@ public sealed unsafe class GLDevice : GraphicsDevice
     public override T ReadPixel<T>(int attachment, int x, int y, TextureImageFormat format)
     {
         GL.ReadBuffer((ReadBufferMode)((int)ReadBufferMode.ColorAttachment0 + attachment));
-        GLTexture.GetTextureFormatEnums(format, out var internalFormat, out var pixelType, out var pixelFormat);
+        GLTexture.GetTextureFormatEnums(format, out InternalFormat internalFormat, out PixelType pixelType, out PixelFormat pixelFormat);
         return GL.ReadPixels<T>(x, y, 1, 1, pixelFormat, pixelType);
     }
 
@@ -309,7 +309,7 @@ public sealed unsafe class GLDevice : GraphicsDevice
     public override int GetUniformLocation(GraphicsProgram program, string name)
     {
         ulong key = CombineKey(program.ID, name);
-        if (cachedUniformLocations.TryGetValue(key, out var loc))
+        if (cachedUniformLocations.TryGetValue(key, out int loc))
             return loc;
 
         BindProgram(program);
@@ -321,7 +321,7 @@ public sealed unsafe class GLDevice : GraphicsDevice
     public override int GetAttribLocation(GraphicsProgram program, string name)
     {
         ulong key = CombineKey(program.ID, name);
-        if (cachedAttribLocations.TryGetValue(key, out var loc))
+        if (cachedAttribLocations.TryGetValue(key, out int loc))
             return loc;
 
         BindProgram(program);
@@ -381,7 +381,7 @@ public sealed unsafe class GLDevice : GraphicsDevice
         if (loc == -1) return;
 
         BindProgram(program);
-        GL.UniformMatrix4(loc, count, transpose, matrix);
+        GL.UniformMatrix4(loc, count, transpose, in matrix);
     }
 
     public override void SetUniformTexture(GraphicsProgram program, string name, int slot, GraphicsTexture texture)
@@ -432,8 +432,8 @@ public sealed unsafe class GLDevice : GraphicsDevice
     {
         PrimitiveType mode = TopologyToGL(primitiveType);
 
-        var format = index32bit ? DrawElementsType.UnsignedInt : DrawElementsType.UnsignedShort;
-        var formatSize = index32bit ? sizeof(uint) : sizeof(ushort);
+        DrawElementsType format = index32bit ? DrawElementsType.UnsignedInt : DrawElementsType.UnsignedShort;
+        int formatSize = index32bit ? sizeof(uint) : sizeof(ushort);
         GL.DrawElementsBaseVertex(mode, indexCount, format, (void*)(startIndex * formatSize), baseVertex);
     }
 
@@ -441,7 +441,7 @@ public sealed unsafe class GLDevice : GraphicsDevice
     {
         PrimitiveType mode = TopologyToGL(primitiveType);
 
-        var format = index32bit ? DrawElementsType.UnsignedInt : DrawElementsType.UnsignedShort;
+        DrawElementsType format = index32bit ? DrawElementsType.UnsignedInt : DrawElementsType.UnsignedShort;
         GL.DrawElementsInstanced(mode, indexCount, format, null, instanceCount);
     }
 

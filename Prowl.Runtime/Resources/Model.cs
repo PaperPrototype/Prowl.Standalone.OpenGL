@@ -13,9 +13,9 @@ public class Model : EngineObject
 {
     public new string Name { get; set; }
     public ModelNode RootNode { get; set; }
-    public List<Material> Materials { get; set; } = new();
-    public List<ModelMesh> Meshes { get; set; } = new();
-    public List<AnimationClip> Animations { get; set; } = new();
+    public List<Material> Materials { get; set; } = [];
+    public List<ModelMesh> Meshes { get; set; } = [];
+    public List<AnimationClip> Animations { get; set; } = [];
     public double UnitScale { get; set; } = 1.0f;
 
     // This transforms from world space back to mesh/model space
@@ -35,7 +35,7 @@ public class Model : EngineObject
             throw new FileNotFoundException($"Model file not found: {filePath}");
 
         var importer = new AssetImporting.ModelImporter();
-        var model = importer.Import(new FileInfo(filePath), settings);
+        Model model = importer.Import(new FileInfo(filePath), settings);
         model.AssetPath = filePath;
         return model;
     }
@@ -46,7 +46,7 @@ public class Model : EngineObject
     public static Model LoadFromStream(Stream stream, string virtualPath, AssetImporting.ModelImporterSettings? settings = null)
     {
         var importer = new AssetImporting.ModelImporter();
-        var model = importer.Import(stream, virtualPath, settings);
+        Model model = importer.Import(stream, virtualPath, settings);
         model.AssetPath = virtualPath;
         return model;
     }
@@ -68,10 +68,10 @@ public class Model : EngineObject
         };
 
         string resourcePath = $"Assets/Defaults/{fileName}";
-        using (var stream = EmbeddedResources.GetStream(resourcePath))
+        using (Stream stream = EmbeddedResources.GetStream(resourcePath))
         {
             var importer = new AssetImporting.ModelImporter();
-            var result = importer.Import(stream, resourcePath);
+            Model result = importer.Import(stream, resourcePath);
             result.AssetPath = $"$Default:{model}";
             return result;
         }
@@ -84,13 +84,13 @@ public class ModelNode
     public Double3 LocalPosition { get; set; }
     public Quaternion LocalRotation { get; set; }
     public Double3 LocalScale { get; set; } = Double3.One;
-    public List<ModelNode> Children { get; set; } = new();
+    public List<ModelNode> Children { get; set; } = [];
 
     // For single mesh per node
     public int? MeshIndex { get; set; }
 
     // For multiple meshes per node
-    public List<int> MeshIndices { get; set; } = new();
+    public List<int> MeshIndices { get; set; } = [];
 
     public ModelNode(string name)
     {

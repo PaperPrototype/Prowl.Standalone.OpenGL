@@ -42,7 +42,7 @@ public class ShaderProperty
     }
 
     public static implicit operator ShaderProperty(double value)
-        => new ShaderProperty(value);
+        => new(value);
 
     public static implicit operator double(ShaderProperty value)
         => value.Value.X;
@@ -54,10 +54,10 @@ public class ShaderProperty
     }
 
     public static implicit operator ShaderProperty(Double2 value)
-        => new ShaderProperty(value);
+        => new(value);
 
     public static implicit operator Double2(ShaderProperty value)
-        => new Double2(value.Value.X, value.Value.Y);
+        => new(value.Value.X, value.Value.Y);
 
     public ShaderProperty(Double3 value)
     {
@@ -66,10 +66,10 @@ public class ShaderProperty
     }
 
     public static implicit operator ShaderProperty(Double3 value)
-        => new ShaderProperty(value);
+        => new(value);
 
     public static implicit operator Double3(ShaderProperty value)
-        => new Double3(value.Value.X, value.Value.Y, value.Value.Z);
+        => new(value.Value.X, value.Value.Y, value.Value.Z);
 
     public ShaderProperty(Double4 value)
     {
@@ -78,7 +78,7 @@ public class ShaderProperty
     }
 
     public static implicit operator ShaderProperty(Double4 value)
-        => new ShaderProperty(value);
+        => new(value);
 
     public static implicit operator Double4(ShaderProperty value)
         => value.Value;
@@ -90,10 +90,10 @@ public class ShaderProperty
     }
 
     public static implicit operator ShaderProperty(Color value)
-        => new ShaderProperty(value);
+        => new(value);
 
     public static implicit operator Color(ShaderProperty value)
-        => new Color((float)value.Value.X, (float)value.Value.Y, (float)value.Value.Z, (float)value.Value.W);
+        => new((float)value.Value.X, (float)value.Value.Y, (float)value.Value.Z, (float)value.Value.W);
 
     public ShaderProperty(Double4x4 value)
     {
@@ -102,7 +102,7 @@ public class ShaderProperty
     }
 
     public static implicit operator ShaderProperty(Double4x4 value)
-        => new ShaderProperty(value);
+        => new(value);
 
     public static implicit operator Double4x4(ShaderProperty value)
         => value.MatrixValue;
@@ -114,7 +114,7 @@ public class ShaderProperty
     }
 
     public static implicit operator ShaderProperty(Texture2D value)
-        => new ShaderProperty(value);
+        => new(value);
 
     public static implicit operator Texture2D(ShaderProperty value)
         => value.Texture2DValue;

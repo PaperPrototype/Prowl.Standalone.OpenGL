@@ -20,7 +20,7 @@ namespace Prowl.Runtime.AssetImporting;
 
 public static class ShaderParser
 {
-    private static readonly Regex _preprocessorIncludeRegex = new Regex(@"^\s*#include\s*[""<](.+?)["">]\s*$", RegexOptions.Multiline);
+    private static readonly Regex _preprocessorIncludeRegex = new(@"^\s*#include\s*[""<](.+?)["">]\s*$", RegexOptions.Multiline);
 
     public enum ShaderStages { Vertex, Geometry, Fragment }
 
@@ -603,7 +603,7 @@ public static class ShaderParser
 
         while (tokenizer.MoveNext() && tokenizer.TokenType != ShaderToken.CloseCurlBrace)
         {
-            var key = tokenizer.Token.ToString();
+            string key = tokenizer.Token.ToString();
 
             switch (key)
             {

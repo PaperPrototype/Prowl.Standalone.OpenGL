@@ -36,7 +36,7 @@ public sealed class ConvexHullCollider : Collider
             return null;
         }
 
-        List<JTriangle> triangles = new();
+        List<JTriangle> triangles = [];
 
         return [new ConvexHullShape(ToTriangleList(mesh))];
     }
@@ -59,10 +59,10 @@ public sealed class ConvexHullCollider : Collider
 
     public List<JTriangle> ToTriangleList(Mesh mesh)
     {
-        var vertices = mesh.Vertices;
-        int[] indices = mesh.Indices.Select(i => (int)i).ToArray();
+        Vector.Float3[] vertices = mesh.Vertices;
+        int[] indices = [.. mesh.Indices.Select(i => (int)i)];
 
-        List<JTriangle> triangles = new();
+        List<JTriangle> triangles = [];
 
         for (int i = 0; i < indices.Length; i += 3)
         {

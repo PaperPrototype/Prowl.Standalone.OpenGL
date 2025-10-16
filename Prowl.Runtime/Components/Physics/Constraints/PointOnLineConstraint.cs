@@ -160,7 +160,7 @@ public class PointOnLineConstraint : PhysicsConstraint
         get
         {
             if (constraint == null) return Double3.Zero;
-            var impulse = constraint.Impulse;
+            JVector impulse = constraint.Impulse;
             return new Double3(impulse.X, impulse.Y, impulse.Z);
         }
     }
@@ -169,9 +169,9 @@ public class PointOnLineConstraint : PhysicsConstraint
 
     protected override void CreateConstraint(World world, RigidBody body1, RigidBody body2)
     {
-        var worldAxis = LocalDirToWorld(lineAxis, Body1.Transform);
-        var worldAnchor1 = LocalToWorld(anchor1, Body1.Transform);
-        var worldAnchor2 = connectedBody != null
+        JVector worldAxis = LocalDirToWorld(lineAxis, Body1.Transform);
+        JVector worldAnchor1 = LocalToWorld(anchor1, Body1.Transform);
+        JVector worldAnchor2 = connectedBody != null
             ? LocalToWorld(anchor2, connectedBody.Transform)
             : new JVector(anchor2.X, anchor2.Y, anchor2.Z);
 

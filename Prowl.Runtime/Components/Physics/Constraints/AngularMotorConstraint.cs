@@ -86,7 +86,7 @@ public class AngularMotorConstraint : PhysicsConstraint
         get
         {
             if (constraint == null) return axis1;
-            var jaxis = constraint.LocalAxis1;
+            JVector jaxis = constraint.LocalAxis1;
             return new Double3(jaxis.X, jaxis.Y, jaxis.Z);
         }
     }
@@ -99,7 +99,7 @@ public class AngularMotorConstraint : PhysicsConstraint
         get
         {
             if (constraint == null) return axis2;
-            var jaxis = constraint.LocalAxis2;
+            JVector jaxis = constraint.LocalAxis2;
             return new Double3(jaxis.X, jaxis.Y, jaxis.Z);
         }
     }
@@ -108,8 +108,8 @@ public class AngularMotorConstraint : PhysicsConstraint
 
     protected override void CreateConstraint(World world, RigidBody body1, RigidBody body2)
     {
-        var worldAxis1 = LocalDirToWorld(axis1, Body1.Transform);
-        var worldAxis2 = connectedBody != null
+        JVector worldAxis1 = LocalDirToWorld(axis1, Body1.Transform);
+        JVector worldAxis2 = connectedBody != null
             ? LocalDirToWorld(axis2, connectedBody.Transform)
             : new JVector(axis2.X, axis2.Y, axis2.Z);
 

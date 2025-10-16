@@ -45,7 +45,7 @@ public static class AudioSystem
     {
         if (_pool.Count != 0)
         {
-            var source = _pool[_pool.Count - 1];
+            ActiveAudio source = _pool[_pool.Count - 1];
             _pool.RemoveAt(_pool.Count - 1);
             return source;
         }
@@ -91,8 +91,7 @@ public static class AudioSystem
 
     public static AudioBuffer GetAudioBuffer(AudioClip clip)
     {
-        AudioBuffer buffer;
-        if (!_buffers.TryGetValue(clip, out buffer))
+        if (!_buffers.TryGetValue(clip, out AudioBuffer buffer))
         {
             buffer = _engine.CreateAudioBuffer();
             buffer.BufferData(clip.Data, clip.Format, clip.SampleRate);
@@ -151,13 +150,13 @@ public static class AudioSystem
 
     public static void Dispose()
     {
-        foreach (var source in _active)
+        foreach (ActiveAudio source in _active)
             source.Dispose();
 
-        foreach (var source in _pool)
+        foreach (ActiveAudio source in _pool)
             source.Dispose();
 
-        foreach (var kvp in _buffers)
+        foreach (KeyValuePair<AudioClip, AudioBuffer> kvp in _buffers)
             kvp.Value.Dispose();
 
         if (_engine is IDisposable disposable)

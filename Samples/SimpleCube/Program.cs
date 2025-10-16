@@ -71,20 +71,20 @@ public sealed class MyGame : Game
         cameraGO = new("Main Camera");
         cameraGO.tag = "Main Camera";
         cameraGO.Transform.position = new(0, 2, -8);
-        var camera = cameraGO.AddComponent<Camera>();
+        Camera camera = cameraGO.AddComponent<Camera>();
         camera.Depth = -1;
         camera.HDR = true;
-        camera.Effects = new List<ImageEffect>()
-        {
+        camera.Effects =
+        [
             new FXAAEffect(),
             new KawaseBloomEffect(),
             new TonemapperEffect(),
-        };
+        ];
         scene.Add(cameraGO);
 
         // Create ground plane
         GameObject groundGO = new("Ground");
-        var mr = groundGO.AddComponent<MeshRenderer>();
+        MeshRenderer mr = groundGO.AddComponent<MeshRenderer>();
         mr.Mesh = Mesh.CreateCube(Double3.One);
         mr.Material = new Material(Shader.LoadDefault(DefaultShader.Standard));
         groundGO.Transform.position = new(0, -3, 0);
@@ -102,7 +102,7 @@ public sealed class MyGame : Game
     private void CreateLineExamples()
     {
         Texture2D texture = Texture2D.LoadDefault(DefaultTexture.Grid);
-        Material lineMat = new Material(Shader.LoadDefault(DefaultShader.Line));
+        Material lineMat = new(Shader.LoadDefault(DefaultShader.Line));
         lineMat.SetTexture("_MainTex", texture);
 
         // 1. Animated Helix with width variation
@@ -116,7 +116,7 @@ public sealed class MyGame : Game
         helix.EndColor = new Color(1, 0.8f, 0.2f, 1);    // Orange
         helix.TextureMode = TextureWrapMode.Tile;
 
-        helix.Points = new List<Double3>();
+        helix.Points = [];
         for (int i = 0; i <= 80; i++)
         {
             float t = i / 80f;
@@ -140,7 +140,7 @@ public sealed class MyGame : Game
         sineWave.EndColor = new Color(0.2f, 0.5f, 1, 1);    // Blue
         sineWave.TextureMode = TextureWrapMode.Stretch;
 
-        sineWave.Points = new List<Double3>();
+        sineWave.Points = [];
         for (int i = 0; i <= 60; i++)
         {
             float t = i / 60f;
@@ -164,7 +164,7 @@ public sealed class MyGame : Game
         orbitalRing.EndColor = new Color(1, 0.3f, 1, 1);
         orbitalRing.TextureMode = TextureWrapMode.RepeatPerSegment;
 
-        orbitalRing.Points = new List<Double3>();
+        orbitalRing.Points = [];
         for (int i = 0; i < 48; i++)
         {
             float angle = (i / 48f) * MathF.PI * 2;

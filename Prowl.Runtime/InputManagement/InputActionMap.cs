@@ -15,7 +15,7 @@ namespace Prowl.Runtime;
 /// </summary>
 public class InputActionMap : ISerializable
 {
-    private readonly Dictionary<string, InputAction> _actions = new();
+    private readonly Dictionary<string, InputAction> _actions = [];
 
     /// <summary>
     /// The name of this action map.
@@ -70,7 +70,7 @@ public class InputActionMap : ISerializable
     /// </summary>
     public InputAction? FindAction(string name)
     {
-        _actions.TryGetValue(name, out var action);
+        _actions.TryGetValue(name, out InputAction? action);
         return action;
     }
 
@@ -79,7 +79,7 @@ public class InputActionMap : ISerializable
     /// </summary>
     public InputAction GetAction(string name)
     {
-        if (!_actions.TryGetValue(name, out var action))
+        if (!_actions.TryGetValue(name, out InputAction? action))
             throw new KeyNotFoundException($"Action '{name}' not found in map '{Name}'");
         return action;
     }
@@ -89,7 +89,7 @@ public class InputActionMap : ISerializable
     /// </summary>
     public bool RemoveAction(string name)
     {
-        if (_actions.TryGetValue(name, out var action))
+        if (_actions.TryGetValue(name, out InputAction? action))
         {
             action.Disable();
             action.ActionMap = null;
@@ -103,7 +103,7 @@ public class InputActionMap : ISerializable
     /// </summary>
     public void Enable()
     {
-        foreach (var action in _actions.Values)
+        foreach (InputAction action in _actions.Values)
             action.Enable();
     }
 
@@ -112,7 +112,7 @@ public class InputActionMap : ISerializable
     /// </summary>
     public void Disable()
     {
-        foreach (var action in _actions.Values)
+        foreach (InputAction action in _actions.Values)
             action.Disable();
     }
 
@@ -121,7 +121,7 @@ public class InputActionMap : ISerializable
     /// </summary>
     internal void UpdateActions(IInputHandler inputHandler, double currentTime)
     {
-        foreach (var action in _actions.Values)
+        foreach (InputAction action in _actions.Values)
         {
             if (action.Enabled)
                 action.UpdateState(inputHandler, currentTime);

@@ -239,7 +239,7 @@ public sealed class Rigidbody3D : MonoBehaviour
     /// </summary>
     public Double3 Torque
     {
-        get => new Double3(_body.Torque.X, _body.Torque.Y, _body.Torque.Z);
+        get => new(_body.Torque.X, _body.Torque.Y, _body.Torque.Z);
         set => _body.Torque = new JVector(value.X, value.Y, value.Z);
     }
 
@@ -332,7 +332,7 @@ public sealed class Rigidbody3D : MonoBehaviour
         {
             Jitter2.Collision.Shapes.RigidBodyShape[] result = shape.CreateTransformedShapes();
             if (result == null) continue;
-            foreach (var s in result)
+            foreach (Jitter2.Collision.Shapes.RigidBodyShape s in result)
                 rb.AddShape(s, false);
         }
     }
@@ -378,8 +378,8 @@ public sealed class Rigidbody3D : MonoBehaviour
         if (_body == null) return Double3.Zero;
 
         var point = new JVector(worldPoint.X, worldPoint.Y, worldPoint.Z);
-        var r = point - _body.Position;
-        var velocity = _body.Velocity + JVector.Cross(_body.AngularVelocity, r);
+        JVector r = point - _body.Position;
+        JVector velocity = _body.Velocity + JVector.Cross(_body.AngularVelocity, r);
 
         return new Double3(velocity.X, velocity.Y, velocity.Z);
     }
@@ -392,7 +392,7 @@ public sealed class Rigidbody3D : MonoBehaviour
         get
         {
             if (_body == null) return Transform.position;
-            var pos = _body.Position;
+            JVector pos = _body.Position;
             return new Double3(pos.X, pos.Y, pos.Z);
         }
     }
@@ -405,7 +405,7 @@ public sealed class Rigidbody3D : MonoBehaviour
         get
         {
             if (_body == null) return Double3.One;
-            var inertia = _body.InverseInertia;
+            JMatrix inertia = _body.InverseInertia;
             return new Double3(
                 inertia.M11 != 0 ? 1.0 / inertia.M11 : 0,
                 inertia.M22 != 0 ? 1.0 / inertia.M22 : 0,
@@ -424,7 +424,7 @@ public sealed class Rigidbody3D : MonoBehaviour
         var jImpulse = new JVector(impulse.X, impulse.Y, impulse.Z);
         var jPosition = new JVector(worldPosition.X, worldPosition.Y, worldPosition.Z);
 
-        var r = jPosition - _body.Position;
+        JVector r = jPosition - _body.Position;
         _body.Velocity += jImpulse * _body.Data.InverseMass;
         _body.AngularVelocity += JVector.Transform(JVector.Cross(r, jImpulse), _body.Data.InverseInertiaWorld);
 

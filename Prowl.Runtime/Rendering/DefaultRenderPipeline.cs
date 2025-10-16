@@ -108,9 +108,7 @@ public sealed class KawaseBloomEffect : ImageEffect
             Graphics.Blit(pingPongBuffers[current], pingPongBuffers[next], bloomMaterial, 1);
 
             // Swap buffers
-            int temp = current;
-            current = next;
-            next = temp;
+            (next, current) = (current, next);
         }
 
         // 3. Composite the bloom with the original image
@@ -246,15 +244,12 @@ public class DefaultRenderPipeline : RenderPipeline
     private static Material s_gizmo;
 
     private static RenderTexture? ShadowMap;
-    private static GraphicsBuffer? LightBuffer;
-    private static int LightCount;
 
     public static DefaultRenderPipeline Default { get; } = new();
     public static HashSet<int> S_activeObjectIds { get => s_activeObjectIds; set => s_activeObjectIds = value; }
 
-    private static Double4x4 s_prevViewProjMatrix;
-    private static Dictionary<int, Double4x4> s_prevModelMatrices = new();
-    private static HashSet<int> s_activeObjectIds = new();
+    private static Dictionary<int, Double4x4> s_prevModelMatrices = [];
+    private static HashSet<int> s_activeObjectIds = [];
     private const int CLEANUP_INTERVAL_FRAMES = 120; // Clean up every 120 frames
     private static int s_framesSinceLastCleanup = 0;
 
@@ -443,9 +438,6 @@ public class DefaultRenderPipeline : RenderPipeline
     {
         // =======================================================
         // 0. Setup variables, and prepare the camera
-        bool clearColor = camera.ClearFlags == CameraClearFlags.SolidColor;
-        bool clearDepth = camera.ClearFlags == CameraClearFlags.Depth;
-        bool drawSkybox = camera.ClearFlags == CameraClearFlags.Skybox;
         bool isHDR = camera.HDR;
         (List<ImageEffect> all, List<ImageEffect> opaqueEffects, List<ImageEffect> finalEffects) = GatherImageEffects(camera);
         IReadOnlyList<IRenderableLight> lights = camera.GameObject.Scene.Lights;
@@ -705,7 +697,7 @@ public class DefaultRenderPipeline : RenderPipeline
         int spotLightsToProcess = Math.Min(s_tempSpotCount, MAX_SPOT_LIGHTS);
         for (int i = 0; i < spotLightsToProcess; i++)
         {
-            var (light, distanceSq) = s_tempSpotLights[i];
+            (IRenderableLight light, double distanceSq) = s_tempSpotLights[i];
             ProcessLight(light, Math.Sqrt(distanceSq), cameraPosition, renderables, ref numDirLights, ref spotLightIndex, ref pointLightIndex, MAX_SPOT_LIGHTS, MAX_POINT_LIGHTS);
         }
 
@@ -713,7 +705,7 @@ public class DefaultRenderPipeline : RenderPipeline
         int pointLightsToProcess = Math.Min(s_tempPointCount, MAX_POINT_LIGHTS);
         for (int i = 0; i < pointLightsToProcess; i++)
         {
-            var (light, distanceSq) = s_tempPointLights[i];
+            (IRenderableLight light, double distanceSq) = s_tempPointLights[i];
             ProcessLight(light, Math.Sqrt(distanceSq), cameraPosition, renderables, ref numDirLights, ref spotLightIndex, ref pointLightIndex, MAX_SPOT_LIGHTS, MAX_POINT_LIGHTS);
         }
 
@@ -749,9 +741,7 @@ public class DefaultRenderPipeline : RenderPipeline
             // Swap if needed
             if (minIndex != i)
             {
-                var temp = array[i];
-                array[i] = array[minIndex];
-                array[minIndex] = temp;
+                (array[minIndex], array[i]) = (array[i], array[minIndex]);
             }
         }
     }
@@ -985,7 +975,7 @@ public class DefaultRenderPipeline : RenderPipeline
         }
 
         // Keep track of temporary render textures that need cleanup
-        List<RenderTexture> tempTextures = new List<RenderTexture> { destBuffer };
+        List<RenderTexture> tempTextures = [destBuffer];
 
         try
         {
@@ -1024,9 +1014,7 @@ public class DefaultRenderPipeline : RenderPipeline
                 effect.OnRenderImage(sourceBuffer, destBuffer);
 
                 // Swap buffers for next iteration
-                RenderTexture temp = sourceBuffer;
-                sourceBuffer = destBuffer;
-                destBuffer = temp;
+                (destBuffer, sourceBuffer) = (sourceBuffer, destBuffer);
 
                 // Update temp texture tracking after swap
                 // sourceBuffer now contains the result, destBuffer is the old source
@@ -1060,7 +1048,7 @@ public class DefaultRenderPipeline : RenderPipeline
         finally
         {
             // Clean up all temporary render textures
-            foreach (var tempRT in tempTextures)
+            foreach (RenderTexture tempRT in tempTextures)
             {
                 if (tempRT != forwardBuffer)
                 {
@@ -1080,7 +1068,7 @@ public class DefaultRenderPipeline : RenderPipeline
 
             IRenderable renderable = renderables[renderIndex];
 
-            var material = renderable.GetMaterial();
+            Material material = renderable.GetMaterial();
             if (material.Shader == null) continue;
 
             int passIndex = -1;
@@ -1095,7 +1083,7 @@ public class DefaultRenderPipeline : RenderPipeline
                 renderable.GetRenderingData(viewer, out PropertyState properties, out Mesh mesh, out Double4x4 model);
 
                 // Store previous model matrix mainly for motion vectors, however, the user can use it for other things
-                var instanceId = properties.GetInt("_ObjectID");
+                int instanceId = properties.GetInt("_ObjectID");
                 if (updatePreviousMatrices && instanceId != 0)
                     TrackModelMatrix(instanceId, model);
 

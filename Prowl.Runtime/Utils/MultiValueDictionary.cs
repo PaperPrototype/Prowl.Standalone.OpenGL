@@ -44,7 +44,7 @@ public class MultiValueDictionary<TKey, TValue> :
     /// The function to construct a new <see cref="ICollection{TValue}"/>
     /// </summary>
     /// <returns></returns>
-    private Func<ICollection<TValue>> NewCollectionFactory = () => new List<TValue>();
+    private Func<ICollection<TValue>> NewCollectionFactory = () => [];
 
     /// <summary>
     /// The current version of this MultiValueDictionary used to determine MultiValueDictionary modification
@@ -66,7 +66,7 @@ public class MultiValueDictionary<TKey, TValue> :
     /// </summary>
     public MultiValueDictionary()
     {
-        _dictionary = new Dictionary<TKey, InnerCollectionView>();
+        _dictionary = [];
     }
 
     /// <summary>
@@ -78,8 +78,7 @@ public class MultiValueDictionary<TKey, TValue> :
     /// <exception cref="ArgumentOutOfRangeException">capacity must be >= 0</exception>
     public MultiValueDictionary(int capacity)
     {
-        if (capacity < 0)
-            throw new ArgumentOutOfRangeException(nameof(capacity));
+        ArgumentOutOfRangeException.ThrowIfNegative(capacity);
         _dictionary = new Dictionary<TKey, InnerCollectionView>(capacity);
     }
 
@@ -106,8 +105,7 @@ public class MultiValueDictionary<TKey, TValue> :
     /// <remarks>If <paramref name="comparer"/> is set to null, then the default <see cref="IEqualityComparer" /> for <typeparamref name="TKey"/> is used.</remarks>
     public MultiValueDictionary(int capacity, IEqualityComparer<TKey> comparer)
     {
-        if (capacity < 0)
-            throw new ArgumentOutOfRangeException(nameof(capacity));
+        ArgumentOutOfRangeException.ThrowIfNegative(capacity);
         _dictionary = new Dictionary<TKey, InnerCollectionView>(capacity, comparer);
     }
 
@@ -133,11 +131,10 @@ public class MultiValueDictionary<TKey, TValue> :
     /// <remarks>If <paramref name="comparer"/> is set to null, then the default <see cref="IEqualityComparer" /> for <typeparamref name="TKey"/> is used.</remarks>
     public MultiValueDictionary(IEnumerable<KeyValuePair<TKey, IReadOnlyCollection<TValue>>> enumerable, IEqualityComparer<TKey> comparer)
     {
-        if (enumerable == null)
-            throw new ArgumentNullException(nameof(enumerable));
+        ArgumentNullException.ThrowIfNull(enumerable);
 
         _dictionary = new Dictionary<TKey, InnerCollectionView>(comparer);
-        foreach (var pair in enumerable)
+        foreach (KeyValuePair<TKey, IReadOnlyCollection<TValue>> pair in enumerable)
             AddRange(pair.Key, pair.Value);
     }
 
@@ -205,8 +202,7 @@ public class MultiValueDictionary<TKey, TValue> :
     public static MultiValueDictionary<TKey, TValue> Create<TValueCollection>(int capacity)
         where TValueCollection : ICollection<TValue>, new()
     {
-        if (capacity < 0)
-            throw new ArgumentOutOfRangeException(nameof(capacity));
+        ArgumentOutOfRangeException.ThrowIfNegative(capacity);
         if (new TValueCollection().IsReadOnly)
             throw new InvalidOperationException();
 
@@ -277,8 +273,7 @@ public class MultiValueDictionary<TKey, TValue> :
     public static MultiValueDictionary<TKey, TValue> Create<TValueCollection>(int capacity, IEqualityComparer<TKey> comparer)
         where TValueCollection : ICollection<TValue>, new()
     {
-        if (capacity < 0)
-            throw new ArgumentOutOfRangeException(nameof(capacity));
+        ArgumentOutOfRangeException.ThrowIfNegative(capacity);
         if (new TValueCollection().IsReadOnly)
             throw new InvalidOperationException();
 
@@ -313,8 +308,7 @@ public class MultiValueDictionary<TKey, TValue> :
     public static MultiValueDictionary<TKey, TValue> Create<TValueCollection>(IEnumerable<KeyValuePair<TKey, IReadOnlyCollection<TValue>>> enumerable)
         where TValueCollection : ICollection<TValue>, new()
     {
-        if (enumerable == null)
-            throw new ArgumentNullException(nameof(enumerable));
+        ArgumentNullException.ThrowIfNull(enumerable);
         if (new TValueCollection().IsReadOnly)
             throw new InvalidOperationException();
 
@@ -322,7 +316,7 @@ public class MultiValueDictionary<TKey, TValue> :
         {
             NewCollectionFactory = () => new TValueCollection()
         };
-        foreach (var pair in enumerable)
+        foreach (KeyValuePair<TKey, IReadOnlyCollection<TValue>> pair in enumerable)
             multiValueDictionary.AddRange(pair.Key, pair.Value);
         return multiValueDictionary;
     }
@@ -354,8 +348,7 @@ public class MultiValueDictionary<TKey, TValue> :
     public static MultiValueDictionary<TKey, TValue> Create<TValueCollection>(IEnumerable<KeyValuePair<TKey, IReadOnlyCollection<TValue>>> enumerable, IEqualityComparer<TKey> comparer)
         where TValueCollection : ICollection<TValue>, new()
     {
-        if (enumerable == null)
-            throw new ArgumentNullException(nameof(enumerable));
+        ArgumentNullException.ThrowIfNull(enumerable);
         if (new TValueCollection().IsReadOnly)
             throw new InvalidOperationException();
 
@@ -363,7 +356,7 @@ public class MultiValueDictionary<TKey, TValue> :
         {
             NewCollectionFactory = () => new TValueCollection()
         };
-        foreach (var pair in enumerable)
+        foreach (KeyValuePair<TKey, IReadOnlyCollection<TValue>> pair in enumerable)
             multiValueDictionary.AddRange(pair.Key, pair.Value);
         return multiValueDictionary;
     }
@@ -436,8 +429,7 @@ public class MultiValueDictionary<TKey, TValue> :
     public static MultiValueDictionary<TKey, TValue> Create<TValueCollection>(int capacity, Func<TValueCollection> collectionFactory)
         where TValueCollection : ICollection<TValue>
     {
-        if (capacity < 0)
-            throw new ArgumentOutOfRangeException(nameof(capacity));
+        ArgumentOutOfRangeException.ThrowIfNegative(capacity);
         if (collectionFactory().IsReadOnly)
             throw new InvalidOperationException();
 
@@ -512,8 +504,7 @@ public class MultiValueDictionary<TKey, TValue> :
     public static MultiValueDictionary<TKey, TValue> Create<TValueCollection>(int capacity, IEqualityComparer<TKey> comparer, Func<TValueCollection> collectionFactory)
         where TValueCollection : ICollection<TValue>
     {
-        if (capacity < 0)
-            throw new ArgumentOutOfRangeException(nameof(capacity));
+        ArgumentOutOfRangeException.ThrowIfNegative(capacity);
         if (collectionFactory().IsReadOnly)
             throw new InvalidOperationException();
 
@@ -550,8 +541,7 @@ public class MultiValueDictionary<TKey, TValue> :
     public static MultiValueDictionary<TKey, TValue> Create<TValueCollection>(IEnumerable<KeyValuePair<TKey, IReadOnlyCollection<TValue>>> enumerable, Func<TValueCollection> collectionFactory)
         where TValueCollection : ICollection<TValue>
     {
-        if (enumerable == null)
-            throw new ArgumentNullException(nameof(enumerable));
+        ArgumentNullException.ThrowIfNull(enumerable);
         if (collectionFactory().IsReadOnly)
             throw new InvalidOperationException();
 
@@ -559,7 +549,7 @@ public class MultiValueDictionary<TKey, TValue> :
         {
             NewCollectionFactory = (Func<ICollection<TValue>>)(Delegate)collectionFactory
         };
-        foreach (var pair in enumerable)
+        foreach (KeyValuePair<TKey, IReadOnlyCollection<TValue>> pair in enumerable)
             multiValueDictionary.AddRange(pair.Key, pair.Value);
         return multiValueDictionary;
     }
@@ -593,8 +583,7 @@ public class MultiValueDictionary<TKey, TValue> :
     public static MultiValueDictionary<TKey, TValue> Create<TValueCollection>(IEnumerable<KeyValuePair<TKey, IReadOnlyCollection<TValue>>> enumerable, IEqualityComparer<TKey> comparer, Func<TValueCollection> collectionFactory)
         where TValueCollection : ICollection<TValue>
     {
-        if (enumerable == null)
-            throw new ArgumentNullException(nameof(enumerable));
+        ArgumentNullException.ThrowIfNull(enumerable);
         if (collectionFactory().IsReadOnly)
             throw new InvalidOperationException();
 
@@ -602,7 +591,7 @@ public class MultiValueDictionary<TKey, TValue> :
         {
             NewCollectionFactory = (Func<ICollection<TValue>>)(Delegate)collectionFactory
         };
-        foreach (var pair in enumerable)
+        foreach (KeyValuePair<TKey, IReadOnlyCollection<TValue>> pair in enumerable)
             multiValueDictionary.AddRange(pair.Key, pair.Value);
         return multiValueDictionary;
     }
@@ -658,8 +647,7 @@ public class MultiValueDictionary<TKey, TValue> :
     {
         if (key == null)
             throw new ArgumentNullException(nameof(key));
-        if (values == null)
-            throw new ArgumentNullException(nameof(values));
+        ArgumentNullException.ThrowIfNull(values);
 
         if (!_dictionary.TryGetValue(key, out InnerCollectionView collection))
         {
@@ -816,7 +804,7 @@ public class MultiValueDictionary<TKey, TValue> :
         if (key == null)
             throw new ArgumentNullException(nameof(key));
 
-        var success = _dictionary.TryGetValue(key, out InnerCollectionView collection);
+        bool success = _dictionary.TryGetValue(key, out InnerCollectionView collection);
         value = collection;
         return success;
     }
@@ -908,21 +896,12 @@ public class MultiValueDictionary<TKey, TValue> :
 
         public KeyValuePair<TKey, IReadOnlyCollection<TValue>> Current { get; private set; }
 
-        object IEnumerator.Current
+        object IEnumerator.Current => _state switch
         {
-            get
-            {
-                switch (_state)
-                {
-                    case EnumerationState.BeforeFirst:
-                        throw new InvalidOperationException();
-                    case EnumerationState.AfterLast:
-                        throw new InvalidOperationException();
-                    default:
-                        return Current;
-                }
-            }
-        }
+            EnumerationState.BeforeFirst => throw new InvalidOperationException(),
+            EnumerationState.AfterLast => throw new InvalidOperationException(),
+            _ => (object)Current,
+        };
 
         /// <summary>
         /// Advances the enumerator to the next element of the collection.
@@ -1010,14 +989,11 @@ public class MultiValueDictionary<TKey, TValue> :
 
         public void CopyTo(TValue[] array, int arrayIndex)
         {
-            if (array == null)
-                throw new ArgumentNullException(nameof(array));
-            if (arrayIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(arrayIndex));
-            if (arrayIndex > array.Length)
-                throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+            ArgumentNullException.ThrowIfNull(array);
+            ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(arrayIndex, array.Length);
             if (array.Length - arrayIndex < _collection.Count)
-                throw new ArgumentException(nameof(arrayIndex));
+                throw new ArgumentException("The number of elements in the source collection is greater than the available space from arrayIndex to the end of the destination array.", nameof(arrayIndex));
 
             _collection.CopyTo(array, arrayIndex);
         }
