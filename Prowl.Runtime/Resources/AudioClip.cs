@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for details.
 
 using System;
+using System.Buffers.Binary;
+using System.IO;
 
 using Prowl.Runtime.Audio;
 
@@ -38,21 +40,125 @@ public sealed class AudioClip : EngineObject
     }
 
     /// <summary>
-    /// Loads an audio clip from a file (.wav, .mp3, .ogg)
-    /// TODO: Implement actual audio file loading
+    /// Loads an audio clip from a file (.wav)
     /// </summary>
-    public static AudioClip LoadFromFile(string filePath)
+    /// <param name="filePath">Path to the audio file</param>
+    /// <param name="enforceMono">If true, stereo audio will be automatically converted to mono by averaging the left and right channels.
+    /// This is required for 3D positional audio - OpenAL cannot apply distance attenuation or 3D spatialization to stereo sources.
+    /// If false and the file is stereo, it will play at full volume regardless of distance when used with AudioSource.</param>
+    public static AudioClip LoadFromFile(string filePath, bool enforceMono = false)
     {
-        throw new NotImplementedException("Audio loading from files is not yet implemented. Use AudioClip.Create() to create clips manually.");
+        FileInfo file = new FileInfo(filePath);
+        if (!file.Exists)
+            throw new FileNotFoundException($"Audio file not found: {filePath}");
+
+        using (FileStream stream = file.OpenRead())
+        {
+            return LoadFromStream(stream, file.Name, enforceMono);
+        }
     }
 
     /// <summary>
-    /// Loads an audio clip from a stream
-    /// TODO: Implement actual audio stream loading
+    /// Loads an audio clip from a stream (.wav format)
     /// </summary>
-    public static AudioClip LoadFromStream(System.IO.Stream stream, string virtualPath)
+    /// <param name="stream">Stream containing audio data</param>
+    /// <param name="name">Name for the audio clip</param>
+    /// <param name="enforceMono">If true, stereo audio will be automatically converted to mono by averaging the left and right channels.
+    /// This is required for 3D positional audio - OpenAL cannot apply distance attenuation or 3D spatialization to stereo sources.
+    /// If false and the stream contains stereo audio, it will play at full volume regardless of distance when used with AudioSource.</param>
+    public static AudioClip LoadFromStream(System.IO.Stream stream, string name, bool enforceMono = false)
     {
-        throw new NotImplementedException("Audio loading from streams is not yet implemented. Use AudioClip.Create() to create clips manually.");
+        var buffer = new byte[stream.Length];
+        stream.Read(buffer, 0, buffer.Length);
+        return LoadWav(buffer, name, enforceMono);
+    }
+
+    private static AudioClip LoadWav(byte[] buffer, string name, bool enforceMono)
+    {
+        ReadOnlySpan<byte> fileSpan = new ReadOnlySpan<byte>(buffer);
+
+        int index = 0;
+        if (fileSpan[index++] != 'R' || fileSpan[index++] != 'I' || fileSpan[index++] != 'F' || fileSpan[index++] != 'F')
+        {
+            throw new InvalidDataException("Given file is not in RIFF format");
+        }
+
+        var chunkSize = BinaryPrimitives.ReadInt32LittleEndian(fileSpan.Slice(index, 4));
+        index += 4;
+
+        if (fileSpan[index++] != 'W' || fileSpan[index++] != 'A' || fileSpan[index++] != 'V' || fileSpan[index++] != 'E')
+        {
+            throw new InvalidDataException("Given file is not in WAVE format");
+        }
+
+        short numChannels = -1;
+        int sampleRate = -1;
+        int byteRate = -1;
+        short blockAlign = -1;
+        short bitsPerSample = -1;
+        byte[] audioData = null;
+
+        while (index + 4 < fileSpan.Length)
+        {
+            var identifier = "" + (char)fileSpan[index++] + (char)fileSpan[index++] + (char)fileSpan[index++] + (char)fileSpan[index++];
+            var size = BinaryPrimitives.ReadInt32LittleEndian(fileSpan.Slice(index, 4));
+            index += 4;
+
+            if (identifier == "fmt ")
+            {
+                if (size != 16)
+                {
+                    throw new InvalidDataException($"Unknown Audio Format with subchunk1 size {size}");
+                }
+                else
+                {
+                    var audioFormat = BinaryPrimitives.ReadInt16LittleEndian(fileSpan.Slice(index, 2));
+                    index += 2;
+                    if (audioFormat != 1)
+                    {
+                        throw new InvalidDataException($"Unknown Audio Format with ID {audioFormat}");
+                    }
+                    else
+                    {
+                        numChannels = BinaryPrimitives.ReadInt16LittleEndian(fileSpan.Slice(index, 2));
+                        index += 2;
+                        sampleRate = BinaryPrimitives.ReadInt32LittleEndian(fileSpan.Slice(index, 4));
+                        index += 4;
+                        byteRate = BinaryPrimitives.ReadInt32LittleEndian(fileSpan.Slice(index, 4));
+                        index += 4;
+                        blockAlign = BinaryPrimitives.ReadInt16LittleEndian(fileSpan.Slice(index, 2));
+                        index += 2;
+                        bitsPerSample = BinaryPrimitives.ReadInt16LittleEndian(fileSpan.Slice(index, 2));
+                        index += 2;
+                    }
+                }
+            }
+            else if (identifier == "data")
+            {
+                audioData = fileSpan.Slice(index, size).ToArray();
+                index += size;
+            }
+            else
+            {
+                index += size;
+            }
+        }
+
+        if (audioData == null)
+        {
+            throw new InvalidDataException("WAV file does not contain a data chunk");
+        }
+
+        // Convert stereo to mono if requested
+        if (enforceMono && numChannels == 2)
+        {
+            audioData = ConvertStereoToMono(audioData, bitsPerSample);
+            numChannels = 1;
+            Debug.Log($"Converted stereo audio '{name}' to mono for 3D spatialization");
+        }
+
+        AudioClip audioClip = AudioClip.Create(name, audioData, numChannels, bitsPerSample, sampleRate);
+        return audioClip;
     }
 
     public static BufferAudioFormat MapFormat(int numChannels, int bitsPerSample) => bitsPerSample switch
@@ -62,6 +168,50 @@ public sealed class AudioClip : EngineObject
         32 => numChannels == 1 ? BufferAudioFormat.MonoF : BufferAudioFormat.StereoF,
         _ => throw new NotSupportedException("The specified sound format is not supported."),
     };
+
+    private static byte[] ConvertStereoToMono(byte[] stereoData, int bitsPerSample)
+    {
+        int bytesPerSample = bitsPerSample / 8;
+        int stereoSampleCount = stereoData.Length / (bytesPerSample * 2); // 2 channels
+        byte[] monoData = new byte[stereoSampleCount * bytesPerSample];
+
+        if (bitsPerSample == 8)
+        {
+            // 8-bit audio (unsigned)
+            for (int i = 0; i < stereoSampleCount; i++)
+            {
+                int left = stereoData[i * 2];
+                int right = stereoData[i * 2 + 1];
+                monoData[i] = (byte)((left + right) / 2);
+            }
+        }
+        else if (bitsPerSample == 16)
+        {
+            // 16-bit audio (signed)
+            for (int i = 0; i < stereoSampleCount; i++)
+            {
+                short left = (short)(stereoData[i * 4] | (stereoData[i * 4 + 1] << 8));
+                short right = (short)(stereoData[i * 4 + 2] | (stereoData[i * 4 + 3] << 8));
+                short mono = (short)((left + right) / 2);
+                monoData[i * 2] = (byte)(mono & 0xFF);
+                monoData[i * 2 + 1] = (byte)((mono >> 8) & 0xFF);
+            }
+        }
+        else if (bitsPerSample == 32)
+        {
+            // 32-bit float audio
+            for (int i = 0; i < stereoSampleCount; i++)
+            {
+                float left = BitConverter.ToSingle(stereoData, i * 8);
+                float right = BitConverter.ToSingle(stereoData, i * 8 + 4);
+                float mono = (left + right) / 2f;
+                byte[] monoBytes = BitConverter.GetBytes(mono);
+                Array.Copy(monoBytes, 0, monoData, i * 4, 4);
+            }
+        }
+
+        return monoData;
+    }
 
     private static byte[] Convert24BitTo16Bit(byte[] data)
     {
