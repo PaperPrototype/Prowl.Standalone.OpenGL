@@ -34,13 +34,17 @@ public class InputAction
     private Type _expectedValueType = typeof(double);
 
     /// <summary>
-    /// The expected value type for this action (typeof(double), typeof(Double2), etc.).
+    /// The expected value type for this action (typeof(double), typeof(Double2)).
     /// </summary>
     public Type ExpectedValueType
     {
         get => _expectedValueType;
         set
         {
+            // Type must be either Double or Double2
+            if (value != typeof(double) && value != typeof(Double2))
+                throw new ArgumentException("ExpectedValueType must be either typeof(double) or typeof(Double2).");
+
             _expectedValueType = value;
             // Re-initialize values with correct type
             _currentValue = GetDefaultValue();
