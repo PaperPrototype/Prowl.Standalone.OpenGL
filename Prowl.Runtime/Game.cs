@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using Echo.Logging;
 
 using Prowl.PaperUI;
+using Prowl.Runtime.Audio;
 using Prowl.Runtime.GUI;
 using Prowl.Runtime.Resources;
 using Prowl.Vector;
@@ -44,6 +45,8 @@ public abstract class Game
         {
             Graphics.Initialize();
 
+            AudioSystem.Initialize();
+
             _paperRenderer = new PaperRenderer();
             _paperRenderer.Initialize(width, height);
             _paper = new Paper(_paperRenderer, width, height, new Prowl.Quill.FontAtlasSettings());
@@ -53,41 +56,51 @@ public abstract class Game
 
         Window.Update += (delta) =>
         {
-            UpdatePaperInput();
-
-            time.Update();
-            Time.TimeStack.Clear();
-            Time.TimeStack.Push(time);
-
-            Input.UpdateActions(delta);
-
-            BeginUpdate();
-
-            var scenesCopy = Scene.s_activeScenes.ToArray();
-
-            // Fixed update loop
-            fixedTimeAccumulator += delta;
-            int count = 0;
-            while (fixedTimeAccumulator >= Time.FixedDeltaTime && count++ < 10)
+            try
             {
+                UpdatePaperInput();
+
+                AudioSystem.UpdatePool();
+
+                time.Update();
+                Time.TimeStack.Clear();
+                Time.TimeStack.Push(time);
+
+                Input.UpdateActions(delta);
+
+                BeginUpdate();
+
+                var scenesCopy = Scene.s_activeScenes.ToArray();
+
+                // Fixed update loop
+                fixedTimeAccumulator += delta;
+                int count = 0;
+                while (fixedTimeAccumulator >= Time.FixedDeltaTime && count++ < 10)
+                {
+                    foreach (var scene in scenesCopy)
+                        scene.FixedUpdate();
+
+                    fixedTimeAccumulator -= Time.FixedDeltaTime;
+                }
+
                 foreach (var scene in scenesCopy)
-                    scene.FixedUpdate();
+                    scene.Update();
 
-                fixedTimeAccumulator -= Time.FixedDeltaTime;
+                if (DrawGizmos)
+                {
+                    foreach (var scene in scenesCopy)
+                        scene.DrawGizmos();
+                }
+
+                EndUpdate();
+
+                Console.Title = $"{title} - {Window.InternalWindow.FramebufferSize.X}x{Window.InternalWindow.FramebufferSize.Y} - FPS: {1.0 / Time.DeltaTime}";
             }
-
-            foreach (var scene in scenesCopy)
-                scene.Update();
-
-            if (DrawGizmos)
+            catch (Exception e)
             {
-                foreach (var scene in scenesCopy)
-                    scene.DrawGizmos();
+                Debug.LogError("An exception occurred during the Update loop:");
+                Debug.LogError(e.ToString());
             }
-
-            EndUpdate();
-
-            Console.Title = $"{title} - {Window.InternalWindow.FramebufferSize.X}x{Window.InternalWindow.FramebufferSize.Y} - FPS: {1.0 / Time.DeltaTime}";
         };
 
         Window.Render += (delta) =>
@@ -133,6 +146,7 @@ public abstract class Game
         {
             Closing();
 
+            AudioSystem.Dispose();
             Graphics.Dispose();
 
             Debug.Log("Is terminating...");
