@@ -53,12 +53,26 @@ public class OpenALActiveAudio : ActiveAudio
     {
         get
         {
-            OpenALEngine.al.GetSourceProperty(ID, SourceFloat.ReferenceDistance, out float maxDistance);
+            OpenALEngine.al.GetSourceProperty(ID, SourceFloat.MaxDistance, out float maxDistance);
             return maxDistance;
         }
         set
         {
             OpenALEngine.al.SetSourceProperty(ID, SourceFloat.MaxDistance, (float)value);
+            OpenALEngine.al.SetSourceProperty(ID, SourceFloat.RolloffFactor, 1.0f);
+        }
+    }
+
+    public override double ReferenceDistance
+    {
+        get
+        {
+            OpenALEngine.al.GetSourceProperty(ID, SourceFloat.ReferenceDistance, out float refDistance);
+            return refDistance;
+        }
+        set
+        {
+            OpenALEngine.al.SetSourceProperty(ID, SourceFloat.ReferenceDistance, (float)value);
         }
     }
 
@@ -80,12 +94,30 @@ public class OpenALActiveAudio : ActiveAudio
         get
         {
             OpenALEngine.al.GetSourceProperty(ID, SourceVector3.Position, out System.Numerics.Vector3 vec3);
-            return new Double3(vec3.X, vec3.Y, vec3.Z);
+            // Negate X when converting back from right-handed to left-handed
+            return new Double3(-vec3.X, vec3.Y, vec3.Z);
         }
         set
         {
-            System.Numerics.Vector3 vec3 = (Float3)value;
+            // Negate X to convert from left-handed to right-handed coordinate system
+            System.Numerics.Vector3 vec3 = new System.Numerics.Vector3(-(float)value.X, (float)value.Y, (float)value.Z);
             OpenALEngine.al.SetSourceProperty(ID, SourceVector3.Position, in vec3);
+        }
+    }
+
+    public override Double3 Velocity
+    {
+        get
+        {
+            OpenALEngine.al.GetSourceProperty(ID, SourceVector3.Velocity, out System.Numerics.Vector3 vec3);
+            // Negate X when converting back from right-handed to left-handed
+            return new Double3(-vec3.X, vec3.Y, vec3.Z);
+        }
+        set
+        {
+            // Negate X to convert from left-handed to right-handed coordinate system
+            System.Numerics.Vector3 vec3 = new System.Numerics.Vector3(-(float)value.X, (float)value.Y, (float)value.Z);
+            OpenALEngine.al.SetSourceProperty(ID, SourceVector3.Velocity, in vec3);
         }
     }
 
@@ -94,11 +126,13 @@ public class OpenALActiveAudio : ActiveAudio
         get
         {
             OpenALEngine.al.GetSourceProperty(ID, SourceVector3.Direction, out System.Numerics.Vector3 vec3);
-            return new Double3(vec3.X, vec3.Y, vec3.Z);
+            // Negate X when converting back from right-handed to left-handed
+            return new Double3(-vec3.X, vec3.Y, vec3.Z);
         }
         set
         {
-            System.Numerics.Vector3 vec3 = (Float3)value;
+            // Negate X to convert from left-handed to right-handed coordinate system
+            System.Numerics.Vector3 vec3 = new System.Numerics.Vector3(-(float)value.X, (float)value.Y, (float)value.Z);
             OpenALEngine.al.SetSourceProperty(ID, SourceVector3.Direction, in vec3);
         }
     }

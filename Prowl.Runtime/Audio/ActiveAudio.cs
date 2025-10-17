@@ -16,8 +16,10 @@ public abstract class ActiveAudio : IDisposable
     public abstract double Gain { get; set; }
     public abstract double Pitch { get; set; }
     public abstract double MaxDistance { get; set; }
+    public abstract double ReferenceDistance { get; set; }
     public abstract bool Looping { get; set; }
     public abstract Double3 Position { get; set; }
+    public abstract Double3 Velocity { get; set; }
     public abstract Double3 Direction { get; set; }
     public abstract AudioPositionKind PositionKind { get; set; }
     public abstract void Dispose();

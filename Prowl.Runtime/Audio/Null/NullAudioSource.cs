@@ -8,10 +8,12 @@ namespace Prowl.Runtime.Audio.Null;
 public class NullAudioSource : ActiveAudio
 {
     public override Double3 Direction { get; set; }
+    public override Double3 Velocity { get; set; }
 
     public override double Gain { get; set; }
     public override double Pitch { get; set; }
     public override double MaxDistance { get; set; }
+    public override double ReferenceDistance { get; set; }
     public override bool Looping { get; set; }
 
     public override Double3 Position { get; set; }

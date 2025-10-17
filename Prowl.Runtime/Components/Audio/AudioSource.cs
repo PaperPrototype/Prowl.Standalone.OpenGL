@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for details.
 
 using Prowl.Runtime.Audio;
+using Prowl.Vector;
 
 namespace Prowl.Runtime;
 
@@ -11,14 +12,18 @@ public sealed class AudioSource : MonoBehaviour
     public bool PlayOnStart = true;
     public bool Looping = false;
     public double Volume = 1f;
+    public double Pitch = 1f;
     public double MaxDistance = 32f;
+    public double ReferenceDistance = 1f;
 
     private ActiveAudio _source;
     private AudioBuffer _buffer;
     private uint _lastVersion;
     private bool _looping = false;
     private double _gain = 1f;
+    private double _pitch = 1f;
     private double _maxDistance = 32f;
+    private double _refDistance = 1f;
 
     public void Play()
     {
@@ -35,17 +40,29 @@ public sealed class AudioSource : MonoBehaviour
     public override void OnEnable()
     {
         _source = AudioSystem.Engine.CreateAudioSource();
-        _source.PositionKind = AudioPositionKind.ListenerRelative;
-        // position relative to listener
-        Vector.Transform listener = AudioSystem.Listener.GameObject.Transform;
-        Vector.Double3 thisPos = GameObject.Transform.Position;
-        _source.Position = listener.InverseTransformPoint(thisPos);
+        _source.PositionKind = AudioPositionKind.AbsoluteWorld;
+        _source.Position = GameObject.Transform.Position;
         _source.Direction = GameObject.Transform.Forward;
         _source.Gain = Volume;
+        _source.Pitch = Pitch;
         _source.Looping = Looping;
         _source.MaxDistance = MaxDistance;
+        _source.ReferenceDistance = ReferenceDistance;
+
+        Debug.Log($"AudioSource {GameObject.Name} created: Pos={_source.Position}, MaxDist={_source.MaxDistance}, RefDist={_source.ReferenceDistance}, PositionKind={_source.PositionKind}");
+
         if (Clip.IsValid())
+        {
             _buffer = AudioSystem.GetAudioBuffer(Clip);
+
+            // Warn if using stereo audio with 3D AudioSource
+            if (Clip.Channels == 2)
+            {
+                Debug.LogWarning($"AudioSource '{GameObject.Name}' is using stereo audio clip '{Clip.Name}'. " +
+                    "Stereo audio cannot be spatialized in 3D - distance attenuation and panning will not work. " +
+                    "Use AudioClip.LoadFromFile(path, enforceMono: true) to automatically convert to mono.");
+            }
+        }
     }
 
     public override void Start()
@@ -56,14 +73,9 @@ public sealed class AudioSource : MonoBehaviour
 
     public override void Update()
     {
-        //if (_lastVersion != GameObject.transform.version)
-        {
-            Vector.Transform listener = AudioSystem.Listener.GameObject.Transform;
-            Vector.Double3 thisPos = GameObject.Transform.Position;
-            _source.Position = listener.InverseTransformPoint(thisPos);
-            _source.Direction = GameObject.Transform.Forward;
-            //_lastVersion = GameObject.transform.version;
-        }
+        // Update position in world space
+        _source.Position = GameObject.Transform.Position;
+        _source.Direction = GameObject.Transform.Forward;
 
         if (Clip.IsValid())
             _buffer = AudioSystem.GetAudioBuffer(Clip);
@@ -80,11 +92,28 @@ public sealed class AudioSource : MonoBehaviour
             _gain = Volume;
         }
 
+        if (_pitch != Pitch)
+        {
+            _source.Pitch = Pitch;
+            _pitch = Pitch;
+        }
+
         if (_maxDistance != MaxDistance)
         {
             _source.MaxDistance = MaxDistance;
             _maxDistance = MaxDistance;
         }
+
+        if (_refDistance != ReferenceDistance)
+        {
+            _source.ReferenceDistance = ReferenceDistance;
+            _refDistance = ReferenceDistance;
+        }
+    }
+
+    public override void DrawGizmos()
+    {
+        Debug.DrawWireSphere(Transform.Position, MaxDistance, Vector.Color.Yellow);
     }
 
     public override void OnDisable()

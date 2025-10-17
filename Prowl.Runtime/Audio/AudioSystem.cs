@@ -106,6 +106,13 @@ public static class AudioSystem
         _engine.SetListenerPosition(t.Position);
         _engine.SetListenerVelocity(t.Position - lastPost);
         _engine.SetListenerOrientation(t.Forward, t.Up);
+        _engine.SetDopplerFactor(AudioEngine.DopplerScale);
+        _engine.SetSpeedOfSound(AudioEngine.SpeedOfSound);
+    }
+
+    public static Double3 GetListenerPosition()
+    {
+        return _engine.GetListenerPosition();
     }
 
     public static ActiveAudio PlaySound(AudioClip clip)

@@ -19,6 +19,20 @@ public class NullAudioEngine : AudioEngine
     {
     }
 
+    public override Double3 GetListenerPosition()
+    {
+        return Double3.Zero;
+    }
+
+    public override void SetDopplerFactor(float dopplerFactor)
+    {
+    }
+
+    public override void SetSpeedOfSound(float speedOfSound)
+    {
+    }
+
+
     private readonly AudioBuffer _nullAudioBuffer = new NullAudioBuffer();
     private readonly ActiveAudio _nullAudioSource = new NullAudioSource();
 
