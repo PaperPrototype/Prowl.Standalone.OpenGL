@@ -121,9 +121,9 @@ vec3 GetViewPos(vec2 uv, float depth, mat4 projectionMatrix)
 {
     // Convert to NDC space
     vec4 clipPos = vec4(uv * 2.0 - 1.0, depth, 1.0);
-    
+
     // Reconstruct view space position
-    vec4 viewPos = inverse(projectionMatrix) * clipPos;
+    vec4 viewPos = prowl_inverse(projectionMatrix) * clipPos;
     return viewPos.xyz / viewPos.w;
 }
 
