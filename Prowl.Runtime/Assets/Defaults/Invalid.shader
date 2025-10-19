@@ -4,9 +4,9 @@ Properties
 {
 }
 
-Pass 0
+Pass "Invalid"
 {
-	RenderMode "Opaque"
+	Tags { "RenderType" = "Opaque" }
 
 	Vertex
 	{
