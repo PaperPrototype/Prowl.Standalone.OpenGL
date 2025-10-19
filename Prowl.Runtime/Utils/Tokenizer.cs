@@ -111,6 +111,9 @@ public class Tokenizer
         char[] s = new char[token.Length];
         int len = 0;
 
+        if (token.Length < 2)
+            throw new InvalidDataException($"Invalid quoted string \"{token}\" at position {TokenPosition}. Expected at least opening and closing quotes.");
+
         char quote = Token[0];
         if (token[^1] != quote)
             throw new InvalidDataException($"Missing ending quote from string \"{token}\" at position {TokenPosition}");
