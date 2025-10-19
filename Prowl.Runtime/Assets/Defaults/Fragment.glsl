@@ -77,7 +77,7 @@ float GetFovFromProjectionMatrix(mat4 proj)
     return 2.0 * atan(1.0 / proj[1][1]);
 }
 
-mat4 inverse(mat4 m) {
+mat4 prowl_inverse(mat4 m) {
     float n11 = m[0][0], n12 = m[1][0], n13 = m[2][0], n14 = m[3][0];
     float n21 = m[0][1], n22 = m[1][1], n23 = m[2][1], n24 = m[3][1];
     float n31 = m[0][2], n32 = m[1][2], n33 = m[2][2], n34 = m[3][2];
