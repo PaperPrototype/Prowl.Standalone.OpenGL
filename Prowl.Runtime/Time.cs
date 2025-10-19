@@ -41,7 +41,7 @@ public class TimeData
         Time += DeltaTime;
 
         SmoothUnscaledDeltaTime += (dt - SmoothUnscaledDeltaTime) * TimeSmoothFactor;
-        SmoothDeltaTime = SmoothUnscaledDeltaTime * dt;
+        SmoothDeltaTime = SmoothUnscaledDeltaTime * TimeScale;
 
         _stopwatch.Restart();
     }
