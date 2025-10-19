@@ -7,25 +7,28 @@ Properties
 Pass "Invalid"
 {
 	Tags { "RenderType" = "Opaque" }
+	Cull None
 
+	GLSLPROGRAM
 	Vertex
 	{
-		layout (location = 0) in vec3 vertexPosition;
+		#include "Fragment"
+		#include "VertexAttributes"
 
 		void main()
 		{
-		    gl_Position = mvp * vec4(vertexPosition, 1.0);
+			gl_Position = PROWL_MATRIX_VP * vec4(vertexPosition, 1.0);
 		}
 	}
 
 	Fragment
 	{
-		out vec4 fragColor;
-		
+		layout (location = 0) out vec4 fragColor;
+
 		void main()
 		{
 			fragColor = vec4(1.0, 0.0, 1.0, 1.0);
-
 		}
 	}
+	ENDGLSL
 }
