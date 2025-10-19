@@ -43,7 +43,6 @@ Pass "SSR"
         #include "Fragment"
         #include "Utilities"
 		#include "PBR"
-		#include "Random"
         
 		vec3 calculateSSR(vec3 viewPos, vec3 screenPos, vec3 gBMVNorm, float dither) {
 			vec3 viewDir = normalize(viewPos);
