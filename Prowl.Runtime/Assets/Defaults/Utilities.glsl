@@ -10,7 +10,7 @@ vec3 projectAndDivide(mat4 matrix, vec3 pos) {
 }
 // ----------------------------------------------------------------------------
 vec3 getScreenPos(vec2 tc, sampler2D depthSampler) {
-	return vec3(tc, texture2D(depthSampler, tc).x);
+	return vec3(tc, texture(depthSampler, tc).x);
 }
 // ----------------------------------------------------------------------------
 vec3 getScreenFromViewPos(vec3 viewPos) {
@@ -41,7 +41,7 @@ vec3 binaryRefine(vec3 screenPosRayDir, vec3 startPos, int refineSteps, sampler2
 	for(int i = 0; i < refineSteps; i++)
 	{
 		screenPosRayDir *= 0.5;
-		startPos += texture2D(depthSampler, startPos.xy).x < startPos.z ? -screenPosRayDir : screenPosRayDir;
+		startPos += texture(depthSampler, startPos.xy).x < startPos.z ? -screenPosRayDir : screenPosRayDir;
 	}
 	return startPos;
 }
@@ -58,13 +58,13 @@ vec3 rayTrace(vec3 screenPos, vec3 viewPos, vec3 rayDir, float dither, int steps
 	for(int i = 0; i < steps; i++)
 	{
 		screenPos += screenPosRayDir;
-		if(screenPos.x <= 0 || screenPos.y <= 0 || screenPos.x >= 1 || screenPos.y >= 1) 
+		if(screenPos.x <= 0 || screenPos.y <= 0 || screenPos.x >= 1 || screenPos.y >= 1)
 			return vec3(0);
-		float curDepth = texture2D(depthSampler, screenPos.xy).x;
+		float curDepth = texture(depthSampler, screenPos.xy).x;
 
-		if(screenPos.z > curDepth) 
+		if(screenPos.z > curDepth)
 		{
-			if(refineSteps == 0) 
+			if(refineSteps == 0)
 				return vec3(screenPos.xy, curDepth != 1);
 			return vec3(binaryRefine(screenPosRayDir, screenPos, refineSteps, depthSampler).xy, curDepth != 1);
 		}
