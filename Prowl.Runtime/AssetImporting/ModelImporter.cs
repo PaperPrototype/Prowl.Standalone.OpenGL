@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Assimp;
+using Silk.NET.Assimp;
 
 using Prowl.Runtime.Resources;
 using Prowl.Vector;
 
 using Material = Prowl.Runtime.Resources.Material;
 using Mesh = Prowl.Runtime.Resources.Mesh;
+using Scene = Silk.NET.Assimp.Scene;
 
 namespace Prowl.Runtime.AssetImporting;
 
@@ -38,6 +39,13 @@ public struct ModelImporterSettings
 
 public class ModelImporter
 {
+    private readonly Assimp _assimp;
+
+    public ModelImporter()
+    {
+        _assimp = Assimp.GetApi();
+    }
+
     private void Failed(string reason)
     {
         Debug.LogError($"Failed to Import Model: {reason}");
@@ -50,45 +58,73 @@ public class ModelImporter
     public Model Import(Stream stream, string virtualPath, ModelImporterSettings? settings = null) =>
         ImportFromStream(stream, virtualPath, null, Path.GetExtension(virtualPath), settings);
 
-    private Model ImportFromFile(string filePath, DirectoryInfo? parentDir, string extension, ModelImporterSettings? settings = null)
+    private unsafe Model ImportFromFile(string filePath, DirectoryInfo? parentDir, string extension, ModelImporterSettings? settings = null)
     {
         // new settings if null
         settings ??= new ModelImporterSettings();
 
-        using (var importer = new AssimpContext())
+        PostProcessSteps steps = GetPostProcessSteps(settings.Value);
+        Scene* scene = _assimp.ImportFile(filePath, (uint)steps);
+
+        try
         {
-            importer.SetConfig(new Assimp.Configs.VertexBoneWeightLimitConfig(4));
-            PostProcessSteps steps = GetPostProcessSteps(settings.Value);
-            Assimp.Scene? scene = importer.ImportFile(filePath, steps);
             if (scene == null) Failed("Assimp returned null object.");
 
-            if (!scene.HasMeshes) Failed("Model has no Meshes.");
+            if (scene->MNumMeshes == 0) Failed("Model has no Meshes.");
 
             double scale = GetScale(settings.Value, extension);
 
             return BuildModel(scene, filePath, parentDir, scale, settings.Value);
         }
+        finally
+        {
+            if (scene != null)
+                _assimp.ReleaseImport(scene);
+        }
     }
 
-    private Model ImportFromStream(Stream stream, string virtualPath, DirectoryInfo? parentDir, string extension, ModelImporterSettings? settings = null)
+    private unsafe Model ImportFromStream(Stream stream, string virtualPath, DirectoryInfo? parentDir, string extension, ModelImporterSettings? settings = null)
     {
         // Use provided settings or defaults (no settings file loading for streams)
         settings ??= new ModelImporterSettings();
 
-        using (var importer = new AssimpContext())
+        // Read stream into byte array
+        byte[] buffer;
+        if (stream is MemoryStream ms)
         {
-            importer.SetConfig(new Assimp.Configs.VertexBoneWeightLimitConfig(4));
-            PostProcessSteps steps = GetPostProcessSteps(settings.Value);
+            buffer = ms.ToArray();
+        }
+        else
+        {
+            using (var memStream = new MemoryStream())
+            {
+                stream.CopyTo(memStream);
+                buffer = memStream.ToArray();
+            }
+        }
 
-            // Use ImportFileFromStream for embedded resources
-            Assimp.Scene? scene = importer.ImportFileFromStream(stream, steps, Path.GetExtension(virtualPath));
+        PostProcessSteps steps = GetPostProcessSteps(settings.Value);
+
+        Scene* scene;
+        fixed (byte* pBuffer = buffer)
+        {
+            scene = _assimp.ImportFileFromMemory(pBuffer, (uint)buffer.Length, (uint)steps, extension);
+        }
+
+        try
+        {
             if (scene == null) Failed("Assimp returned null object.");
 
-            if (!scene.HasMeshes) Failed("Model has no Meshes.");
+            if (scene->MNumMeshes == 0) Failed("Model has no Meshes.");
 
             double scale = GetScale(settings.Value, extension);
 
             return BuildModel(scene, virtualPath, parentDir, scale, settings.Value);
+        }
+        finally
+        {
+            if (scene != null)
+                _assimp.ReleaseImport(scene);
         }
     }
 
@@ -105,7 +141,7 @@ public class ModelImporter
         if (settings.OptimizeMeshes) steps |= PostProcessSteps.OptimizeMeshes;
         if (settings.FlipWindingOrder) steps |= PostProcessSteps.FlipWindingOrder;
         if (settings.WeldVertices) steps |= PostProcessSteps.JoinIdenticalVertices;
-        if (settings.GlobalScale) steps |= PostProcessSteps.GlobalScale;
+        // GlobalScale is not available in Silk.NET.Assimp
         return steps;
     }
 
@@ -118,20 +154,20 @@ public class ModelImporter
         return scale;
     }
 
-    private Model BuildModel(Assimp.Scene scene, string assetPath, DirectoryInfo? parentDir, double scale, ModelImporterSettings settings)
+    private unsafe Model BuildModel(Scene* scene, string assetPath, DirectoryInfo? parentDir, double scale, ModelImporterSettings settings)
     {
         var model = new Model(Path.GetFileNameWithoutExtension(assetPath));
         model.UnitScale = settings.UnitScale;
 
         // Build the model structure
-        model.RootNode = BuildModelNode(scene.RootNode, scale);
+        model.RootNode = BuildModelNode(scene->MRootNode, scale);
 
-        Matrix4x4 rootTransform = scene.RootNode.Transform;
+        System.Numerics.Matrix4x4 rootTransform = scene->MRootNode->MTransformation;
         Double4x4 rootMatrix = new(
-            rootTransform.A1, rootTransform.A2, rootTransform.A3, rootTransform.A4,
-            rootTransform.B1, rootTransform.B2, rootTransform.B3, rootTransform.B4,
-            rootTransform.C1, rootTransform.C2, rootTransform.C3, rootTransform.C4,
-            rootTransform.D1, rootTransform.D2, rootTransform.D3, rootTransform.D4
+            rootTransform.M11, rootTransform.M12, rootTransform.M13, rootTransform.M14,
+            rootTransform.M21, rootTransform.M22, rootTransform.M23, rootTransform.M24,
+            rootTransform.M31, rootTransform.M32, rootTransform.M33, rootTransform.M34,
+            rootTransform.M41, rootTransform.M42, rootTransform.M43, rootTransform.M44
         );
 
         rootMatrix.Translation *= scale;
@@ -139,37 +175,47 @@ public class ModelImporter
         model.GlobalInverseTransform = rootMatrix.Invert();
 
         // Load materials and meshes into the model
-        if (scene.HasMaterials)
+        if (scene->MNumMaterials > 0)
             LoadMaterials(scene, parentDir, model.Materials);
 
-        if (scene.HasMeshes)
+        if (scene->MNumMeshes > 0)
             LoadMeshes(assetPath, settings, scene, scale, model.Materials, model.Meshes);
 
         // Animations
-        if (scene.HasAnimations)
+        if (scene->MNumAnimations > 0)
             LoadAnimations(scene, scale, model.Animations);
 
         return model;
     }
 
-    private void LoadMaterials(Assimp.Scene? scene, DirectoryInfo? parentDir, List<Material> mats)
+    private unsafe void LoadMaterials(Scene* scene, DirectoryInfo? parentDir, List<Material> mats)
     {
-        foreach (Assimp.Material? m in scene.Materials)
+        for (uint i = 0; i < scene->MNumMaterials; i++)
         {
+            Silk.NET.Assimp.Material* m = scene->MMaterials[i];
             Material mat = new(Shader.LoadDefault(DefaultShader.Standard));
-            string? name = m.HasName ? m.Name : null;
+            string? name = null;
+
+            // Get material name
+            AssimpString matName;
+            if (_assimp.GetMaterialString(m, Assimp.MatkeyName, 0, 0, &matName) == Return.Success)
+            {
+                name = matName.AsString;
+            }
 
             // Albedo
-            if (m.HasColorDiffuse)
-                mat.SetColor("_MainColor", new Color(m.ColorDiffuse.R, m.ColorDiffuse.G, m.ColorDiffuse.B, m.ColorDiffuse.A));
+            System.Numerics.Vector4 diffuseColor;
+            if (_assimp.GetMaterialColor(m, Assimp.MatkeyColorDiffuse, 0, 0, &diffuseColor) == Return.Success)
+                mat.SetColor("_MainColor", new Color(diffuseColor.X, diffuseColor.Y, diffuseColor.Z, diffuseColor.W));
             else
                 mat.SetColor("_MainColor", Color.White);
 
             // Emissive Color
-            if (m.HasColorEmissive)
+            System.Numerics.Vector4 emissiveColor;
+            if (_assimp.GetMaterialColor(m, Assimp.MatkeyColorEmissive, 0, 0, &emissiveColor) == Return.Success)
             {
                 mat.SetFloat("_EmissionIntensity", 1f);
-                mat.SetColor("_EmissiveColor", new Color(m.ColorEmissive.R, m.ColorEmissive.G, m.ColorEmissive.B, m.ColorEmissive.A));
+                mat.SetColor("_EmissiveColor", new Color(emissiveColor.X, emissiveColor.Y, emissiveColor.Z, emissiveColor.W));
             }
             else
             {
@@ -178,10 +224,12 @@ public class ModelImporter
             }
 
             // Texture
-            if (m.HasTextureDiffuse)
+            AssimpString texPath = default;
+            if (_assimp.GetMaterialTexture(m, TextureType.Diffuse, 0, &texPath, null, null, null, null, null, null) == Return.Success)
             {
-                name ??= "Mat_" + Path.GetFileNameWithoutExtension(m.TextureDiffuse.FilePath);
-                if (FindTextureFromPath(m.TextureDiffuse.FilePath, parentDir, out FileInfo? file))
+                string texPathStr = texPath.AsString;
+                name ??= "Mat_" + Path.GetFileNameWithoutExtension(texPathStr);
+                if (FindTextureFromPath(texPathStr, parentDir, out FileInfo? file))
                     LoadTextureIntoMesh("_MainTex", file, mat);
                 else
                     mat.SetTexture("_MainTex", Texture2D.LoadDefault(DefaultTexture.Grid));
@@ -190,10 +238,12 @@ public class ModelImporter
                 mat.SetTexture("_MainTex", Texture2D.LoadDefault(DefaultTexture.Grid));
 
             // Normal Texture
-            if (m.HasTextureNormal)
+            texPath = default;
+            if (_assimp.GetMaterialTexture(m, TextureType.Normals, 0, &texPath, null, null, null, null, null, null) == Return.Success)
             {
-                name ??= "Mat_" + Path.GetFileNameWithoutExtension(m.TextureNormal.FilePath);
-                if (FindTextureFromPath(m.TextureNormal.FilePath, parentDir, out FileInfo? file))
+                string texPathStr = texPath.AsString;
+                name ??= "Mat_" + Path.GetFileNameWithoutExtension(texPathStr);
+                if (FindTextureFromPath(texPathStr, parentDir, out FileInfo? file))
                     LoadTextureIntoMesh("_NormalTex", file, mat);
                 else
                     mat.SetTexture("_NormalTex", Texture2D.LoadDefault(DefaultTexture.Normal));
@@ -202,10 +252,12 @@ public class ModelImporter
                 mat.SetTexture("_NormalTex", Texture2D.LoadDefault(DefaultTexture.Normal));
 
             //AO, Roughness, Metallic Texture Attempt 1
-            if (m.GetMaterialTexture(TextureType.Unknown, 0, out TextureSlot surface))
+            texPath = default;
+            if (_assimp.GetMaterialTexture(m, TextureType.Unknown, 0, &texPath, null, null, null, null, null, null) == Return.Success)
             {
-                name ??= "Mat_" + Path.GetFileNameWithoutExtension(surface.FilePath);
-                if (FindTextureFromPath(surface.FilePath, parentDir, out FileInfo? file))
+                string texPathStr = texPath.AsString;
+                name ??= "Mat_" + Path.GetFileNameWithoutExtension(texPathStr);
+                if (FindTextureFromPath(texPathStr, parentDir, out FileInfo? file))
                     LoadTextureIntoMesh("_SurfaceTex", file, mat);
                 else
                     mat.SetTexture("_SurfaceTex", Texture2D.LoadDefault(DefaultTexture.Surface));
@@ -214,22 +266,24 @@ public class ModelImporter
                 mat.SetTexture("_SurfaceTex", Texture2D.LoadDefault(DefaultTexture.Surface));
 
             //AO, Roughness, Metallic Texture Attempt 2
-            if (m.HasTextureSpecular)
+            texPath = default;
+            if (_assimp.GetMaterialTexture(m, TextureType.Specular, 0, &texPath, null, null, null, null, null, null) == Return.Success)
             {
-                name ??= "Mat_" + Path.GetFileNameWithoutExtension(m.TextureSpecular.FilePath);
-                if (FindTextureFromPath(m.TextureSpecular.FilePath, parentDir, out FileInfo? file))
+                string texPathStr = texPath.AsString;
+                name ??= "Mat_" + Path.GetFileNameWithoutExtension(texPathStr);
+                if (FindTextureFromPath(texPathStr, parentDir, out FileInfo? file))
                     LoadTextureIntoMesh("_SurfaceTex", file, mat);
                 else
                     mat.SetTexture("_SurfaceTex", Texture2D.LoadDefault(DefaultTexture.Surface));
             }
-            else
-                mat.SetTexture("_SurfaceTex", Texture2D.LoadDefault(DefaultTexture.Surface));
 
             // Emissive Texture
-            if (m.HasTextureEmissive)
+            texPath = default;
+            if (_assimp.GetMaterialTexture(m, TextureType.Emissive, 0, &texPath, null, null, null, null, null, null) == Return.Success)
             {
-                name ??= "Mat_" + Path.GetFileNameWithoutExtension(m.TextureEmissive.FilePath);
-                if (FindTextureFromPath(m.TextureEmissive.FilePath, parentDir, out FileInfo? file))
+                string texPathStr = texPath.AsString;
+                name ??= "Mat_" + Path.GetFileNameWithoutExtension(texPathStr);
+                if (FindTextureFromPath(texPathStr, parentDir, out FileInfo? file))
                 {
                     mat.SetFloat("_EmissionIntensity", 1f);
                     LoadTextureIntoMesh("_EmissionTex", file, mat);
@@ -246,134 +300,175 @@ public class ModelImporter
         }
     }
 
-    private void LoadMeshes(string assetPath, ModelImporterSettings settings, Assimp.Scene? scene, double scale, List<Material> mats, List<ModelMesh> meshMats)
+    private unsafe void LoadMeshes(string assetPath, ModelImporterSettings settings, Scene* scene, double scale, List<Material> mats, List<ModelMesh> meshMats)
     {
-        foreach (Assimp.Mesh? m in scene.Meshes)
+        for (uint meshIndex = 0; meshIndex < scene->MNumMeshes; meshIndex++)
         {
-            if (m.PrimitiveType != PrimitiveType.Triangle)
+            Silk.NET.Assimp.Mesh* m = scene->MMeshes[meshIndex];
+
+            if ((m->MPrimitiveTypes & (uint)PrimitiveType.Triangle) == 0)
             {
-                Debug.Log($"{Path.GetFileName(assetPath)} 's mesh '{m.Name}' is not of Triangle Primitive, Skipping...");
+                Debug.Log($"{Path.GetFileName(assetPath)} 's mesh '{m->MName.AsString}' is not of Triangle Primitive, Skipping...");
                 continue;
             }
 
             Mesh mesh = new();
-            mesh.Name = m.Name;
-            int vertexCount = m.VertexCount;
+            mesh.Name = m->MName.AsString;
+            int vertexCount = (int)m->MNumVertices;
             mesh.IndexFormat = vertexCount >= ushort.MaxValue ? IndexFormat.UInt32 : IndexFormat.UInt16;
 
+            // Vertices
             Float3[] vertices = new Float3[vertexCount];
             for (int i = 0; i < vertices.Length; i++)
-                vertices[i] = new Float3(m.Vertices[i].X, m.Vertices[i].Y, m.Vertices[i].Z) * (float)scale;
+            {
+                System.Numerics.Vector3 v = m->MVertices[i];
+                vertices[i] = new Float3(v.X, v.Y, v.Z) * (float)scale;
+            }
             mesh.Vertices = vertices;
 
-            if (m.HasNormals)
+            // Normals
+            if (m->MNormals != null)
             {
                 Float3[] normals = new Float3[vertexCount];
                 for (int i = 0; i < normals.Length; i++)
                 {
-                    normals[i] = new Float3(m.Normals[i].X, m.Normals[i].Y, m.Normals[i].Z);
+                    System.Numerics.Vector3 n = m->MNormals[i];
+                    normals[i] = new Float3(n.X, n.Y, n.Z);
                     if (settings.InvertNormals)
                         normals[i] = -normals[i];
                 }
                 mesh.Normals = normals;
             }
 
-            if (m.HasTangentBasis)
+            // Tangents
+            if (m->MTangents != null)
             {
                 Float3[] tangents = new Float3[vertexCount];
                 for (int i = 0; i < tangents.Length; i++)
-                    tangents[i] = new Float3(m.Tangents[i].X, m.Tangents[i].Y, m.Tangents[i].Z);
+                {
+                    System.Numerics.Vector3 t = m->MTangents[i];
+                    tangents[i] = new Float3(t.X, t.Y, t.Z);
+                }
                 mesh.Tangents = tangents;
             }
 
-            if (m.HasTextureCoords(0))
+            // UV channel 0
+            if (m->MTextureCoords.Element0 != null)
             {
                 Float2[] texCoords1 = new Float2[vertexCount];
                 for (int i = 0; i < texCoords1.Length; i++)
-                    texCoords1[i] = new Float2(m.TextureCoordinateChannels[0][i].X, m.TextureCoordinateChannels[0][i].Y);
+                {
+                    System.Numerics.Vector3 uv = m->MTextureCoords.Element0[i];
+                    texCoords1[i] = new Float2(uv.X, uv.Y);
+                }
                 mesh.UV = texCoords1;
             }
 
-            if (m.HasTextureCoords(1))
+            // UV channel 1
+            if (m->MTextureCoords.Element1 != null)
             {
                 Float2[] texCoords2 = new Float2[vertexCount];
                 for (int i = 0; i < texCoords2.Length; i++)
-                    texCoords2[i] = new Float2(m.TextureCoordinateChannels[1][i].X, m.TextureCoordinateChannels[1][i].Y);
+                {
+                    System.Numerics.Vector3 uv = m->MTextureCoords.Element1[i];
+                    texCoords2[i] = new Float2(uv.X, uv.Y);
+                }
                 mesh.UV2 = texCoords2;
             }
 
-            if (m.HasVertexColors(0))
+            // Vertex colors
+            if (m->MColors.Element0 != null)
             {
                 Color[] colors = new Color[vertexCount];
                 for (int i = 0; i < colors.Length; i++)
-                    colors[i] = new Color(m.VertexColorChannels[0][i].R, m.VertexColorChannels[0][i].G, m.VertexColorChannels[0][i].B, m.VertexColorChannels[0][i].A);
+                {
+                    System.Numerics.Vector4 c = m->MColors.Element0[i];
+                    colors[i] = new Color(c.X, c.Y, c.Z, c.W);
+                }
                 mesh.Colors = colors;
             }
 
-            mesh.Indices = m.GetUnsignedIndices();
+            // Indices
+            uint[] indices = new uint[m->MNumFaces * 3];
+            int indexOffset = 0;
+            for (uint i = 0; i < m->MNumFaces; i++)
+            {
+                Face face = m->MFaces[i];
+                if (face.MNumIndices == 3)
+                {
+                    indices[indexOffset++] = face.MIndices[0];
+                    indices[indexOffset++] = face.MIndices[1];
+                    indices[indexOffset++] = face.MIndices[2];
+                }
+            }
+            mesh.Indices = indices;
             mesh.RecalculateBounds();
 
-            if (m.HasBones)
+            // Bones
+            if (m->MNumBones > 0)
             {
-                mesh.bindPoses = new Float4x4[m.Bones.Count];
-                mesh.boneNames = new string[m.Bones.Count];
+                mesh.bindPoses = new Float4x4[m->MNumBones];
+                mesh.boneNames = new string[m->MNumBones];
                 mesh.BoneIndices = new Float4[vertexCount];
                 mesh.BoneWeights = new Float4[vertexCount];
 
-                for (int i = 0; i < m.Bones.Count; i++)
+                for (uint i = 0; i < m->MNumBones; i++)
                 {
-                    Bone bone = m.Bones[i];
+                    Bone* bone = m->MBones[i];
 
                     // Store bone name
-                    mesh.boneNames[i] = bone.Name;
+                    mesh.boneNames[i] = bone->MName.AsString;
 
-                    Matrix4x4 offsetMatrix = bone.OffsetMatrix;
+                    System.Numerics.Matrix4x4 offsetMatrix = bone->MOffsetMatrix;
                     Float4x4 bindPose = new(
-                        offsetMatrix.A1, offsetMatrix.A2, offsetMatrix.A3, offsetMatrix.A4,
-                        offsetMatrix.B1, offsetMatrix.B2, offsetMatrix.B3, offsetMatrix.B4,
-                        offsetMatrix.C1, offsetMatrix.C2, offsetMatrix.C3, offsetMatrix.C4,
-                        offsetMatrix.D1, offsetMatrix.D2, offsetMatrix.D3, offsetMatrix.D4
+                        offsetMatrix.M11, offsetMatrix.M12, offsetMatrix.M13, offsetMatrix.M14,
+                        offsetMatrix.M21, offsetMatrix.M22, offsetMatrix.M23, offsetMatrix.M24,
+                        offsetMatrix.M31, offsetMatrix.M32, offsetMatrix.M33, offsetMatrix.M34,
+                        offsetMatrix.M41, offsetMatrix.M42, offsetMatrix.M43, offsetMatrix.M44
                     );
 
                     bindPose.Translation *= (float)scale;
 
                     mesh.bindPoses[i] = bindPose;
 
-                    if (!bone.HasVertexWeights) continue;
+                    if (bone->MNumWeights == 0) continue;
                     byte boneIndex = (byte)(i + 1);
 
                     // foreach weight
-                    for (int j = 0; j < bone.VertexWeightCount; j++)
+                    for (uint j = 0; j < bone->MNumWeights; j++)
                     {
-                        VertexWeight weight = bone.VertexWeights[j];
-                        Float4 b = mesh.BoneIndices[weight.VertexID];
-                        Float4 w = mesh.BoneWeights[weight.VertexID];
-                        if (b.X == 0 || weight.Weight > w.X)
+                        VertexWeight weight = bone->MWeights[j];
+                        uint vertexId = weight.MVertexId;
+                        float weightValue = weight.MWeight;
+
+                        Float4 b = mesh.BoneIndices[vertexId];
+                        Float4 w = mesh.BoneWeights[vertexId];
+                        if (b.X == 0 || weightValue > w.X)
                         {
                             b.X = boneIndex;
-                            w.X = weight.Weight;
+                            w.X = weightValue;
                         }
-                        else if (b.Y == 0 || weight.Weight > w.Y)
+                        else if (b.Y == 0 || weightValue > w.Y)
                         {
                             b.Y = boneIndex;
-                            w.Y = weight.Weight;
+                            w.Y = weightValue;
                         }
-                        else if (b.Z == 0 || weight.Weight > w.Z)
+                        else if (b.Z == 0 || weightValue > w.Z)
                         {
                             b.Z = boneIndex;
-                            w.Z = weight.Weight;
+                            w.Z = weightValue;
                         }
-                        else if (b.W == 0 || weight.Weight > w.W)
+                        else if (b.W == 0 || weightValue > w.W)
                         {
                             b.W = boneIndex;
-                            w.W = weight.Weight;
+                            w.W = weightValue;
                         }
                         else
                         {
-                            Debug.LogWarning($"Vertex {weight.VertexID} has more than 4 bone weights, Skipping...");
+                            Debug.LogWarning($"Vertex {vertexId} has more than 4 bone weights, Skipping...");
                         }
-                        mesh.BoneIndices[weight.VertexID] = b;
-                        mesh.BoneWeights[weight.VertexID] = w;
+                        mesh.BoneIndices[vertexId] = b;
+                        mesh.BoneWeights[vertexId] = w;
                     }
                 }
 
@@ -390,61 +485,67 @@ public class ModelImporter
                 }
             }
 
-            meshMats.Add(new ModelMesh(m.Name, mesh, mats[m.MaterialIndex], m.HasBones));
+            meshMats.Add(new ModelMesh(m->MName.AsString, mesh, mats[(int)m->MMaterialIndex], m->MNumBones > 0));
         }
     }
 
-    private ModelNode BuildModelNode(Node assimpNode, double scale)
+    private unsafe ModelNode BuildModelNode(Silk.NET.Assimp.Node* assimpNode, double scale)
     {
-        var modelNode = new ModelNode(assimpNode.Name);
+        var modelNode = new ModelNode(assimpNode->MName.AsString);
 
         // Transform
-        Matrix4x4 t = assimpNode.Transform;
-        t.Decompose(out Vector3D aSca, out Assimp.Quaternion aRot, out Vector3D aPos);
+        System.Numerics.Matrix4x4 t = assimpNode->MTransformation;
+        System.Numerics.Matrix4x4.Decompose(t, out System.Numerics.Vector3 aSca, out System.Numerics.Quaternion aRot, out System.Numerics.Vector3 aPos);
 
         modelNode.LocalPosition = new Vector.Double3(aPos.X, aPos.Y, aPos.Z) * scale;
         modelNode.LocalRotation = new(aRot.X, aRot.Y, aRot.Z, aRot.W);
         modelNode.LocalScale = new Vector.Double3(aSca.X, aSca.Y, aSca.Z);
 
         // Assign mesh indices
-        if (assimpNode.HasMeshes)
+        if (assimpNode->MNumMeshes > 0)
         {
-            modelNode.MeshIndices.AddRange(assimpNode.MeshIndices);
-            if (assimpNode.MeshIndices.Count == 1)
-                modelNode.MeshIndex = assimpNode.MeshIndices[0];
+            for (uint i = 0; i < assimpNode->MNumMeshes; i++)
+            {
+                modelNode.MeshIndices.Add((int)assimpNode->MMeshes[i]);
+            }
+            if (assimpNode->MNumMeshes == 1)
+                modelNode.MeshIndex = (int)assimpNode->MMeshes[0];
         }
 
         // Build children
-        if (assimpNode.HasChildren)
+        if (assimpNode->MNumChildren > 0)
         {
-            foreach (Node? child in assimpNode.Children)
+            for (uint i = 0; i < assimpNode->MNumChildren; i++)
             {
-                modelNode.Children.Add(BuildModelNode(child, scale));
+                modelNode.Children.Add(BuildModelNode(assimpNode->MChildren[i], scale));
             }
         }
 
         return modelNode;
     }
 
-    private static void LoadAnimations(Assimp.Scene? scene, double scale, List<AnimationClip> animations)
+    private static unsafe void LoadAnimations(Scene* scene, double scale, List<AnimationClip> animations)
     {
-        foreach (Animation? anim in scene.Animations)
+        for (uint animIndex = 0; animIndex < scene->MNumAnimations; animIndex++)
         {
+            Animation* anim = scene->MAnimations[animIndex];
+
             // Create Animation
             AnimationClip animation = new();
-            animation.Name = anim.Name;
-            animation.Duration = anim.DurationInTicks / (anim.TicksPerSecond != 0 ? anim.TicksPerSecond : 25.0);
-            animation.TicksPerSecond = anim.TicksPerSecond;
-            animation.DurationInTicks = anim.DurationInTicks;
+            animation.Name = anim->MName.AsString;
+            animation.Duration = anim->MDuration / (anim->MTicksPerSecond != 0 ? anim->MTicksPerSecond : 25.0);
+            animation.TicksPerSecond = anim->MTicksPerSecond;
+            animation.DurationInTicks = anim->MDuration;
 
-            foreach (NodeAnimationChannel? channel in anim.NodeAnimationChannels)
+            for (uint chanIndex = 0; chanIndex < anim->MNumChannels; chanIndex++)
             {
-                Assimp.Node boneNode = scene.RootNode.FindNode(channel.NodeName);
+                NodeAnim* channel = anim->MChannels[chanIndex];
+                Silk.NET.Assimp.Node* boneNode = FindNode(scene->MRootNode, channel->MNodeName.AsString);
 
                 var animBone = new AnimationClip.AnimBone();
-                animBone.BoneName = boneNode.Name;
+                animBone.BoneName = boneNode != null ? boneNode->MName.AsString : channel->MNodeName.AsString;
 
-                if (channel.HasPositionKeys)
+                if (channel->MNumPositionKeys > 0)
                 {
                     var xCurve = new AnimationCurve();
                     var yCurve = new AnimationCurve();
@@ -454,19 +555,20 @@ public class ModelImporter
                     yCurve.Keys.Clear();
                     zCurve.Keys.Clear();
 
-                    foreach (VectorKey posKey in channel.PositionKeys)
+                    for (uint i = 0; i < channel->MNumPositionKeys; i++)
                     {
-                        double time = (posKey.Time / anim.DurationInTicks) * animation.Duration;
-                        xCurve.Keys.Add(new KeyFrame(time, posKey.Value.X * scale));
-                        yCurve.Keys.Add(new KeyFrame(time, posKey.Value.Y * scale));
-                        zCurve.Keys.Add(new KeyFrame(time, posKey.Value.Z * scale));
+                        VectorKey posKey = channel->MPositionKeys[i];
+                        double time = (posKey.MTime / anim->MDuration) * animation.Duration;
+                        xCurve.Keys.Add(new KeyFrame(time, posKey.MValue.X * scale));
+                        yCurve.Keys.Add(new KeyFrame(time, posKey.MValue.Y * scale));
+                        zCurve.Keys.Add(new KeyFrame(time, posKey.MValue.Z * scale));
                     }
                     animBone.PosX = xCurve;
                     animBone.PosY = yCurve;
                     animBone.PosZ = zCurve;
                 }
 
-                if (channel.HasRotationKeys)
+                if (channel->MNumRotationKeys > 0)
                 {
                     var xCurve = new AnimationCurve();
                     var yCurve = new AnimationCurve();
@@ -478,13 +580,14 @@ public class ModelImporter
                     zCurve.Keys.Clear();
                     wCurve.Keys.Clear();
 
-                    foreach (QuaternionKey rotKey in channel.RotationKeys)
+                    for (uint i = 0; i < channel->MNumRotationKeys; i++)
                     {
-                        double time = (rotKey.Time / anim.DurationInTicks) * animation.Duration;
-                        xCurve.Keys.Add(new KeyFrame(time, rotKey.Value.X));
-                        yCurve.Keys.Add(new KeyFrame(time, rotKey.Value.Y));
-                        zCurve.Keys.Add(new KeyFrame(time, rotKey.Value.Z));
-                        wCurve.Keys.Add(new KeyFrame(time, rotKey.Value.W));
+                        QuatKey rotKey = channel->MRotationKeys[i];
+                        double time = (rotKey.MTime / anim->MDuration) * animation.Duration;
+                        xCurve.Keys.Add(new KeyFrame(time, rotKey.MValue.X));
+                        yCurve.Keys.Add(new KeyFrame(time, rotKey.MValue.Y));
+                        zCurve.Keys.Add(new KeyFrame(time, rotKey.MValue.Z));
+                        wCurve.Keys.Add(new KeyFrame(time, rotKey.MValue.W));
                     }
                     animBone.RotX = xCurve;
                     animBone.RotY = yCurve;
@@ -492,7 +595,7 @@ public class ModelImporter
                     animBone.RotW = wCurve;
                 }
 
-                if (channel.HasScalingKeys)
+                if (channel->MNumScalingKeys > 0)
                 {
                     var xCurve = new AnimationCurve();
                     var yCurve = new AnimationCurve();
@@ -502,12 +605,13 @@ public class ModelImporter
                     yCurve.Keys.Clear();
                     zCurve.Keys.Clear();
 
-                    foreach (VectorKey scaleKey in channel.ScalingKeys)
+                    for (uint i = 0; i < channel->MNumScalingKeys; i++)
                     {
-                        double time = (scaleKey.Time / anim.DurationInTicks) * animation.Duration;
-                        xCurve.Keys.Add(new KeyFrame(time, scaleKey.Value.X));
-                        yCurve.Keys.Add(new KeyFrame(time, scaleKey.Value.Y));
-                        zCurve.Keys.Add(new KeyFrame(time, scaleKey.Value.Z));
+                        VectorKey scaleKey = channel->MScalingKeys[i];
+                        double time = (scaleKey.MTime / anim->MDuration) * animation.Duration;
+                        xCurve.Keys.Add(new KeyFrame(time, scaleKey.MValue.X));
+                        yCurve.Keys.Add(new KeyFrame(time, scaleKey.MValue.Y));
+                        zCurve.Keys.Add(new KeyFrame(time, scaleKey.MValue.Z));
                     }
                     animBone.ScaleX = xCurve;
                     animBone.ScaleY = yCurve;
@@ -522,11 +626,25 @@ public class ModelImporter
         }
     }
 
+    private static unsafe Silk.NET.Assimp.Node* FindNode(Silk.NET.Assimp.Node* node, string name)
+    {
+        if (node == null) return null;
+        if (node->MName.AsString == name) return node;
+
+        for (uint i = 0; i < node->MNumChildren; i++)
+        {
+            var found = FindNode(node->MChildren[i], name);
+            if (found != null) return found;
+        }
+
+        return null;
+    }
+
     private bool FindTextureFromPath(string filePath, DirectoryInfo parentDir, out FileInfo file)
     {
         // If the filePath is stored in the model relative to the file this will exist
         file = new FileInfo(Path.Combine(parentDir.FullName, filePath));
-        if (File.Exists(file.FullName)) return true;
+        if (System.IO.File.Exists(file.FullName)) return true;
         // If not the filePath is probably a Full path, so lets loop over each node in the path starting from the end
         // so first check if the File name exists inside parentDir, if so return, if not then check the file with its parent exists so like
         // if the file is at C:\Users\Me\Documents\MyModel\Textures\MyTexture.png
