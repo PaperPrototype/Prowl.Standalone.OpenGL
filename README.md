@@ -140,7 +140,7 @@ The same commands work on MacOS (I am primarily a Mac user).
 - [Jitter Physics 2](https://github.com/notgiven688/jitterphysics2)
 
 ## Editor
-The standalone branch of Prowl that this fork was based on does not have an editor, and instead is a fully code first engine. Eventually the editor will be added back again. But yeah, if you are reading this please check out the Prowl repository for the latest updates.
+The standalone branch of Prowl that this fork was based on does not have an editor, and instead is a fully code first engine. Eventually the editor will be added back again. But yeah, if you are reading this please check out the Prowl original repository for the latest updates.
 
 ## License
 
