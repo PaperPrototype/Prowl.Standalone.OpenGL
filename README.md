@@ -33,12 +33,15 @@ Please keep in mind that this is a fork of Prowl that was incredibly new and uns
 The Samples folder should contain fully working projects that you can run. 
 
 **VS Code:**
+
 If you are VS Code then you can select the `Program.cs` file and click the tiny little play button at the top of the editor.
 
 **Visual Studio:**
+
 Select a solution that is in the Samples folder and run it.
 
 **Terminal and Command Prompt (VS Code):**
+
 On windows open a new Command Prompt (cmd) terminal in VS Codes integrated terminal. Change into a folder in the samples directory.
 
 > ```bat
