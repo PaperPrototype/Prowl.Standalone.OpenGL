@@ -1,5 +1,5 @@
 > [!NOTE]
-> This is a fork of Prowl. It contains a Unity like API with GameObjects and Scenes. I forked it right before the lead developer (Wulferis) was about to do a rewrite of the engine to use BGFX instead of OpenGL. It will probably be better once that is done (maybe that will be done within a few days) but I wanted my own fork of Prowl that was confirmed working on Mac and Windows. Be sure to check out the original Prowl repository for the latest changes.
+> This is a fork of Prowl with a Unity like API with GameObjects and Scenes. I forked it right before the lead developer (Wulferis) was about to do a rewrite of the engine to use BGFX instead of OpenGL. It will probably be better once that is done (maybe that will be done within a few days) but I wanted my own fork of Prowl that was confirmed working on Mac and Windows. Be sure to check out the original Prowl repository for the latest changes.
 
 <img src="https://github.com/Kuvrot/Prowl/assets/23508114/5eef8da7-fb84-42f3-9d18-54b4f2d06551" width="100%" alt="Prowl logo image">
 
