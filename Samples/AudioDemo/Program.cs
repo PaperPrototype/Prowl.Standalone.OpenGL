@@ -315,6 +315,7 @@ public sealed class AudioDemoGame : Game
         // Look enable (RMB)
         lookEnableAction = inputMap.AddAction("LookEnable", InputActionType.Button);
         lookEnableAction.AddBinding(MouseButton.Right);
+        // lookEnableAction.AddBinding(GamepadButton.RightBumper);
 
         // Look (Mouse + Gamepad)
         lookAction = inputMap.AddAction("Look", InputActionType.Value);
@@ -408,7 +409,7 @@ public sealed class AudioDemoGame : Game
         float speedMultiplier = sprintAction.IsPressed() ? 2.5f : 1.0f;
         float moveSpeed = 8f * speedMultiplier * (float)Time.DeltaTime;
         
-        cameraGO.Transform.Position += cameraGO.Transform.Forward * movement.Y * moveSpeed;
+        cameraGO.Transform.Position += cameraGO.Transform.Forward * -movement.Y * moveSpeed;
         cameraGO.Transform.Position += cameraGO.Transform.Right * movement.X * moveSpeed;
         
         float upDown = 0;
@@ -416,7 +417,7 @@ public sealed class AudioDemoGame : Game
         if (flyDownAction.IsPressed()) upDown -= 1;
         cameraGO.Transform.Position += Double3.UnitY * upDown * moveSpeed;
 
-        Double2 lookInput = lookAction.ReadValue<Double2>();
+        Double2 lookInput = lookAction.ReadValue<Double2>() * Time.DeltaTime * 1000f;
         if (lookEnableAction.IsPressed() || Math.Abs(lookInput.X) > 0.01f || Math.Abs(lookInput.Y) > 0.01f)
         {
             cameraGO.Transform.LocalEulerAngles += new Double3(lookInput.Y, lookInput.X, 0);
