@@ -28,12 +28,12 @@ public interface IInputProcessor
 /// </summary>
 public class NormalizeProcessor : IInputProcessor
 {
-    public double Process(double value) => Math.Clamp(value, -1f, 1f);
+    public double Process(double value) => Math.Clamp(value, -1.0, 1.0);
 
     public Double2 Process(Double2 value)
     {
         double magnitude = Math.Sqrt(value.X * value.X + value.Y * value.Y);
-        if (magnitude > 1f)
+        if (magnitude > 1.0)
             return value / magnitude;
         return value;
     }
@@ -53,7 +53,7 @@ public class InvertProcessor : IInputProcessor
 /// </summary>
 public class ScaleProcessor : IInputProcessor
 {
-    public double Scale { get; set; } = 1f;
+    public double Scale { get; set; } = 1.0;
 
     public ScaleProcessor(double scale)
     {
@@ -69,8 +69,8 @@ public class ScaleProcessor : IInputProcessor
 /// </summary>
 public class ClampProcessor : IInputProcessor
 {
-    public double Min { get; set; } = 0f;
-    public double Max { get; set; } = 1f;
+    public double Min { get; set; } = 0.0;
+    public double Max { get; set; } = 1.0;
 
     public ClampProcessor(double min, double max)
     {
@@ -94,9 +94,9 @@ public class ClampProcessor : IInputProcessor
 /// </summary>
 public class DeadzoneProcessor : IInputProcessor
 {
-    public double Threshold { get; set; } = 0.2f;
+    public double Threshold { get; set; } = 0.2;
 
-    public DeadzoneProcessor(double threshold = 0.2f)
+    public DeadzoneProcessor(double threshold = 0.2)
     {
         Threshold = threshold;
     }
@@ -108,7 +108,7 @@ public class DeadzoneProcessor : IInputProcessor
 
         // Rescale the value to start from 0 after the deadzone
         double sign = Math.Sign(value);
-        double adjustedValue = (Math.Abs(value) - Threshold) / (1f - Threshold);
+        double adjustedValue = (Math.Abs(value) - Threshold) / (1.0 - Threshold);
         return sign * adjustedValue;
     }
 
@@ -119,7 +119,7 @@ public class DeadzoneProcessor : IInputProcessor
             return Double2.Zero;
 
         // Radial deadzone - preserve direction
-        double adjustedMagnitude = (magnitude - Threshold) / (1f - Threshold);
+        double adjustedMagnitude = (magnitude - Threshold) / (1.0 - Threshold);
         return value * (adjustedMagnitude / magnitude);
     }
 }
@@ -129,9 +129,9 @@ public class DeadzoneProcessor : IInputProcessor
 /// </summary>
 public class ExponentialProcessor : IInputProcessor
 {
-    public double Exponent { get; set; } = 2f;
+    public double Exponent { get; set; } = 2.0;
 
-    public ExponentialProcessor(double exponent = 2f)
+    public ExponentialProcessor(double exponent = 2.0)
     {
         Exponent = exponent;
     }

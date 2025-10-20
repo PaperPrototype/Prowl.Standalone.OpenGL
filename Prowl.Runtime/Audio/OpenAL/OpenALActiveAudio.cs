@@ -42,7 +42,7 @@ public class OpenALActiveAudio : ActiveAudio
         }
         set
         {
-            if (value < 0.5 || value > 2.0f)
+            if (value < 0.5 || value > 2.0)
                 throw new ArgumentOutOfRangeException(null, "Pitch must be between 0.5 and 2.0.");
 
             OpenALEngine.al.SetSourceProperty(ID, SourceFloat.Pitch, (float)value);

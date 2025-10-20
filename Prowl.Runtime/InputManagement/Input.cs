@@ -193,7 +193,7 @@ public static class Input
 
         // Normalize diagonal movement
         double magnitude = Math.Sqrt(input.X * input.X + input.Y * input.Y);
-        if (magnitude > 1f)
+        if (magnitude > 1.0)
             input /= magnitude;
 
         return input;
@@ -212,7 +212,7 @@ public static class Input
 
         // Normalize diagonal movement
         double magnitude = Math.Sqrt(input.X * input.X + input.Y * input.Y);
-        if (magnitude > 1f)
+        if (magnitude > 1.0)
             input /= magnitude;
 
         return input;

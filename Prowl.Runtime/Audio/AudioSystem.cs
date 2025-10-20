@@ -117,17 +117,17 @@ public static class AudioSystem
 
     public static ActiveAudio PlaySound(AudioClip clip)
     {
-        return PlaySound(clip, 1.0f, 1.0f);
+        return PlaySound(clip, 1.0, 1.0);
     }
 
     public static ActiveAudio PlaySound(AudioBuffer buffer)
     {
-        return PlaySound(buffer, 1.0f, 1.0f, Double3.Zero, AudioPositionKind.ListenerRelative, 32f);
+        return PlaySound(buffer, 1.0, 1.0, Double3.Zero, AudioPositionKind.ListenerRelative, 32f);
     }
 
     public static ActiveAudio PlaySound(AudioClip clip, double volume)
     {
-        return PlaySound(clip, volume, 1f);
+        return PlaySound(clip, volume, 1);
     }
 
     public static ActiveAudio PlaySound(AudioClip clip, double volume, double pitch)
