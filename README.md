@@ -1,5 +1,5 @@
 > [!NOTE]
-> This is a fork of Prowl with a Unity like API with GameObjects and Scenes. I forked it right before the lead developer (Wulferis) was about to do a rewrite of the engine to use BGFX instead of OpenGL. It will probably be better once that is done (maybe that will be done within a few days) but I wanted my own fork of Prowl that was confirmed working on Mac and Windows. Be sure to check out the original Prowl repository for the latest changes.
+> This is a fork of Prowl. I forked it right before the lead developer (Wulferis) was about to do a rewrite of the engine to use BGFX instead of OpenGL. It will probably be better once that is done (maybe that will be done within a few days) but I wanted my own fork of Prowl that was confirmed working on Mac and Windows. Be sure to check out the original Prowl repository for the latest changes.
 
 <img src="https://github.com/Kuvrot/Prowl/assets/23508114/5eef8da7-fb84-42f3-9d18-54b4f2d06551" width="100%" alt="Prowl logo image">
 
@@ -26,7 +26,59 @@
 
 Prowl is an open-source, **[MIT-licensed](#span-aligncenter-license-span)** game engine developed in **pure C# in latest .NET**. Be sure to check out the [original repository](https://github.com/ProwlEngine/Prowl)!
 
-It aims to provide a seamless transition for developers familiar with _Unity_ by maintaining a similar API while also following KISS and staying as small and customizable as possible. Ideally, _Unity_ projects can port over with as little resistance as possible.
+It aims to provide a seamless transition for developers familiar with _Unity_ by maintaining a similar API. You can use GameObjects and Scenes much like in Unity.
+
+```cs
+using Prowl.Runtime;
+using Prowl.Vector;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        new MyGame().Run("LineRenderer Demo", 1280, 720);
+    }
+}
+
+class MyGame : Game
+{
+    private GameObject cameraGO;
+    private Scene scene;
+
+    public override void Initialize()
+    {
+        scene = new Scene();
+
+        // Light
+        var lightGO = new GameObject("Directional Light");
+        lightGO.AddComponent<DirectionalLight>();
+        lightGO.Transform.localEulerAngles = new Double3(-80, 5, 0);
+        scene.Add(lightGO);
+
+        // Create ground plane
+        var groundGO = new GameObject("Ground");
+        var mr = groundGO.AddComponent<MeshRenderer>();
+        mr.Mesh = Mesh.CreateCube(Double3.One);
+        mr.Material = new Material(Shader.LoadDefault(DefaultShader.Standard));
+        groundGO.Transform.position = new(0, -3, 0);
+        groundGO.Transform.localScale = new(20, 1, 20);
+        scene.Add(groundGO);
+
+        // Camera
+        cameraGO = new("Main Camera");
+        cameraGO.tag = "Main Camera";
+        cameraGO.Transform.position = new(0, 2, -8);
+        var camera = cameraGO.AddComponent<Camera>();
+        scene.Add(cameraGO);
+
+        // Runs the Update/FixedUpdate methods
+        scene.Activate();
+
+        // You can also deactivate a scene
+        // scene.Deactivate();
+    }
+}
+```
 
 Please keep in mind that this is a fork of Prowl that was incredibly new and unstable and the main repository of Prowl should be used instead.
 
