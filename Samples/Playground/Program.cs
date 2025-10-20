@@ -69,6 +69,8 @@ public class PlaygroundGame : Game
 
         LoadCubes();
 
+        Themes.Initialize();
+
         // You can also deactivate a scene
         // scene.Deactivate();
     }
@@ -84,13 +86,85 @@ public class PlaygroundGame : Game
     {
         fontFile ??= new Prowl.Scribe.FontFile("/System/Library/Fonts/Monaco.ttf");
 
-        using (gui.Column("Vertical Spacing").Enter())
+        using (gui.Box("App").BackgroundColor(Themes.base100).Enter())
         {
-            GuiContainer(gui);
+            using (gui.Column("EditorContainer").Margin(8).Enter())
+            {
+                TitleBarUI(gui);
+
+                guiContainer(gui);
+            }
         }
     }
 
-    private void GuiContainer(Paper gui)
+    private void TitleBarUI(Paper gui)
+    {
+        using (gui.Row("Header").Height(28).Bottom(8).Enter())
+        {
+            gui.Box("tab 1")
+                .Width(80).Height(28)
+                .BackgroundColor(Themes.base100)
+                .Text("HAMMER  Bevy", fontFile)
+                .TextColor(Themes.baseContent)
+                .Hovered
+                    .BackgroundColor(Themes.base300)
+                .End()
+                .Rounded(5)
+                .Alignment(TextAlignment.MiddleCenter);
+
+            gui.Box("tab 2")
+                .Width(45).Height(28)
+                .BackgroundColor(Themes.base100)
+                .Text("File", fontFile)
+                .TextColor(Themes.baseContent)
+                .Rounded(5)
+                .Hovered
+                    .BackgroundColor(Themes.base300)
+                .End()
+                .Alignment(TextAlignment.MiddleCenter)
+                .Left(5);
+
+            gui.Box("tab 3")
+                .Width(45).Height(28)
+                .BackgroundColor(Themes.base100)
+                .Text("Edit", fontFile)
+                .TextColor(Themes.baseContent)
+                .Rounded(5)
+                .Hovered
+                    .BackgroundColor(Themes.base300)
+                .End()
+                .Alignment(TextAlignment.MiddleCenter)
+                .Left(5);
+
+            gui.Box("tab 4")
+                .Width(65).Height(28)
+                .BackgroundColor(Themes.base100)
+                .Text("Debug", fontFile)
+                .TextColor(Themes.baseContent)
+                .Rounded(5)
+                .Hovered
+                    .BackgroundColor(Themes.base300)
+                .End()
+                .Alignment(TextAlignment.MiddleCenter)
+                .Left(5);
+
+            gui.Box("Spacer");
+
+            gui.Box("Play / Pause")
+               .Width(64).Height(28)
+               .BackgroundColor(Themes.base200)
+               .Text("PLAY    PAUSE", fontFile)
+               .TextColor(Themes.baseContent)
+               .Rounded(5)
+               .Hovered
+                   .BackgroundColor(Themes.base250)
+               .End()
+               .Alignment(TextAlignment.MiddleCenter)
+               .Left(500);
+        }
+    }
+
+    private void guiContainer(Paper gui)
     {
         using (gui.Column("Vertical Spacing").Enter())
         {
@@ -100,15 +174,15 @@ public class PlaygroundGame : Game
                 using (gui.Row("Horizontal Spacing").Enter())
                 {
                     gui.Box("spacer");
-                    if (freelookInput.CursorVisible) GuiMenu(gui);
+                    if (freelookInput.CursorVisible) guiMenu(gui);
                     gui.Box("spacer");
                 }
             }
-            GuiTools(gui);
+            guiTools(gui);
         }
     }
 
-    private void GuiTools(Paper gui)
+    private void guiTools(Paper gui)
     {
         gui.Box("spacer");
         using (gui.Row("Toolbar").Height(40).Enter())
@@ -143,7 +217,7 @@ public class PlaygroundGame : Game
         }
     }
 
-    private void GuiMenu(Paper gui)
+    private void guiMenu(Paper gui)
     {
         using (gui.Column("Padding")
             .Rounded(5)
