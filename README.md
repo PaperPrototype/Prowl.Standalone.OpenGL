@@ -31,6 +31,7 @@ Prowl is an open-source, **[MIT-licensed](#span-aligncenter-license-span)** game
 It aims to provide a seamless transition for developers familiar with _Unity_ by maintaining a similar API. You can use GameObjects and Scenes much like in Unity.
 
 ```cs
+using Prowl.Runtime.Resources;
 using Prowl.Runtime;
 using Prowl.Vector;
 
@@ -67,12 +68,12 @@ class MyGame : Game
         // scene.Add(groundGO);
 
         // MODIFIED from original prowl (personal taste)
-        var groundGO = GameObject.Cube("Ground", new Double3(0, -3, 0), new Double3(20, 1, 20))
+        var groundGO = GameObject.Cube("Ground", new Double3(0, -3, 0), new Double3(20, 1, 20));
         scene.Add(groundGO);
 
         // Camera
         cameraGO = new("Main Camera");
-        cameraGO.tag = "Main Camera";
+        cameraGO.Tag = "Main Camera";
         cameraGO.Transform.Position = new(0, 2, -8);
         cameraGO.AddComponent<Camera>();
         scene.Add(cameraGO);
