@@ -52,22 +52,26 @@ class MyGame : Game
         // Light
         var lightGO = new GameObject("Directional Light");
         lightGO.AddComponent<DirectionalLight>();
-        lightGO.Transform.localEulerAngles = new Double3(-80, 5, 0);
+        lightGO.Transform.LocalEulerAngles = new Double3(-80, 5, 0);
         scene.Add(lightGO);
 
         // Create ground plane
-        var groundGO = new GameObject("Ground");
-        var mr = groundGO.AddComponent<MeshRenderer>();
-        mr.Mesh = Mesh.CreateCube(Double3.One);
-        mr.Material = new Material(Shader.LoadDefault(DefaultShader.Standard));
-        groundGO.Transform.position = new(0, -3, 0);
-        groundGO.Transform.localScale = new(20, 1, 20);
+        // var groundGO = new GameObject("Ground");
+        // var mr = groundGO.AddComponent<MeshRenderer>();
+        // mr.Mesh = Mesh.CreateCube(Double3.One);
+        // mr.Material = new Material(Shader.LoadDefault(DefaultShader.Standard));
+        // groundGO.Transform.Position = new(0, -3, 0);
+        // groundGO.Transform.LocalScale = new(20, 1, 20);
+        // scene.Add(groundGO);
+
+        // MODIFIED from original prowl (personal taste)
+        var groundGO = GameObject.Cube("Ground", new Double3(0, -3, 0), new Double3(20, 1, 20))
         scene.Add(groundGO);
 
         // Camera
         cameraGO = new("Main Camera");
         cameraGO.tag = "Main Camera";
-        cameraGO.Transform.position = new(0, 2, -8);
+        cameraGO.Transform.Position = new(0, 2, -8);
         var camera = cameraGO.AddComponent<Camera>();
         scene.Add(cameraGO);
 
