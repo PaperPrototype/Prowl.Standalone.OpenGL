@@ -32,23 +32,23 @@ Please keep in mind that this is a fork of Prowl that was incredibly new and uns
 
 The Samples folder should contain fully working projects that you can run. 
 
-VS Code:
-> If you are VS Code then you can select the `Program.cs` file and click the tiny little play button at the top of the editor.
+**VS Code:**
+If you are VS Code then you can select the `Program.cs` file and click the tiny little play button at the top of the editor.
 
-Visual Studio:
-> Select a solution that is in the Samples folder and run it.
+**Visual Studio:**
+Select a solution that is in the Samples folder and run it.
 
-Terminal and Command Prompt (VS Code)
-> On windows open a new Command Prompt (cmd) terminal in VS Codes integrated terminal.
-> Change into a folde in the samples directory:
-> ```bat
-> cd Samples/PhysicsCubes
-> ```
-> Assuming you have [dotnet](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) installed you should be able to then run the following command in the same folder as `Program.cs`:
-> ```bat
-> dotnet run
-> ```
-> The same commands work on MacOS (I am primarily a Mac user).
+**Terminal and Command Prompt (VS Code):**
+On windows open a new Command Prompt (cmd) terminal in VS Codes integrated terminal.
+Change into a folde in the samples directory:
+```bat
+cd Samples/PhysicsCubes
+```
+Assuming you have [dotnet](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) installed you should be able to then run the following command in the same folder as `Program.cs`:
+```bat
+dotnet run
+```
+The same commands work on MacOS (I am primarily a Mac user).
 
 ## Contributors
 
