@@ -1,4 +1,4 @@
-> [!NOTE]
+> [!IMPORTANT]
 > This is a fork of Prowl. I forked it right before the lead developer (Wulferis) was about to do a rewrite of the engine to use BGFX instead of OpenGL. It will probably be better once that is done (maybe that will be done within a few days) but I wanted my own fork of Prowl that was confirmed working on Mac and Windows. Be sure to check out the original Prowl repository for the latest changes.
 
 <img src="https://github.com/Kuvrot/Prowl/assets/23508114/5eef8da7-fb84-42f3-9d18-54b4f2d06551" width="100%" alt="Prowl logo image">
@@ -23,6 +23,8 @@
 
 
 ## About The Project
+
+Please keep in mind that this repository is a fork of Prowl that was incredibly new and unstable.
 
 Prowl is an open-source, **[MIT-licensed](#span-aligncenter-license-span)** game engine developed in **pure C# in latest .NET**. Be sure to check out the [original repository](https://github.com/ProwlEngine/Prowl)!
 
@@ -72,7 +74,7 @@ class MyGame : Game
         cameraGO = new("Main Camera");
         cameraGO.tag = "Main Camera";
         cameraGO.Transform.Position = new(0, 2, -8);
-        var camera = cameraGO.AddComponent<Camera>();
+        cameraGO.AddComponent<Camera>();
         scene.Add(cameraGO);
 
         // Runs the Update/FixedUpdate methods
@@ -84,7 +86,6 @@ class MyGame : Game
 }
 ```
 
-Please keep in mind that this is a fork of Prowl that was incredibly new and unstable and the main repository of Prowl should be used instead.
 
 ## Getting Started
 
