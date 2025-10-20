@@ -44,7 +44,9 @@ Select a solution that is in the Samples folder and run it.
 
 **Terminal and Command Prompt (VS Code):**
 
-On windows open a new Command Prompt (cmd) terminal in VS Codes integrated terminal. Change into a folder in the samples directory.
+On windows open a new Command Prompt (cmd) terminal in VS Codes integrated terminal. On Mac it will default to the correct one when you open the itegrated terminal. 
+
+Change into a folder in the Samples directory.
 
 > ```bat
 > cd Samples/PhysicsCubes
