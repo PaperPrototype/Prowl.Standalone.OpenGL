@@ -4,7 +4,7 @@ using Prowl.Vector;
 
 namespace Prowl.Runtime;
 
-public static class Primitives
+public partial class GameObject
 {
     private static Material _standardMaterial;
 
