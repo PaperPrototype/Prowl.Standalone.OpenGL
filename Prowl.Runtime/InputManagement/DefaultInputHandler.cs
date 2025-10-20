@@ -273,11 +273,11 @@ public class DefaultInputHandler : IInputHandler, IDisposable
     public double GetGamepadTrigger(int gamepadIndex, int triggerIndex)
     {
         if (!IsGamepadConnected(gamepadIndex))
-            return 0f;
+            return 0.0;
 
         IGamepad gamepad = Context.Gamepads[gamepadIndex];
         if (triggerIndex < 0 || triggerIndex >= gamepad.Triggers.Count)
-            return 0f;
+            return 0.0;
 
         return gamepad.Triggers[triggerIndex].Position;
     }

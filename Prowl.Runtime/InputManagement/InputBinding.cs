@@ -71,7 +71,7 @@ public class InputBinding
     /// <summary>
     /// Duration (in seconds) required for Hold interaction. Default: 0.4s
     /// </summary>
-    public double HoldDuration { get; set; } = 0.4f;
+    public double HoldDuration { get; set; } = 0.4;
 
     /// <summary>
     /// Number of taps required for MultiTap interaction. Default: 2
@@ -81,12 +81,12 @@ public class InputBinding
     /// <summary>
     /// Maximum time window (in seconds) between taps for MultiTap. Default: 0.3s
     /// </summary>
-    public double TapWindow { get; set; } = 0.3f;
+    public double TapWindow { get; set; } = 0.3;
 
     /// <summary>
     /// Maximum duration (in seconds) for a Tap to be valid. Default: 0.2s
     /// </summary>
-    public double MaxTapDuration { get; set; } = 0.2f;
+    public double MaxTapDuration { get; set; } = 0.2;
 
     /// <summary>
     /// Optional processors to apply to the input value (e.g., normalize, clamp, invert).

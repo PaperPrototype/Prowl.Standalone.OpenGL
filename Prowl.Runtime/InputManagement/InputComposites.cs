@@ -68,19 +68,19 @@ public class Vector2CompositeBinding : InputCompositeBinding
 
         // Check each direction
         if (IsPressed(inputHandler, Parts[UP]))
-            value.Y += 1f;
+            value.Y += 1.0;
         if (IsPressed(inputHandler, Parts[DOWN]))
-            value.Y -= 1f;
+            value.Y -= 1.0;
         if (IsPressed(inputHandler, Parts[LEFT]))
-            value.X -= 1f;
+            value.X -= 1.0;
         if (IsPressed(inputHandler, Parts[RIGHT]))
-            value.X += 1f;
+            value.X += 1.0;
 
         // Normalize if requested
         if (Normalize && !value.Equals(Double2.Zero))
         {
             double magnitude = Math.Sqrt(value.X * value.X + value.Y * value.Y);
-            if (magnitude > 1f)
+            if (magnitude > 1.0)
                 value /= magnitude;
         }
 
@@ -153,10 +153,10 @@ public class DualAxisCompositeBinding : InputCompositeBinding
                 0 => inputHandler.MouseDelta.X,
                 1 => inputHandler.MouseDelta.Y,
                 2 => inputHandler.MouseWheelDelta,
-                _ => 0f
+                _ => 0.0
             },
 
-            _ => 0f
+            _ => 0.0
         };
     }
 }
@@ -181,12 +181,12 @@ public class AxisCompositeBinding : InputCompositeBinding
 
     public override object ReadValue(IInputHandler inputHandler)
     {
-        double value = 0f;
+        double value = 0.0;
 
         if (IsPressed(inputHandler, Parts[POSITIVE]))
-            value += 1f;
+            value += 1.0;
         if (IsPressed(inputHandler, Parts[NEGATIVE]))
-            value -= 1f;
+            value -= 1.0;
 
         // Apply processors to the final composite value
         foreach (IInputProcessor processor in Processors)

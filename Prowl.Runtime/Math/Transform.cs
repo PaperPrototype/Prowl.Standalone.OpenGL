@@ -365,6 +365,6 @@ public class Transform
         return ret;
     }
 
-    static double InverseSafe(double f) => Maths.Abs(f) > double.Epsilon ? 1.0F / f : 0.0F;
+    static double InverseSafe(double f) => Maths.Abs(f) > double.Epsilon ? 1.0 / f : 0.0;
     static Double3 InverseSafe(Double3 v) => new(InverseSafe(v.X), InverseSafe(v.Y), InverseSafe(v.Z));
 }

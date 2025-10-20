@@ -306,7 +306,7 @@ public class AnimationCurve : ISerializable
             }
             prev = next;
         }
-        return 0f;
+        return 0.0;
     }
 
     public void Serialize(ref EchoObject value, SerializationContext ctx)

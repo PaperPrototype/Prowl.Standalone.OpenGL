@@ -326,6 +326,7 @@ public sealed class AudioDemoGame : Game
         lookAction.AddBinding(mouse);
         var rightStick = InputBinding.CreateGamepadAxisBinding(1, deviceIndex: 0);
         rightStick.Processors.Add(new DeadzoneProcessor(0.15f));
+        rightStick.Processors.Add(new ScaleProcessor(0.1f));
         rightStick.Processors.Add(new NormalizeProcessor());
         lookAction.AddBinding(rightStick);
 
