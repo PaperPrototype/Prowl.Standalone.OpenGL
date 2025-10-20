@@ -1,89 +1,51 @@
 using Prowl.Runtime;
 using Prowl.Vector;
 
-[RequireComponent(typeof(Camera))]
+[RequireComponent(typeof(LookInput))]
 public class LookCamera : MonoBehaviour
 {
     private const double METERS_PER_SECOND = 10;
+    private const double ANGLES_PER_SECOND = 100;
+    private const double VIRTUAL_MOUSE_PIXELS_PER_SECOND = 1000;
 
-    private bool _cursorVisible = true;
-
-    public bool CursorVisible
-    {
-        get
-        {
-            return _cursorVisible;
-        }
-        set
-        {
-            _cursorVisible = value;
-            Input.SetCursorVisible(_cursorVisible);
-        }
-    }
-
-    // Input Actions
-    private InputActionMap inputMap = null!;
-    private InputAction moveAction = null!;
-    private InputAction lookAction = null!;
-    private InputAction lookEnableAction = null!;
-    private InputAction flyUpAction = null!;
-    private InputAction flyDownAction = null!;
-    private InputAction sprintAction = null!;
+    private LookInput? inputComponent = null;
 
     public override void Start()
     {
-        inputMap = new InputActionMap("Playground Game");
-
-        // Movement (WASD + Gamepad)
-        moveAction = inputMap.AddAction("Move", InputActionType.Value);
-        moveAction.ExpectedValueType = typeof(Double2);
-
-        // WASD
-        moveAction.AddBinding(new Vector2CompositeBinding(
-            InputBinding.CreateKeyBinding(KeyCode.S),
-            InputBinding.CreateKeyBinding(KeyCode.W),
-            InputBinding.CreateKeyBinding(KeyCode.A),
-            InputBinding.CreateKeyBinding(KeyCode.D),
-            true
-        ));
-
-        // JOYSTICK
-        var leftStick = InputBinding.CreateGamepadAxisBinding(0, deviceIndex: 0);
-        leftStick.Processors.Add(new DeadzoneProcessor(0.15f));
-        leftStick.Processors.Add(new NormalizeProcessor());
-        moveAction.AddBinding(leftStick);
-
-        Input.RegisterActionMap(inputMap);
-        inputMap.Enable();
+        inputComponent = GetComponent<LookInput>();
     }
 
     public override void Update()
     {
-        Double2 axis = moveAction.ReadValue<Double2>();
+        if (inputComponent is null) return;
+
+        // Gamepad virtual mouse movement
+        Double2 gamepadLook = inputComponent.GamepadLook.ReadValue<Double2>() * Time.DeltaTime * 1000f;
+        if (inputComponent.CursorVisible)
+        {
+            if (Math.Abs(gamepadLook.X) > 0.01f || Math.Abs(gamepadLook.Y) > 0.01f)
+            {
+                Input.MousePosition += (Int2)Maths.Round(gamepadLook * Time.DeltaTime * VIRTUAL_MOUSE_PIXELS_PER_SECOND);
+            }
+            return;
+        }
 
         // Camera movement
         Double3 movement = Double3.Zero;
-        // if (Input.GetKey(KeyCode.W)) movement += Transform.Forward * Time.DeltaTime * METERS_PER_SECOND;
-        // if (Input.GetKey(KeyCode.S)) movement -= Transform.Forward * Time.DeltaTime * METERS_PER_SECOND;
-        // if (Input.GetKey(KeyCode.D)) movement += Transform.Right * Time.DeltaTime * METERS_PER_SECOND;
-        // if (Input.GetKey(KeyCode.A)) movement -= Transform.Right * Time.DeltaTime * METERS_PER_SECOND;
+        Double2 axis = inputComponent.Movement.ReadValue<Double2>();
         movement += Transform.Forward * -axis.Y * Time.DeltaTime * METERS_PER_SECOND;
         movement += Transform.Right * axis.X * Time.DeltaTime * METERS_PER_SECOND;
-        if (Input.GetKey(KeyCode.E)) movement += Transform.Up * Time.DeltaTime * METERS_PER_SECOND;
-        if (Input.GetKey(KeyCode.Q)) movement -= Transform.Up * Time.DeltaTime * METERS_PER_SECOND;
+        if (inputComponent.FlyUp.IsPressed()) movement += Transform.Up * Time.DeltaTime * METERS_PER_SECOND;
+        if (inputComponent.FlyDown.IsPressed()) movement -= Transform.Up * Time.DeltaTime * METERS_PER_SECOND;
 
-        // Apply movement
+        // Apply camera movement
         Transform.Position += movement;
 
-        // Mouse look
-        if (!_cursorVisible)
-            Transform.LocalEulerAngles += new Double3(Input.MouseDelta.Y, Input.MouseDelta.X, 0) * Time.DeltaTime * METERS_PER_SECOND;
-
-        // Enable or disable the mouse
-        if (Input.GetKeyDown(KeyCode.Escape))
+        // Camera look
+        Double2 lookInput = inputComponent.Look.ReadValue<Double2>() * Time.DeltaTime * 1000f;
+        if (Math.Abs(lookInput.X) > 0.01f || Math.Abs(lookInput.Y) > 0.01f)
         {
-            _cursorVisible = !_cursorVisible;
-            Input.SetCursorVisible(_cursorVisible);
+            Transform.LocalEulerAngles += new Double3(lookInput.Y, lookInput.X, 0) * Time.DeltaTime * ANGLES_PER_SECOND;
         }
     }
 }
