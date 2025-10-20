@@ -15,13 +15,26 @@ internal class Program
     }
 }
 
+enum PlaygroundObjectType : byte
+{
+    CUBE = 0,
+    SPHERE = 1,
+}
+
+struct PlaygroundObject
+{
+    public Double3 Position;
+    public PlaygroundObjectType Type;
+}
+
 public class PlaygroundGame : Game
 {
     private Scene scene;
     private GameObject cameraGO;
-    private LookCamera lookCamera;
+    private LookInput freelookInput;
     private GameObject indicator;
-    private List<Double3> placedCubes = new List<Double3>();
+    private List<PlaygroundObject> placedCubes = new List<PlaygroundObject>();
+    private PlaygroundObjectType playgroundObjectType = PlaygroundObjectType.CUBE;
 
     public override void Initialize()
     {
@@ -34,7 +47,7 @@ public class PlaygroundGame : Game
         scene.Add(lightGO);
 
         // MODIFIED from original prowl (personal taste)
-        var groundGO = GameObject.PhysicsCube("Ground", new Double3(0, -3, 0), new Double3(200, 1, 200), true);
+        var groundGO = GameObject.CreatePhysicsCube("Ground", new Double3(0, -3, 0), new Double3(200, 1, 200), true);
         scene.Add(groundGO);
 
         // Camera
@@ -42,10 +55,11 @@ public class PlaygroundGame : Game
         cameraGO.Tag = "Main Camera";
         cameraGO.Transform.Position = new(0, 2, -8);
         cameraGO.AddComponent<Camera>();
-        lookCamera = cameraGO.AddComponent<LookCamera>();
+        cameraGO.AddComponent<LookCamera>();
+        freelookInput = cameraGO.AddComponent<LookInput>();
         scene.Add(cameraGO);
 
-        indicator = GameObject.Cube("Indicator");
+        indicator = GameObject.CreateCube("Indicator");
         scene.Add(indicator);
 
         // Runs the Update/FixedUpdate methods
@@ -70,26 +84,76 @@ public class PlaygroundGame : Game
     {
         fontFile ??= new Prowl.Scribe.FontFile("/System/Library/Fonts/Monaco.ttf");
 
-        if (!lookCamera.CursorVisible) return;
-                            
-        using (gui.Box("Main").Enter())
+        using (gui.Column("Vertical Spacing").Enter())
+        {
+            GuiContainer(gui);
+        }
+    }
+
+    private void GuiContainer(Paper gui)
+    {
+        using (gui.Column("Vertical Spacing").Enter())
         {
             gui.Box("spacer");
-            using (gui.Box("Instructions").Enter())
+            using (gui.Box("Spacing Container").Enter())
             {
-                using (gui.Row("Sapcers").Enter())
+                using (gui.Row("Horizontal Spacing").Enter())
                 {
                     gui.Box("spacer");
+                    if (freelookInput.CursorVisible) GuiMenu(gui);
+                    gui.Box("spacer");
+                }
+            }
+            GuiTools(gui);
+        }
+    }
 
-                    using (gui.Column("Padding")
-                        .Rounded(5)
-                        .BackgroundColor(new Color(0.0, 0.0, 0.0, 0.8))
-                        .Enter())
-                    {
-                        gui.Box("Info")
-                        .Margin(5)
-                        .Wrap(Prowl.Scribe.TextWrapMode.Wrap)
-                        .Text($"""
+    private void GuiTools(Paper gui)
+    {
+        gui.Box("spacer");
+        using (gui.Row("Toolbar").Height(40).Enter())
+        {
+            gui.Box("spacer");
+
+            gui.Box("CUBE tool")
+                .Rounded(5)
+                .Alignment(TextAlignment.MiddleCenter)
+                .Text("CUBE", fontFile)
+                .TextColor(Color.Black)
+                .Height(30).Width(90)
+                .BackgroundColor(Color.Wheat)
+                .OnClick((_) =>
+                {
+                    playgroundObjectType = PlaygroundObjectType.CUBE;
+                });
+
+            gui.Box("SPHERE tool")
+                .Rounded(5)
+                .Alignment(TextAlignment.MiddleCenter)
+                .Text("SPHERE", fontFile)
+                .TextColor(Color.Black)
+                .Height(30).Width(90)
+                .BackgroundColor(Color.Wheat)
+                .OnClick((_) =>
+                {
+                    playgroundObjectType = PlaygroundObjectType.SPHERE;
+                });
+
+            gui.Box("spacer");
+        }
+    }
+
+    private void GuiMenu(Paper gui)
+    {
+        using (gui.Column("Padding")
+            .Rounded(5)
+            .BackgroundColor(new Color(0.0, 0.0, 0.0, 0.8))
+            .Enter())
+        {
+            gui.Box("Info")
+            .Margin(5)
+            .Wrap(Prowl.Scribe.TextWrapMode.Wrap)
+            .Text($"""
                         FPS {(int)(1 / Time.SmoothDeltaTime)}
                         WELCOME TO THE PLAYGROUND
 
@@ -98,28 +162,22 @@ public class PlaygroundGame : Game
                         Right click the mouse to place things
                         """, fontFile);
 
-                        using (gui.Row("Buttons").Height(40).Margin(5).Enter())
-                        {
-                            gui.Box("spacer");
+            using (gui.Row("Buttons").Height(40).Margin(5).Enter())
+            {
+                gui.Box("spacer");
 
-                            gui.Box("Start button")
-                            .Rounded(5)
-                            .Alignment(TextAlignment.MiddleCenter)
-                            .Text("Okay", fontFile)
-                            .TextColor(Color.Black)
-                            .Height(30).Width(90)
-                            .BackgroundColor(Color.Wheat)
-                            .OnClick((_) =>
-                            {
-                                lookCamera.CursorVisible = false;
-                            }); 
-                        }
-                    }
-
-                    gui.Box("spacer");
-                }
+                gui.Box("Start button")
+                .Rounded(5)
+                .Alignment(TextAlignment.MiddleCenter)
+                .Text("Okay", fontFile)
+                .TextColor(Color.Black)
+                .Height(30).Width(90)
+                .BackgroundColor(Color.Wheat)
+                .OnClick((_) =>
+                {
+                    freelookInput.CursorVisible = false;
+                });
             }
-            gui.Box("spacer");
         }
     }
 
@@ -130,9 +188,9 @@ public class PlaygroundGame : Game
         {
             indicator.Enabled = true;
             indicator.Transform.Position = hit.Point;
-            if (Input.GetMouseButtonDown(0))
+            if (freelookInput.Accept.WasPressedThisFrame())
             {
-                PlaceCube(hit.Point);
+                PlaceCube(hit.Point, playgroundObjectType);
             }
         }
         else
@@ -174,14 +232,14 @@ public class PlaygroundGame : Game
                 var echoObject = EchoObject.ReadFromString(jsonText);
 
                 Debug.Log($"echoObject.Count {echoObject.Count}");
-                
-                var deserialized = Serializer.Deserialize<List<Double3>>(echoObject);
+
+                var deserialized = Serializer.Deserialize<List<PlaygroundObject>>(echoObject);
 
                 if (deserialized != null)
                 {
-                    foreach (var pos in deserialized)
+                    foreach (var po in deserialized)
                     {
-                        PlaceCube(pos);
+                        PlaceCube(po.Position, po.Type);
                     }
                     Debug.Log($"Loaded and deserialized: {cubesPath}");
                 }
@@ -201,9 +259,22 @@ public class PlaygroundGame : Game
         }
     }
 
-    private void PlaceCube(Double3 position)
+    private void PlaceCube(Double3 position, PlaygroundObjectType type)
     {
-        placedCubes.Add(position);
-        scene.Add(GameObject.PhysicsCube(position, true));
+        var po = new PlaygroundObject
+        {
+            Type = type,
+            Position = position,
+        };
+        placedCubes.Add(po);
+        switch (type)
+        {
+            case PlaygroundObjectType.CUBE:
+                scene.Add(GameObject.CreatePhysicsCube(position, true));
+                break;
+            case PlaygroundObjectType.SPHERE:
+                scene.Add(GameObject.CreatePhysicsSphere(position, true));
+                break;
+        }
     }
 }
