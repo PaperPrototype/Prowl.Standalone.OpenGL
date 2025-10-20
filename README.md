@@ -39,15 +39,18 @@ If you are VS Code then you can select the `Program.cs` file and click the tiny 
 Select a solution that is in the Samples folder and run it.
 
 **Terminal and Command Prompt (VS Code):**
-On windows open a new Command Prompt (cmd) terminal in VS Codes integrated terminal.
-Change into a folde in the samples directory:
-```bat
-cd Samples/PhysicsCubes
-```
-Assuming you have [dotnet](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) installed you should be able to then run the following command in the same folder as `Program.cs`:
-```bat
-dotnet run
-```
+On windows open a new Command Prompt (cmd) terminal in VS Codes integrated terminal. Change into a folder in the samples directory.
+
+> ```bat
+> cd Samples/PhysicsCubes
+> ```
+
+Assuming you have [dotnet](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) installed you should be able to then run the following command in the same folder as `Program.cs`.
+
+> ```bat
+> dotnet run
+> ```
+
 The same commands work on MacOS (I am primarily a Mac user).
 
 ## Contributors
