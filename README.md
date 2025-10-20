@@ -12,13 +12,13 @@
 )](https://discord.gg/BqnJ9Rn4sn)
 
 1. [About The Project](#about-the-project)
-2. [Getting Started with This Fork](#getting-started)
+2. [Getting Started](#getting-started)
 2. [Contributors](#contributors)
 3. [Dependencies](#dependencies)
 2. [Editor](#editor)
 4. [License](#license)
 
-### About The Project
+## About The Project
 
 Prowl is an open-source, **[MIT-licensed](#span-aligncenter-license-span)** game engine developed in **pure C# in latest .NET**. Be sure to check out the [original repository](https://github.com/ProwlEngine/Prowl)!
 
@@ -28,7 +28,29 @@ Please keep in mind that this is a fork of Prowl that was incredibly new and uns
 
 [Join the Prowl Discord](https://discord.gg/BqnJ9Rn4sn)
 
-### Contributors
+## Getting Started
+
+The Samples folder should contain fully working projects that you can run. 
+
+VS Code:
+> If you are VS Code then you can select the `Program.cs` file and click the tiny little play button at the top of the editor.
+
+Visual Studio:
+> Select a solution that is in the Samples folder and run it.
+
+Terminal and Command Prompt (VS Code)
+> On windows open a new Command Prompt (cmd) terminal in VS Codes integrated terminal.
+> Change into a folde in the samples directory:
+> ```bat
+> cd Samples/PhysicsCubes
+> ```
+> Assuming you have [dotnet](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) installed you should be able to then run the following command in the same folder as `Program.cs`:
+> ```bat
+> dotnet run
+> ```
+> The same commands work on MacOS (I am primarily a Mac user).
+
+## Contributors
 
 - [Michael (Wulferis)](https://twitter.com/Wulferis)
 - [Abdiel Lopez (PaperPrototype)](https://github.com/PaperPrototype)
@@ -44,15 +66,15 @@ Please keep in mind that this is a fork of Prowl that was incredibly new and uns
 - [Mark Saba (ZeppelinGames)](https://github.com/ZeppelinGames)
 - [EJTP (Unified)](https://github.com/EJTP)
 
-### Dependencies
+## Dependencies
 
 - [Silk.NET](https://github.com/dotnet/Silk.NET)
 - [Jitter Physics 2](https://github.com/notgiven688/jitterphysics2)
 
-### Editor
+## Editor
 The standalone branch of Prowl that this fork was based on does not have an editor, and instead is a fully code first engine. Eventually the editor will be added back again. But yeah, if you are reading this please check out the Prowl repository for the latest updates.
 
-### License
+## License
 
 Distributed under the MIT License. See [LICENSE](//LICENSE) for more information.
 
