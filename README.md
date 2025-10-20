@@ -17,6 +17,10 @@
 3. [Dependencies](#dependencies)
 2. [Editor](#editor)
 4. [License](#license)
+5. [Join the Prowl Discord (link)](https://discord.gg/BqnJ9Rn4sn)
+[![Discord](https://img.shields.io/discord/1151582593519722668?logo=discord
+)](https://discord.gg/BqnJ9Rn4sn)
+
 
 ## About The Project
 
@@ -25,8 +29,6 @@ Prowl is an open-source, **[MIT-licensed](#span-aligncenter-license-span)** game
 It aims to provide a seamless transition for developers familiar with _Unity_ by maintaining a similar API while also following KISS and staying as small and customizable as possible. Ideally, _Unity_ projects can port over with as little resistance as possible.
 
 Please keep in mind that this is a fork of Prowl that was incredibly new and unstable and the main repository of Prowl should be used instead.
-
-[Join the Prowl Discord](https://discord.gg/BqnJ9Rn4sn)
 
 ## Getting Started
 
@@ -83,10 +85,3 @@ The standalone branch of Prowl that this fork was based on does not have an edit
 ## License
 
 Distributed under the MIT License. See [LICENSE](//LICENSE) for more information.
-
----
-
-[Join the Prowl Discord](https://discord.gg/BqnJ9Rn4sn)
-[![Discord](https://img.shields.io/discord/1151582593519722668?logo=discord
-)](https://discord.gg/BqnJ9Rn4sn)
-
