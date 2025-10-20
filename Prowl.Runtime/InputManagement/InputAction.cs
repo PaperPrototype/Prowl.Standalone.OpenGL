@@ -195,7 +195,9 @@ public class InputAction
         if (!Enabled || ActionType != InputActionType.Button)
             return false;
 
-        return ReadValue<double>() > 0.0 && Convert.ToSingle(_previousValue) <= 0.0;
+        bool currentActuated = IsValueActuated(_currentValue);
+        bool previousActuated = IsValueActuated(_previousValue);
+        return currentActuated && !previousActuated;
     }
 
     /// <summary>
@@ -206,7 +208,9 @@ public class InputAction
         if (!Enabled || ActionType != InputActionType.Button)
             return false;
 
-        return ReadValue<double>() <= 0.0 && Convert.ToSingle(_previousValue) > 0.0;
+        bool currentActuated = IsValueActuated(_currentValue);
+        bool previousActuated = IsValueActuated(_previousValue);
+        return !currentActuated && previousActuated;
     }
 
     /// <summary>
@@ -217,7 +221,7 @@ public class InputAction
         if (!Enabled || ActionType != InputActionType.Button)
             return false;
 
-        return ReadValue<double>() > 0.0;
+        return IsValueActuated(_currentValue);
     }
 
     /// <summary>
@@ -313,7 +317,7 @@ public class InputAction
             bool isActuated = IsValueActuated(rawValue);
 
             // Evaluate interaction and get the result
-            if (EvaluateInteraction(binding, isActuated, currentTime, out object interactionValue))
+            if (EvaluateInteraction(binding, rawValue, isActuated, currentTime, out object interactionValue))
             {
                 return interactionValue;
             }
@@ -322,7 +326,7 @@ public class InputAction
         return GetDefaultValue();
     }
 
-    private bool EvaluateInteraction(InputBinding binding, bool isActuated, double currentTime, out object value)
+    private bool EvaluateInteraction(InputBinding binding, object rawValue, bool isActuated, double currentTime, out object value)
     {
         InteractionState state = _interactionStates[binding];
         value = GetDefaultValue();
@@ -333,7 +337,7 @@ public class InputAction
                 // Standard behavior - actuated = trigger
                 if (isActuated)
                 {
-                    value = 1.0;
+                    value = rawValue;
                     return true;
                 }
                 break;
@@ -342,7 +346,7 @@ public class InputAction
                 // Only trigger on initial press (down)
                 if (isActuated && !state.WasActuated)
                 {
-                    value = 1.0;
+                    value = GetActuatedValue();
                     state.WasActuated = true;
                     return true;
                 }
@@ -356,7 +360,7 @@ public class InputAction
                 // Only trigger on release (up)
                 if (!isActuated && state.WasActuated)
                 {
-                    value = 1.0;
+                    value = GetActuatedValue();
                     state.WasActuated = false;
                     return true;
                 }
@@ -383,7 +387,7 @@ public class InputAction
                         double heldDuration = currentTime - state.PressStartTime;
                         if (heldDuration >= binding.HoldDuration)
                         {
-                            value = 1.0;
+                            value = GetActuatedValue();
                             state.HoldTriggered = true;
                             return true;
                         }
@@ -422,7 +426,7 @@ public class InputAction
                     double heldDuration = currentTime - state.PressStartTime;
                     if (heldDuration <= binding.MaxTapDuration)
                     {
-                        value = 1.0;
+                        value = GetActuatedValue();
                         state.WasActuated = false;
                         return true;
                     }
@@ -453,7 +457,7 @@ public class InputAction
                     // Check if we reached the required tap count
                     if (state.CurrentTapCount >= binding.TapCount)
                     {
-                        value = 1.0;
+                        value = GetActuatedValue();
                         state.CurrentTapCount = 0; // Reset
                         return true;
                     }
@@ -468,13 +472,13 @@ public class InputAction
                 // Trigger on both press and release
                 if (isActuated && !state.WasActuated)
                 {
-                    value = 1.0;
+                    value = GetActuatedValue();
                     state.WasActuated = true;
                     return true;
                 }
                 else if (!isActuated && state.WasActuated)
                 {
-                    value = 1.0;
+                    value = GetActuatedValue();
                     state.WasActuated = false;
                     return true;
                 }
@@ -518,6 +522,13 @@ public class InputAction
         if (ExpectedValueType == typeof(Double2))
             return Double2.Zero;
         return 0.0;
+    }
+
+    private object GetActuatedValue()
+    {
+        if (ExpectedValueType == typeof(Double2))
+            return new Double2(1.0, 1.0);
+        return 1.0;
     }
 
     private void InvokeCallback(Action<InputActionContext>? callback, InputActionPhase phase, double time, double duration)
