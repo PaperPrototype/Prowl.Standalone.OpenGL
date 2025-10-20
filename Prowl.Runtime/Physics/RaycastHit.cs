@@ -64,6 +64,6 @@ public struct RaycastHit
         Transform = Rigidbody?.GameObject?.Transform;
         Normal = new Double3(result.Normal.X, result.Normal.Y, result.Normal.Z);
         Distance = result.Lambda;
-        Point = origin + direction * Distance;
+        Point = origin + (direction * Distance);
     }
 }
