@@ -1296,6 +1296,7 @@ public static class GameObjectInspector
     }
 
     private static bool _addComponentOpen;
+    private static bool _addComponentFocusPending;
     private static GameObject? _addComponentTarget;
     private static string _addComponentSearch = "";
     private static List<string> _addComponentNavStack = [];
@@ -1324,6 +1325,7 @@ public static class GameObjectInspector
         _addComponentNavStack = [];
         _cachedComponents ??= GatherComponents();
         _addComponentOpen = true;
+        _addComponentFocusPending = true;
     }
 
     private static void CloseAddComponentPopup()
@@ -1377,6 +1379,12 @@ public static class GameObjectInspector
             using (paper.Row("gi_acp_search_row").Height(searchH).Enter())
             {
                 Origami.SearchField(paper, "gi_acp_search", _addComponentSearch, v => _addComponentSearch = v, Loc.Get("popup.search_components")).Show();
+
+                if (_addComponentFocusPending)
+                {
+                    paper.SetFocus(new ElementHandle(paper, paper.CurrentParent.Data.ChildIndices.First()));
+                    _addComponentFocusPending = false;
+                }
             }
 
             var components = _cachedComponents ?? [];
